@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CommandLine;
 using VisualStudioSolutionSecrets.Encryption;
@@ -97,6 +98,28 @@ namespace VisualStudioSolutionSecrets
         }
 
 
+        static bool ValidatePassphrase(string passphrase)
+        {
+            if (string.IsNullOrWhiteSpace(passphrase))
+            {
+                return false;
+            }
+
+            var hasNumber = new Regex(@"[0-9]+");
+            var hasUpperChar = new Regex(@"[A-Z]+");
+            var hasMiniMaxChars = new Regex(@".{8,}");
+            var hasLowerChar = new Regex(@"[a-z]+");
+            var hasSymbols = new Regex(@"[!@#$%^&*()_+=\[{\]};:<>|./?,-]");
+
+            return
+                hasLowerChar.IsMatch(passphrase)
+                && hasUpperChar.IsMatch(passphrase)
+                && hasMiniMaxChars.IsMatch(passphrase)
+                && hasNumber.IsMatch(passphrase)
+                && hasSymbols.IsMatch(passphrase);
+        }
+
+
         static async Task Init(InitOptions options)
         {
             InitDependencies();
@@ -107,6 +130,11 @@ namespace VisualStudioSolutionSecrets
                 if (!string.IsNullOrEmpty(options.KeyFile))
                 {
                     Console.WriteLine("\n    WARN: You have specified passphrase and keyfile, but only passphrase will be used.");
+                }
+
+                if (!ValidatePassphrase(options.Passphrase))
+                {
+                    Console.WriteLine("\n    WARN: The passphrase is weak. It should contains at least 8 characters in upper and lower case, at least one digit and at least one symbol between !@#$%^&*()_+=[{]};:<>|./?,-\n");
                 }
 
                 _cipher.Init(options.Passphrase);
