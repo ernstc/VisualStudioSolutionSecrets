@@ -1,4 +1,6 @@
-﻿# ***Visual Studio Solution Secrets***
+﻿![Nuget](https://img.shields.io/nuget/dt/vs-secrets) ![Nuget](https://img.shields.io/nuget/v/vs-secrets)
+
+# ***Visual Studio Solution Secrets***
 
 Tool for syncing Visual Studio solution secrets across different development machines.
 
@@ -55,7 +57,7 @@ Once you change the development machine, you don't have to copy any file from th
 
 <br/>
 
-![Concept](Concept.png)
+![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/main/Concept.png)
 
 <br/>
 

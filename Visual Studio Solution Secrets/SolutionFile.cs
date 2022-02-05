@@ -75,14 +75,27 @@ namespace VisualStudioSolutionSecrets
         {
             const string openTag = "<UserSecretsId>";
             const string endTag = "</UserSecretsId>";
-            string content = File.ReadAllText(projectFilePath);
-            int idx = content.IndexOf(openTag, StringComparison.InvariantCultureIgnoreCase);
-            if (idx >= 0)
+            if (File.Exists(projectFilePath))
             {
-                int endIdx = content.IndexOf(endTag, idx + 1);
-                string secretsId = content.Substring(idx + openTag.Length, endIdx - idx - openTag.Length);
-                string userProfileFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                return (secretsId, $"{userProfileFolder}\\AppData\\Roaming\\Microsoft\\UserSecrets\\{secretsId}\\secrets.json");
+                string content;
+                try
+                {
+                    content = File.ReadAllText(projectFilePath);
+                }
+                catch
+                {
+                    Console.WriteLine("    ERR: Error loading project file.");
+                    return null;
+                }
+
+                int idx = content.IndexOf(openTag, StringComparison.InvariantCultureIgnoreCase);
+                if (idx >= 0)
+                {
+                    int endIdx = content.IndexOf(endTag, idx + 1);
+                    string secretsId = content.Substring(idx + openTag.Length, endIdx - idx - openTag.Length);
+                    string userProfileFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                    return (secretsId, $"{userProfileFolder}\\AppData\\Roaming\\Microsoft\\UserSecrets\\{secretsId}\\secrets.json");
+                }
             }
             return null;
         }
