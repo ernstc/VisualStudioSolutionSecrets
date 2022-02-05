@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Visual Studio Solution Secrets": {
+      "commandName": "Project",
+      "commandLineArgs": "pull --all",
+      "workingDirectory": "C:\\Progetti"
+    }
+  }
+}
