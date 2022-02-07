@@ -1,4 +1,4 @@
-﻿![Nuget](https://img.shields.io/nuget/dt/vs-secrets) ![Nuget](https://img.shields.io/nuget/v/vs-secrets)
+![Nuget](https://img.shields.io/nuget/v/vs-secrets)
 
 # ***Visual Studio Solution Secrets***
 
