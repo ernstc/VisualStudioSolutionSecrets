@@ -142,8 +142,8 @@ Visual Studio Solution Secrets tool stores its files in the machine's user profi
 | Platform | Path |
 |----------|------|
 | Windows | `%APPDATA%\Visual Studio Solution Secrets` |
-| macSO | `~/.visualstudiosolutionsecrets` |
-| Linux | `~/.visualstudiosolutionsecrets` |
+| macSO | `~/.config/Visual Studio Solution Secrets` |
+| Linux | `~/.config/Visual Studio Solution Secrets` |
 
 <br/>
 

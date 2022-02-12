@@ -253,6 +253,11 @@ namespace VisualStudioSolutionSecrets
                 Console.Write($"Pulling secrets for solution: {solution.Name} ...");
                 
                 var files = await _repository.PullFilesAsync();
+                if (files.Count == 0)
+                {
+                    Console.WriteLine("Failed, secrets not found");
+                    continue;
+                }
 
                 // Validate header file
                 HeaderFile? header = null;

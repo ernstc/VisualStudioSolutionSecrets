@@ -49,7 +49,7 @@ namespace VisualStudioSolutionSecrets
 
                         if (_projRegex.IsMatch(value))
                         {
-                            string projectFilePath = Path.Combine(_solutionFolderPath, value);
+                            string projectFilePath = Path.Combine(_solutionFolderPath, Path.Combine(value.Split('\\')));
                             var secrects = GetProjectSecretsFilePath(projectFilePath);
                             if (secrects != null)
                             {
@@ -94,7 +94,7 @@ namespace VisualStudioSolutionSecrets
                     int endIdx = content.IndexOf(endTag, idx + 1);
                     string secretsId = content.Substring(idx + openTag.Length, endIdx - idx - openTag.Length);
                     string userProfileFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                    return (secretsId, $"{userProfileFolder}\\AppData\\Roaming\\Microsoft\\UserSecrets\\{secretsId}\\secrets.json");
+                    return (secretsId, GetSecretsFilePath(secretsId, userProfileFolder));
                 }
             }
             return null;
@@ -105,13 +105,22 @@ namespace VisualStudioSolutionSecrets
         {
             string secretsId = configFile.UniqueFileName.Substring(8, 36);
             string userProfileFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            string filePath = $"{userProfileFolder}\\AppData\\Roaming\\Microsoft\\UserSecrets\\{secretsId}\\secrets.json";
+            string filePath = GetSecretsFilePath(secretsId, userProfileFolder);
+
             FileInfo fileInfo = new FileInfo(filePath);
             if (!fileInfo.Directory.Exists)
             {
                 Directory.CreateDirectory(fileInfo.Directory.FullName);
             }
             File.WriteAllText(filePath, configFile.Content);
+        }
+
+
+        private static string GetSecretsFilePath(string secretsId, string userProfileFolder)
+        {
+            return (Environment.OSVersion.Platform == System.PlatformID.Win32NT) ?
+                $"{userProfileFolder}\\AppData\\Roaming\\Microsoft\\UserSecrets\\{secretsId}\\secrets.json" :
+                $"{userProfileFolder}/.microsoft/usersecrets/{secretsId}/secrets.json";
         }
     }
 }
