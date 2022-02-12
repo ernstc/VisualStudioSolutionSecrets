@@ -55,10 +55,16 @@ Once you change the development machine, you don't have to copy any file from th
 
 # How to use it
 
-For installing Visual Studio Solution Secrets tool, use the command below:
+For installing the tool, use the command below:
 
 ```
 dotnet tool install --global vs-secrets
+```
+
+If you already have the tool, but you want to update to the latest version, use the command:
+
+```
+dotnet tool update --global vs-secrets
 ```
 
 After you have installed the tool, you need to create the encryption key and then authorize it to use yours GitHub Gists. 
