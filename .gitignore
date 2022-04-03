@@ -3,3 +3,4 @@ obj
 .vs
 *.user
 nupkg
+.DS_Store
