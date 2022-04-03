@@ -27,6 +27,7 @@ namespace VisualStudioSolutionSecrets
     {
 
         static string? _versionString;
+        static Version? _currentVersion;
 
         static ICipher _cipher = null!;
         static IRepository _repository = null!;
@@ -38,6 +39,8 @@ namespace VisualStudioSolutionSecrets
             _versionString = Assembly.GetEntryAssembly()?
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion;
+
+            _currentVersion = string.IsNullOrEmpty(_versionString) ? new Version() : new Version(_versionString);
 
             Console.WriteLine(
                 @"
@@ -62,19 +65,32 @@ namespace VisualStudioSolutionSecrets
                 >(args)
                 
             .WithNotParsed(err => {
+                CheckForUpdates().Wait();
                 Console.WriteLine("\nUsage:");
                 Console.WriteLine("     vs-secrets push --all");
                 Console.WriteLine("     vs-secrets pull --all\n");
                 })
 
             .MapResult(
-                (InitOptions options) => { Init(options).Wait(); return 0; },
-                (PushSecrectsOptions options) => { PushSecrets(options).Wait(); return 0; },
-                (PullSecrectsOptions options) => { PullSecrets(options).Wait(); return 0; },
-                (SearchSecrectsOptions options) => { SearchSecrets(options); return 0; },
-                (StatusOptions options) => { StatusCheck(options).Wait(); return 0; },
+                (InitOptions options) => { CheckForUpdates().Wait(); Init(options).Wait(); return 0; },
+                (PushSecrectsOptions options) => { CheckForUpdates().Wait(); PushSecrets(options).Wait(); return 0; },
+                (PullSecrectsOptions options) => { CheckForUpdates().Wait(); PullSecrets(options).Wait(); return 0; },
+                (SearchSecrectsOptions options) => { CheckForUpdates().Wait(); SearchSecrets(options); return 0; },
+                (StatusOptions options) => { CheckForUpdates().Wait(); StatusCheck(options).Wait(); return 0; },
                 err => 1
                 );
+        }
+
+
+        static async Task CheckForUpdates()
+        {
+            var lastVersion = await Versions.CheckForNewVersion();
+            if (lastVersion > _currentVersion || true)
+            {
+                Console.WriteLine(">>> New version available <<<\n");
+                Console.WriteLine("Use the command below for upgrading to the latest version:\n");
+                Console.WriteLine("    dotnet tool update vs-secrets --global\n");
+            }
         }
 
 
