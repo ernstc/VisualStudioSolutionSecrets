@@ -7,10 +7,8 @@ using System.Threading.Tasks;
 
 namespace VisualStudioSolutionSecrets.Encryption
 {
-    public interface ICipher
+    public interface ICipher : IService
     {
-        bool IsReady { get; }
-
         void Init(string passphrase);
         void Init(Stream keyfile);
         string? Encrypt(string fileName, string plainText);

@@ -18,16 +18,30 @@ namespace VisualStudioSolutionSecrets.Repository
     public class GistRepository : IRepository
     {
 
-        private const string USER_AGENT = "VisualStudioSolutionSecrets/1.0";
-
         private const string APP_DATA_FILENAME = "github.json";
 
         private const string CLIENT_ID = "b0e87a43f71306d87649";
         private const string SCOPE = "gist";
 
+        private DeviceFlowResponse? _deviceFlowResponse;
+
         private string? _oauthAccessToken;
         private string? _repositoryName;
         private Gist? _gist;
+
+
+        public string? SolutionName
+        {
+            get
+            {
+                return _repositoryName;
+            }
+            set
+            {
+                _repositoryName = value;
+                _gist = null;
+            }
+        }
 
 
 
@@ -81,59 +95,73 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public GistRepository()
         {
-            var repositoryData = AppData.LoadData<RepositoryAppData>(APP_DATA_FILENAME);
-            if (repositoryData != null)
-            {
-                _oauthAccessToken = repositoryData.access_token;
-            }
+            RefreshStatus();
         }
 
 
-        public async Task AuthenticateAsync(string? repositoryName = null)
+        public async Task<bool> IsReady()
         {
-            _repositoryName = repositoryName;
+            await CheckAccessToken();
+            return _oauthAccessToken != null;
+        }
+
+
+        public Task RefreshStatus()
+        {
+            var repositoryData = AppData.LoadData<RepositoryAppData>(APP_DATA_FILENAME);
+            _oauthAccessToken = repositoryData?.access_token;
+            return Task.CompletedTask;
+        }
+
+
+        public async Task<string?> StartDeviceFlowAuthorizationAsync()
+        {
+            _deviceFlowResponse = await SendRequest<DeviceFlowResponse>(HttpMethod.Post, $"https://github.com/login/device/code?client_id={CLIENT_ID}&scope={SCOPE}");
+            return _deviceFlowResponse?.user_code;
+        }
+
+
+        public async Task CompleteDeviceFlowAuthorizationAsync()
+        {
+            if (_deviceFlowResponse == null)
+            {
+                return;
+            }
 
             await CheckAccessToken();
 
             if (_oauthAccessToken == null)
             {
-                var deviceCodeData = await SendRequest<DeviceFlowResponse>(HttpMethod.Post, $"https://github.com/login/device/code?client_id={CLIENT_ID}&scope={SCOPE}");
-                if (deviceCodeData != null)
+                OpenBrowser(_deviceFlowResponse.verification_uri);
+
+                for (int seconds = _deviceFlowResponse.expires_in; seconds > 0; seconds -= _deviceFlowResponse.interval)
                 {
-                    Console.WriteLine($"\nAuthenticate on GitHub with Device code = {deviceCodeData.user_code}\n");
-                    OpenBrowser(deviceCodeData.verification_uri);
+                    var accessTokenResponse = await SendRequest<AccessTokenResponse>(
+                        HttpMethod.Post,
+                        $"https://github.com/login/oauth/access_token?client_id={CLIENT_ID}&device_code={_deviceFlowResponse.device_code}&grant_type=urn:ietf:params:oauth:grant-type:device_code"
+                        );
 
-                    for (int seconds = deviceCodeData.expires_in; seconds > 0; seconds -= deviceCodeData.interval)
+                    if (accessTokenResponse?.access_token != null)
                     {
-                        var accessTokenResponse = await SendRequest<AccessTokenResponse>(
-                            HttpMethod.Post,
-                            $"https://github.com/login/oauth/access_token?client_id={CLIENT_ID}&device_code={deviceCodeData.device_code}&grant_type=urn:ietf:params:oauth:grant-type:device_code"
-                            );
+                        _oauthAccessToken = accessTokenResponse.access_token;
 
-                        if (accessTokenResponse?.access_token != null)
+                        AppData.SaveData(APP_DATA_FILENAME, new RepositoryAppData
                         {
-                            _oauthAccessToken = accessTokenResponse.access_token;
+                            access_token = _oauthAccessToken
+                        });
 
-                            AppData.SaveData(APP_DATA_FILENAME, new RepositoryAppData
-                            {
-                                access_token = _oauthAccessToken
-                            });
-
-                            break;
-                        }
-
-                        await Task.Delay(1000 * deviceCodeData.interval);
+                        break;
                     }
+
+                    await Task.Delay(1000 * _deviceFlowResponse.interval);
                 }
             }
-
-            _gist = await GetGist();
         }
 
 
-        private async Task<Gist?> GetGist()
+        private async Task<Gist?> GetGistAsync()
         {
-            if (_repositoryName != null)
+            if (_gist == null && _repositoryName != null)
             {
                 const int GIST_PER_PAGE = 100;
                 for (int page = 1; page < 1000; page++)
@@ -148,7 +176,7 @@ namespace VisualStudioSolutionSecrets.Repository
                         var gist = gists[i];
                         if (gist.description == _repositoryName)
                         {
-                            return gist;
+                            return _gist = gist;
                         }
                     }
                     if (gists.Count < GIST_PER_PAGE)
@@ -157,16 +185,17 @@ namespace VisualStudioSolutionSecrets.Repository
                     }
                 }
             }
-            return null;
+            return _gist;
         }
 
 
         public async Task<ICollection<(string name, string? content)>> PullFilesAsync()
         {
             List<(string name, string? content)> files = new List<(string name, string? content)>();
-            if (_gist != null && _gist.files != null)
+            var gist = await GetGistAsync();
+            if (gist?.files != null)
             {
-                foreach (var file in _gist.files)
+                foreach (var file in gist.files)
                 {
                     string? content = file.Value.content;
                     if (content == null && file.Value.raw_url != null)
@@ -188,8 +217,10 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        public async Task PushFilesAsync(ICollection<(string name, string? content)> files)
+        public async Task<bool> PushFilesAsync(ICollection<(string name, string? content)> files)
         {
+            var gist = await GetGistAsync();
+
             HttpClient client = new HttpClient(new HttpClientHandler()
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
@@ -197,12 +228,12 @@ namespace VisualStudioSolutionSecrets.Repository
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
 
-            if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(USER_AGENT))
-                client.DefaultRequestHeaders.Add("User-Agent", USER_AGENT);
+            if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
+                client.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
 
-            HttpRequestMessage request = _gist == null ?
+            HttpRequestMessage request = gist == null ?
                 new HttpRequestMessage(HttpMethod.Post, "https://api.github.com/gists") :
-                new HttpRequestMessage(HttpMethod.Patch, $"https://api.github.com/gists/{_gist.id}");
+                new HttpRequestMessage(HttpMethod.Patch, $"https://api.github.com/gists/{gist.id}");
 
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
 
@@ -232,9 +263,11 @@ namespace VisualStudioSolutionSecrets.Repository
             {
                 var response = await client.SendAsync(request);
                 var responseJson = await response.Content.ReadAsStringAsync();
+                return response.IsSuccessStatusCode;
             }
             catch
             {
+                return false;
             }
         }
 
@@ -254,8 +287,8 @@ namespace VisualStudioSolutionSecrets.Repository
             if (_oauthAccessToken != null)
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
 
-            if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(USER_AGENT))
-                client.DefaultRequestHeaders.Add("User-Agent", USER_AGENT);
+            if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
+                client.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
 
             var message = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/gists/00000000000000000000000000000000");
             message.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -289,8 +322,8 @@ namespace VisualStudioSolutionSecrets.Repository
             if (_oauthAccessToken != null)
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
 
-            if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(USER_AGENT))
-                client.DefaultRequestHeaders.Add("User-Agent", USER_AGENT);
+            if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
+                client.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
 
             var message = new HttpRequestMessage(method, uri);
             message.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

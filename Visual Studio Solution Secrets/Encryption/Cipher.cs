@@ -17,23 +17,29 @@ namespace VisualStudioSolutionSecrets.Encryption
         private string? _key;
 
 
-        public bool IsReady => !string.IsNullOrEmpty(_key);
-
-
         class CipherAppData
         {
             public string key { get; set; } = null!;
         }
 
 
-
         public Cipher()
         {
+            RefreshStatus();
+        }
+
+
+        public Task<bool> IsReady()
+        {
+            return Task.FromResult(!string.IsNullOrEmpty(_key));
+        }
+
+
+        public Task RefreshStatus()
+        {
             var cipherAppData = AppData.LoadData<CipherAppData>(APP_DATA_FILENAME);
-            if (cipherAppData != null)
-            {
-                _key = cipherAppData.key;
-            }
+            _key = cipherAppData?.key;
+            return Task.CompletedTask;
         }
 
 

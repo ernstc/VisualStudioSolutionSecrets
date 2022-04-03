@@ -53,4 +53,10 @@ namespace VisualStudioSolutionSecrets
         public bool All { get; set; }
     }
 
+
+    [Verb("status", HelpText = "Shows initialization status for the tool.")]
+    internal class StatusOptions
+    {
+    }
+
 }

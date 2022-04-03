@@ -27,7 +27,6 @@ namespace VisualStudioSolutionSecrets
     {
 
         static string? _versionString;
-        static Version _toolVersion = null!;
 
         static ICipher _cipher = null!;
         static IRepository _repository = null!;
@@ -39,8 +38,6 @@ namespace VisualStudioSolutionSecrets
             _versionString = Assembly.GetEntryAssembly()?
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion;
-
-            _toolVersion = string.IsNullOrEmpty(_versionString) ? new Version() : new Version(_versionString);
 
             Console.WriteLine(
                 @"
@@ -60,7 +57,8 @@ namespace VisualStudioSolutionSecrets
                 InitOptions,
                 PushSecrectsOptions,
                 PullSecrectsOptions,
-                SearchSecrectsOptions
+                SearchSecrectsOptions,
+                StatusOptions
                 >(args)
                 
             .WithNotParsed(err => {
@@ -74,6 +72,7 @@ namespace VisualStudioSolutionSecrets
                 (PushSecrectsOptions options) => { PushSecrets(options).Wait(); return 0; },
                 (PullSecrectsOptions options) => { PullSecrets(options).Wait(); return 0; },
                 (SearchSecrectsOptions options) => { SearchSecrets(options); return 0; },
+                (StatusOptions options) => { StatusCheck(options).Wait(); return 0; },
                 err => 1
                 );
         }
@@ -86,9 +85,9 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        static bool CanSync()
+        static async Task<bool> CanSync()
         {
-            if (!_cipher.IsReady)
+            if (!await _cipher.IsReady())
             {
                 Console.WriteLine("You need to create the encryption key before syncing secrets.");
                 Console.WriteLine("For generating the encryption key, use the command below:\n\n    vs-secrets init\n");
@@ -153,7 +152,18 @@ namespace VisualStudioSolutionSecrets
             }
             Console.WriteLine("Done\n");
 
-            await _repository.AuthenticateAsync();
+            await AuthenticateRepositoryAsync();
+        }
+
+
+        static async Task AuthenticateRepositoryAsync()
+        {
+            if (!await _repository.IsReady())
+            {
+                string? user_code = await _repository.StartDeviceFlowAuthorizationAsync();
+                Console.WriteLine($"\nAuthenticate on GitHub with Device code = {user_code}\n");
+                await _repository.CompleteDeviceFlowAuthorizationAsync();
+            }
         }
 
 
@@ -161,7 +171,7 @@ namespace VisualStudioSolutionSecrets
         {
             InitDependencies();
 
-            if (!CanSync())
+            if (!await CanSync())
             {
                 return;
             }
@@ -172,6 +182,8 @@ namespace VisualStudioSolutionSecrets
                 Console.WriteLine("Solution files not found.\n");
                 return;
             }
+
+            await AuthenticateRepositoryAsync();
 
             foreach (var solutionFile in solutionFiles)
             {
@@ -191,7 +203,7 @@ namespace VisualStudioSolutionSecrets
                 if (configFiles.Count == 0)
                     continue;
 
-                await _repository.AuthenticateAsync(solution.Name);
+                _repository.SolutionName = solution.Name;
 
                 Console.Write($"Pushing secrets for solution: {solution.Name} ...");
 
@@ -228,7 +240,7 @@ namespace VisualStudioSolutionSecrets
         {
             InitDependencies();
 
-            if (!CanSync())
+            if (!await CanSync())
             {
                 return;
             }
@@ -240,6 +252,8 @@ namespace VisualStudioSolutionSecrets
                 return;
             }
 
+            await AuthenticateRepositoryAsync();
+
             foreach (var solutionFile in solutionFiles)
             {
                 SolutionFile solution = new SolutionFile(solutionFile, _cipher);
@@ -248,7 +262,7 @@ namespace VisualStudioSolutionSecrets
                 if (configFiles.Count == 0)
                     continue;
 
-                await _repository.AuthenticateAsync(solution.Name);
+                _repository.SolutionName = solution.Name;
 
                 Console.Write($"Pulling secrets for solution: {solution.Name} ...");
                 
@@ -277,7 +291,8 @@ namespace VisualStudioSolutionSecrets
                 }
 
                 Version headerVersion = new Version(header.visualStudioSolutionSecretsVersion);
-                if (headerVersion.Major > _toolVersion.Major)
+                Version minVersion = new Version(Versions.MinimumFileFormatSupported);
+                if (headerVersion.Major > minVersion.Major)
                 {
                     Console.WriteLine($"\n    ERR: Header file has incompatible version {header.visualStudioSolutionSecretsVersion}");
                     Console.WriteLine($"\n         Consider to install an updated version of this tool.");
@@ -354,6 +369,19 @@ namespace VisualStudioSolutionSecrets
                     }
                 }
             }
+            Console.WriteLine();
+        }
+
+
+        static async Task StatusCheck(StatusOptions options)
+        {
+            InitDependencies();
+
+            Console.WriteLine("\nChecking status...\n");
+            string encryptionKeyStatus = await _cipher.IsReady() ? "OK" : "NOT DEFINED";
+            string repositoryAuthorizationStatus = await _repository.IsReady() ? "OK" : "NOT AUTHORIZED";
+            Console.WriteLine($"-            Ecryption key status: {encryptionKeyStatus}");
+            Console.WriteLine($"- Repository authorization status: {repositoryAuthorizationStatus}\n");
             Console.WriteLine();
         }
 

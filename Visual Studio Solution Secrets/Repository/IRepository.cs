@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 
 namespace VisualStudioSolutionSecrets.Repository
 {
-    public interface IRepository
+    public interface IRepository : IService
     {
-        Task AuthenticateAsync(string? repositoryName = null);
-        Task PushFilesAsync(ICollection<(string name, string? content)> files);
+        string? SolutionName { get; set; }
+        Task<string?> StartDeviceFlowAuthorizationAsync();
+        Task CompleteDeviceFlowAuthorizationAsync();
+        Task<bool> PushFilesAsync(ICollection<(string name, string? content)> files);
         Task<ICollection<(string name, string? content)>> PullFilesAsync();
     }
 }
