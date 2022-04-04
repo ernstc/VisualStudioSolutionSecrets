@@ -42,19 +42,7 @@ namespace VisualStudioSolutionSecrets
 
             _currentVersion = string.IsNullOrEmpty(_versionString) ? new Version() : new Version(_versionString);
 
-            Console.WriteLine(
-                @"
- __     ___                 _   ____  _             _ _                    
- \ \   / (_)___ _   _  __ _| | / ___|| |_ _   _  __| (_) ___               
-  \ \ / /| / __| | | |/ _` | | \___ \| __| | | |/ _` | |/ _ \              
-   \ V / | \__ \ |_| | (_| | |  ___) | |_| |_| | (_| | | (_) |             
-  ____/  |_|___/\__,_|___,_|_| |____/ \__|_____|\__,_|_|\___/      _       
- / ___|  ___ | |_   _| |_(_) ___  _ __   / ___|  ___  ___ _ __ ___| |_ ___ 
- \___ \ / _ \| | | | | __| |/ _ \| '_ \  \___ \ / _ \/ __| '__/ _ \ __/ __|
-  ___) | (_) | | |_| | |_| | (_) | | | |  ___) |  __/ (__| | |  __/ |_\__ \
- |____/ \___/|_|\__,_|\__|_|\___/|_| |_| |____/ \___|\___|_|  \___|\__|___/
-"
-                );
+            ShowLogo();
 
             CommandLine.Parser.Default.ParseArguments<
                 InitOptions,
@@ -63,13 +51,14 @@ namespace VisualStudioSolutionSecrets
                 SearchSecrectsOptions,
                 StatusOptions
                 >(args)
-                
-            .WithNotParsed(err => {
+
+            .WithNotParsed(err =>
+            {
                 CheckForUpdates().Wait();
                 Console.WriteLine("\nUsage:");
                 Console.WriteLine("     vs-secrets push --all");
                 Console.WriteLine("     vs-secrets pull --all\n");
-                })
+            })
 
             .MapResult(
                 (InitOptions options) => { CheckForUpdates().Wait(); Init(options).Wait(); return 0; },
@@ -81,6 +70,27 @@ namespace VisualStudioSolutionSecrets
                 );
         }
 
+
+        private static void ShowLogo()
+        {
+            Console.WriteLine(
+                            @"
+ __     ___                 _   ____  _             _ _                    
+ \ \   / (_)___ _   _  __ _| | / ___|| |_ _   _  __| (_) ___               
+  \ \ / /| / __| | | |/ _` | | \___ \| __| | | |/ _` | |/ _ \              
+   \ V / | \__ \ |_| | (_| | |  ___) | |_| |_| | (_| | | (_) |             
+  ____/  |_|___/\__,_|___,_|_| |____/ \__|_____|\__,_|_|\___/      _       
+ / ___|  ___ | |_   _| |_(_) ___  _ __   / ___|  ___  ___ _ __ ___| |_ ___ 
+ \___ \ / _ \| | | | | __| |/ _ \| '_ \  \___ \ / _ \/ __| '__/ _ \ __/ __|
+  ___) | (_) | | |_| | |_| | (_) | | | |  ___) |  __/ (__| | |  __/ |_\__ \
+ |____/ \___/|_|\__,_|\__|_|\___/|_| |_| |____/ \___|\___|_|  \___|\__|___/
+"
+                            );
+        }
+
+
+
+        #region Utilities
 
         static async Task CheckForUpdates()
         {
@@ -135,6 +145,37 @@ namespace VisualStudioSolutionSecrets
         }
 
 
+        static async Task AuthenticateRepositoryAsync()
+        {
+            if (!await _repository.IsReady())
+            {
+                string? user_code = await _repository.StartDeviceFlowAuthorizationAsync();
+                Console.WriteLine($"\nAuthenticate on GitHub with Device code = {user_code}\n");
+                await _repository.CompleteDeviceFlowAuthorizationAsync();
+            }
+        }
+
+
+        static string[] GetSolutionFiles(string? path, bool all)
+        {
+            var directory = path ?? Directory.GetCurrentDirectory();
+            try
+            {
+                return Directory.GetFiles(directory, "*.sln", all ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERR: {ex.Message}\n");
+                return new string[0];
+            }
+        }
+
+        #endregion
+
+
+
+        #region Commands
+
         static async Task Init(InitOptions options)
         {
             InitDependencies();
@@ -169,17 +210,6 @@ namespace VisualStudioSolutionSecrets
             Console.WriteLine("Done\n");
 
             await AuthenticateRepositoryAsync();
-        }
-
-
-        static async Task AuthenticateRepositoryAsync()
-        {
-            if (!await _repository.IsReady())
-            {
-                string? user_code = await _repository.StartDeviceFlowAuthorizationAsync();
-                Console.WriteLine($"\nAuthenticate on GitHub with Device code = {user_code}\n");
-                await _repository.CompleteDeviceFlowAuthorizationAsync();
-            }
         }
 
 
@@ -223,6 +253,8 @@ namespace VisualStudioSolutionSecrets
 
                 Console.Write($"Pushing secrets for solution: {solution.Name} ...");
 
+                Dictionary<string, Dictionary<string, string>> secrets = new Dictionary<string, Dictionary<string, string>>();
+
                 bool failed = false;
                 foreach (var configFile in configFiles)
                 {
@@ -230,7 +262,11 @@ namespace VisualStudioSolutionSecrets
                     {
                         if (configFile.Encrypt())
                         {
-                            files.Add((configFile.UniqueFileName, configFile.Content));
+                            if (!secrets.ContainsKey(configFile.GroupName))
+                            {
+                                secrets.Add(configFile.GroupName, new Dictionary<string, string>());
+                            }
+                            secrets[configFile.GroupName].Add(configFile.FileName, configFile.Content);
                         }
                         else
                         {
@@ -238,6 +274,12 @@ namespace VisualStudioSolutionSecrets
                             break;
                         }
                     }
+                }
+
+                foreach (var group in secrets)
+                {
+                    string groupContent = JsonSerializer.Serialize(group.Value);
+                    files.Add((group.Key, groupContent));
                 }
 
                 if (!failed)
@@ -281,7 +323,7 @@ namespace VisualStudioSolutionSecrets
                 _repository.SolutionName = solution.Name;
 
                 Console.Write($"Pulling secrets for solution: {solution.Name} ...");
-                
+
                 var files = await _repository.PullFilesAsync();
                 if (files.Count == 0)
                 {
@@ -326,24 +368,37 @@ namespace VisualStudioSolutionSecrets
                             continue;
                         }
 
-                        foreach (var configFile in configFiles)
+                        var secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(file.content);
+                        foreach (var secret in secretFiles)
                         {
-                            if (configFile.UniqueFileName == file.name)
+                            string configFileName = secret.Key;
+                            
+                            // This check is for compatibility with version 1.0.x
+                            if (configFileName == "content")
                             {
-                                configFile.Content = file.content;
-                                if (configFile.Decrypt())
+                                configFileName = "secrets.json";
+                            }
+
+                            foreach (var configFile in configFiles)
+                            {
+                                if (configFile.GroupName == file.name
+                                    && configFile.FileName == configFileName)
                                 {
-                                    solution.SaveConfigFile(configFile);
+                                    configFile.Content = secret.Value;
+                                    if (configFile.Decrypt())
+                                    {
+                                        solution.SaveConfigFile(configFile);
+                                    }
+                                    else
+                                    {
+                                        failed = true;
+                                    }
+                                    break;
                                 }
-                                else
-                                {
-                                    failed = true;
-                                }
-                                break;
                             }
                         }
 
-                        if (failed) 
+                        if (failed)
                         {
                             break;
                         }
@@ -401,19 +456,7 @@ namespace VisualStudioSolutionSecrets
             Console.WriteLine();
         }
 
+        #endregion
 
-        private static string[] GetSolutionFiles(string? path, bool all)
-        {
-            var directory = path ?? Directory.GetCurrentDirectory();
-            try
-            {
-                return Directory.GetFiles(directory, "*.sln", all ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"ERR: {ex.Message}\n");
-                return new string[0];
-            }
-        }
     }
 }

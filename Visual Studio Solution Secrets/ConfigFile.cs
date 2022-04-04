@@ -14,29 +14,29 @@ namespace VisualStudioSolutionSecrets
     public class ConfigFile
     {
 
+        private readonly string _fileName = null!;
         private readonly string _configFilePath = null!;
         private readonly string _uniqueFileName = null!;
         private readonly ICipher? _cipher;
 
 
-        public string UniqueFileName => _uniqueFileName;
+        public string GroupName => _uniqueFileName;
+        public string FileName => _fileName;
         public string? Content { get; set; }
         public string? ProjectFileName { get; set; }
 
 
-        class EncryptedContent
-        {
-            public string content { get; set; } = null!;
-        }
-
 
         public ConfigFile(string configFilePath, string uniqueFileName, ICipher? cipher)
         {
+            FileInfo fileInfo = new FileInfo(configFilePath);
+
+            _fileName = fileInfo.Name;
             _configFilePath = configFilePath;
             _uniqueFileName = uniqueFileName;
             _cipher = cipher;
 
-            if (File.Exists(_configFilePath))
+            if (fileInfo.Exists)
             {
                 Content = File.ReadAllText(_configFilePath);
             }
@@ -45,6 +45,9 @@ namespace VisualStudioSolutionSecrets
 
         public ConfigFile(string configFilePath, string uniqueFileName, string content, ICipher? cipher)
         {
+            FileInfo fileInfo = new FileInfo(configFilePath);
+
+            _fileName = fileInfo.Name;
             _configFilePath = configFilePath;
             _uniqueFileName = uniqueFileName;
             Content = content;
@@ -59,10 +62,7 @@ namespace VisualStudioSolutionSecrets
                 var encryptedContent = _cipher.Encrypt(_uniqueFileName, Content);
                 if (encryptedContent != null)
                 {
-                    Content = JsonSerializer.Serialize(new EncryptedContent
-                    {
-                        content = encryptedContent
-                    });
+                    Content = encryptedContent;
                     return true;
                 }
             }
@@ -74,8 +74,7 @@ namespace VisualStudioSolutionSecrets
         {
             if (_cipher != null && Content != null)
             {
-                var encryptedContent = JsonSerializer.Deserialize<EncryptedContent>(Content);
-                Content = _cipher.Decrypt(_uniqueFileName, encryptedContent!.content);
+                Content = _cipher.Decrypt(_uniqueFileName, Content);
                 return Content != null;
             }
             return false;
