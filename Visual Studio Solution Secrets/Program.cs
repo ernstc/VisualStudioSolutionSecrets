@@ -42,6 +42,11 @@ namespace VisualStudioSolutionSecrets
 
             _currentVersion = string.IsNullOrEmpty(_versionString) ? new Version() : new Version(_versionString);
 
+            if (args.Length == 0)
+            {
+                ShowLogo();
+            }
+
             CommandLine.Parser.Default.ParseArguments<
                 InitOptions,
                 PushSecrectsOptions,
@@ -52,7 +57,6 @@ namespace VisualStudioSolutionSecrets
 
             .WithNotParsed(err =>
             {
-                ShowLogo();
                 CheckForUpdates().Wait();
                 Console.WriteLine("\nUsage:");
                 Console.WriteLine("     vs-secrets push --all");
