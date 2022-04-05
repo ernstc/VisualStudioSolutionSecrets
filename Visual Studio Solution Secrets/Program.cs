@@ -438,6 +438,7 @@ namespace VisualStudioSolutionSecrets
                 return Task.CompletedTask;
             }
 
+            int solutionIndex = 0;
             foreach (var solutionFile in solutionFiles)
             {
                 SolutionFile solution = new SolutionFile(solutionFile, null);
@@ -445,15 +446,20 @@ namespace VisualStudioSolutionSecrets
                 var configFiles = solution.GetProjectsSecretConfigFile();
                 if (configFiles.Count > 0)
                 {
-                    Console.WriteLine("\n-----------------------------------");
-                    Console.WriteLine($"Solution: {solution.Name}");
+                    solutionIndex++;
+                    if (solutionIndex > 1)
+                    {
+                        Console.WriteLine("\n----------------------------------------");
+                    }
+                    Console.WriteLine($"\nSolution: {solution.Name}");
                     Console.WriteLine($"    Path: {solutionFile}\n");
 
                     Console.WriteLine("Projects that use secrets:");
 
+                    int i = 0;
                     foreach (var configFile in configFiles)
                     {
-                        Console.WriteLine($"    - {configFile.ProjectFileName}");
+                        Console.WriteLine($"   {++i,3}) {configFile.ProjectFileName}");
                     }
                 }
             }
