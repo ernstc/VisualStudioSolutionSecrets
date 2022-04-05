@@ -42,8 +42,6 @@ namespace VisualStudioSolutionSecrets
 
             _currentVersion = string.IsNullOrEmpty(_versionString) ? new Version() : new Version(_versionString);
 
-            ShowLogo();
-
             CommandLine.Parser.Default.ParseArguments<
                 InitOptions,
                 PushSecrectsOptions,
@@ -54,6 +52,7 @@ namespace VisualStudioSolutionSecrets
 
             .WithNotParsed(err =>
             {
+                ShowLogo();
                 CheckForUpdates().Wait();
                 Console.WriteLine("\nUsage:");
                 Console.WriteLine("     vs-secrets push --all");
@@ -61,18 +60,29 @@ namespace VisualStudioSolutionSecrets
             })
 
             .MapResult(
-                (InitOptions options) => { CheckForUpdates().Wait(); Init(options).Wait(); return 0; },
-                (PushSecrectsOptions options) => { CheckForUpdates().Wait(); PushSecrets(options).Wait(); return 0; },
-                (PullSecrectsOptions options) => { CheckForUpdates().Wait(); PullSecrets(options).Wait(); return 0; },
-                (SearchSecrectsOptions options) => { CheckForUpdates().Wait(); SearchSecrets(options); return 0; },
-                (StatusOptions options) => { CheckForUpdates().Wait(); StatusCheck(options).Wait(); return 0; },
+                (InitOptions options) => { return Execute(Init, options); },
+                (PushSecrectsOptions options) => { return Execute(PushSecrets, options); },
+                (PullSecrectsOptions options) => { return Execute(PullSecrets, options); },
+                (SearchSecrectsOptions options) => { return Execute(SearchSecrets, options); },
+                (StatusOptions options) => { return Execute(StatusCheck, options); },
                 err => 1
                 );
         }
 
 
+        private static int Execute<T>(Func<T, Task> action, T options)
+        {
+            CheckForUpdates().Wait();
+            action(options).Wait();
+            return 0;
+        }
+
+
+        private static bool _showedLogo = false;
         private static void ShowLogo()
         {
+            if (_showedLogo) return;
+            _showedLogo = true;
             Console.WriteLine(
                             @"
  __     ___                 _   ____  _             _ _                    
@@ -94,12 +104,16 @@ namespace VisualStudioSolutionSecrets
 
         static async Task CheckForUpdates()
         {
+            ShowLogo();
             var lastVersion = await Versions.CheckForNewVersion();
-            if (lastVersion > _currentVersion)
+            if (lastVersion > _currentVersion || true)
             {
-                Console.WriteLine(">>> New version available <<<\n");
+                //Console.WriteLine("------------------------------------------------------------");
+                Console.WriteLine($"Current version: {_currentVersion}\n");
+                Console.WriteLine($">>> New version available: {lastVersion} <<<");
                 Console.WriteLine("Use the command below for upgrading to the latest version:\n");
                 Console.WriteLine("    dotnet tool update vs-secrets --global\n");
+                Console.WriteLine("------------------------------------------------------------");
             }
         }
 
@@ -412,13 +426,13 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        static void SearchSecrets(SearchSecrectsOptions options)
+        static Task SearchSecrets(SearchSecrectsOptions options)
         {
             string[] solutionFiles = GetSolutionFiles(options.Path, options.All);
             if (solutionFiles.Length == 0)
             {
                 Console.WriteLine("Solution files not found.\n");
-                return;
+                return Task.CompletedTask;
             }
 
             foreach (var solutionFile in solutionFiles)
@@ -441,6 +455,7 @@ namespace VisualStudioSolutionSecrets
                 }
             }
             Console.WriteLine();
+            return Task.CompletedTask;
         }
 
 
