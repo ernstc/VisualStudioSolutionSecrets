@@ -104,11 +104,10 @@ namespace VisualStudioSolutionSecrets
 
         static async Task CheckForUpdates()
         {
-            ShowLogo();
             var lastVersion = await Versions.CheckForNewVersion();
             if (lastVersion > _currentVersion)
             {
-                //Console.WriteLine("------------------------------------------------------------");
+                ShowLogo();
                 Console.WriteLine($"Current version: {_currentVersion}\n");
                 Console.WriteLine($">>> New version available: {lastVersion} <<<");
                 Console.WriteLine("Use the command below for upgrading to the latest version:\n");
