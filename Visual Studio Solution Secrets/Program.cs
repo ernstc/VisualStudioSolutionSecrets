@@ -106,7 +106,7 @@ namespace VisualStudioSolutionSecrets
         {
             ShowLogo();
             var lastVersion = await Versions.CheckForNewVersion();
-            if (lastVersion > _currentVersion || true)
+            if (lastVersion > _currentVersion)
             {
                 //Console.WriteLine("------------------------------------------------------------");
                 Console.WriteLine($"Current version: {_currentVersion}\n");
