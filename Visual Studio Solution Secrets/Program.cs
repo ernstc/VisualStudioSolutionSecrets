@@ -469,8 +469,8 @@ namespace VisualStudioSolutionSecrets
             Console.WriteLine("\nChecking status...\n");
             string encryptionKeyStatus = await _cipher.IsReady() ? "OK" : "NOT DEFINED";
             string repositoryAuthorizationStatus = await _repository.IsReady() ? "OK" : "NOT AUTHORIZED";
-            Console.WriteLine($"-            Ecryption key status: {encryptionKeyStatus}");
-            Console.WriteLine($"- Repository authorization status: {repositoryAuthorizationStatus}\n");
+            Console.WriteLine($"             Ecryption key status: {encryptionKeyStatus}");
+            Console.WriteLine($"  Repository authorization status: {repositoryAuthorizationStatus}\n");
             Console.WriteLine();
         }
 
