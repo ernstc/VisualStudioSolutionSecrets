@@ -3,10 +3,10 @@
 ### Features
 
 * Extended secrets management to ASP.NET MVC 5 projects.
+* Added support to projects that share the same secret files.
 * Added "status" verb for checking the tool configuration.
+* Added check for upgrade to a new version.
 * Improved output presentation.
-* Added support to secret folders with many files.
-* Added support to projects that share the same secret file.
 
 ---
 
