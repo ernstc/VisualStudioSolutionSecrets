@@ -108,15 +108,22 @@ namespace VisualStudioSolutionSecrets
 
         static async Task CheckForUpdates()
         {
-            var lastVersion = await Versions.CheckForNewVersion();
-            if (lastVersion > _currentVersion)
+            if (_currentVersion != null)
             {
-                ShowLogo();
-                Console.WriteLine($"Current version: {_currentVersion}\n");
-                Console.WriteLine($">>> New version available: {lastVersion} <<<");
-                Console.WriteLine("Use the command below for upgrading to the latest version:\n");
-                Console.WriteLine("    dotnet tool update vs-secrets --global\n");
-                Console.WriteLine("------------------------------------------------------------");
+                var lastVersion = await Versions.CheckForNewVersion();
+
+                var v1 = new Version(lastVersion.Major, lastVersion.Minor, lastVersion.Build);
+                var v2 = new Version(_currentVersion.Major, _currentVersion.Minor, _currentVersion.Build);
+
+                if (v1 > v2)
+                {
+                    ShowLogo();
+                    Console.WriteLine($"Current version: {_currentVersion}\n");
+                    Console.WriteLine($">>> New version available: {lastVersion} <<<");
+                    Console.WriteLine("Use the command below for upgrading to the latest version:\n");
+                    Console.WriteLine("    dotnet tool update vs-secrets --global\n");
+                    Console.WriteLine("------------------------------------------------------------");
+                }
             }
         }
 

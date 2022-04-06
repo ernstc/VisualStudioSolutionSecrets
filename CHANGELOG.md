@@ -1,4 +1,4 @@
-﻿## April 2022 Release (version 1.1.0)
+﻿## April 2022 Release (version 1.1.2)
 
 ### Features
 
