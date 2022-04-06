@@ -269,9 +269,11 @@ namespace VisualStudioSolutionSecrets
                 List<(string fileName, string? content)> files = new List<(string fileName, string? content)>();
                 files.Add(("secrets", JsonSerializer.Serialize(headerFile)));
 
-                var configFiles = solution.GetProjectsSecretConfigFile();
+                var configFiles = solution.GetProjectsSecretConfigFiles();
                 if (configFiles.Count == 0)
+                {
                     continue;
+                }
 
                 _repository.SolutionName = solution.Name;
 
@@ -308,7 +310,10 @@ namespace VisualStudioSolutionSecrets
 
                 if (!failed)
                 {
-                    await _repository.PushFilesAsync(files);
+                    if (!await _repository.PushFilesAsync(files))
+                    {
+                        failed = true;
+                    }
                 }
 
                 Console.WriteLine(failed ? "Failed" : "Done");
@@ -340,7 +345,7 @@ namespace VisualStudioSolutionSecrets
             {
                 SolutionFile solution = new SolutionFile(solutionFile, _cipher);
 
-                var configFiles = solution.GetProjectsSecretConfigFile();
+                var configFiles = solution.GetProjectsSecretConfigFiles();
                 if (configFiles.Count == 0)
                     continue;
 
@@ -465,7 +470,7 @@ namespace VisualStudioSolutionSecrets
             {
                 SolutionFile solution = new SolutionFile(solutionFile, null);
 
-                var configFiles = solution.GetProjectsSecretConfigFile();
+                var configFiles = solution.GetProjectsSecretConfigFiles();
                 if (configFiles.Count > 0)
                 {
                     solutionIndex++;

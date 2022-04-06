@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using VisualStudioSolutionSecrets.Encryption;
 
@@ -22,6 +21,7 @@ namespace VisualStudioSolutionSecrets
 
         public string GroupName => _uniqueFileName;
         public string FileName => _fileName;
+        public string FilePath => _configFilePath;
         public string? Content { get; set; }
         public string? ProjectFileName { get; set; }
 
@@ -55,7 +55,7 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        internal bool Encrypt()
+        public bool Encrypt()
         {
             if (_cipher != null && Content != null)
             {
@@ -70,7 +70,7 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        internal bool Decrypt()
+        public bool Decrypt()
         {
             if (_cipher != null && Content != null)
             {

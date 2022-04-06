@@ -23,6 +23,7 @@ namespace VisualStudioSolutionSecrets.Encryption
         }
 
 
+
         public Cipher()
         {
             RefreshStatus();
@@ -45,6 +46,13 @@ namespace VisualStudioSolutionSecrets.Encryption
 
         public void Init(string passphrase)
         {
+            if (String.IsNullOrWhiteSpace(passphrase))
+            {
+                // Remove the key
+                AppData.SaveData(APP_DATA_FILENAME, new { });
+                return;
+            }
+
             byte[] data = UTF8Encoding.UTF8.GetBytes(passphrase);
             GenerateEncryptionKey(data);
         }
@@ -52,6 +60,13 @@ namespace VisualStudioSolutionSecrets.Encryption
 
         public void Init(Stream keyfile)
         {
+            if (keyfile == null)
+            {
+                // Remove the key
+                AppData.SaveData(APP_DATA_FILENAME, new { });
+                return;
+            }
+
             byte[] data = new byte[keyfile.Length];
             int read = keyfile.Read(data, 0, data.Length);
             if (read != data.Length)

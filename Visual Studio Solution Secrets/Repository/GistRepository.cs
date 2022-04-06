@@ -252,15 +252,15 @@ namespace VisualStudioSolutionSecrets.Repository
                 });
             }
 
-#if NET5_0_OR_GREATER
-            string payloadJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
-#else
-            string payloadJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { IgnoreNullValues = true });
-#endif
-            request.Content = new StringContent(payloadJson, Encoding.UTF8, "application/json");
-
             try
             {
+#if NET5_0_OR_GREATER
+                string payloadJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
+#else
+                string payloadJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { IgnoreNullValues = true });
+#endif
+                request.Content = new StringContent(payloadJson, Encoding.UTF8, "application/json");
+
                 var response = await client.SendAsync(request);
                 var responseJson = await response.Content.ReadAsStringAsync();
                 return response.IsSuccessStatusCode;

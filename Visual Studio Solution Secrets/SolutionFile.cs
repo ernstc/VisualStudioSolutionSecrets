@@ -43,7 +43,7 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public ICollection<ConfigFile> GetProjectsSecretConfigFile()
+        public ICollection<ConfigFile> GetProjectsSecretConfigFiles()
         {
             Dictionary<string, ConfigFile> configFiles = new Dictionary<string, ConfigFile>();
 
