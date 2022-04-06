@@ -77,7 +77,7 @@ namespace VisualStudioSolutionSecrets
                                 }
 
                                 var secrects = GetProjectSecretsFilePath(projectFileContent);
-                                if (secrects == null)
+                                if (secrects == null && projectFile.Directory != null)
                                 {
                                     secrects = GetDotNetFrameworkProjectSecretFiles(projectFileContent, projectFile.Directory);
                                 }
@@ -186,7 +186,7 @@ namespace VisualStudioSolutionSecrets
             string filePath = GetSecretsFilePath(secretsId, userProfileFolder, configFile.FileName);
 
             FileInfo fileInfo = new FileInfo(filePath);
-            if (!fileInfo.Directory.Exists)
+            if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
             {
                 Directory.CreateDirectory(fileInfo.Directory.FullName);
             }

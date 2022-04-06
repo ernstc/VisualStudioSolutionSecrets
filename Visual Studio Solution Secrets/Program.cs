@@ -385,7 +385,22 @@ namespace VisualStudioSolutionSecrets
                             continue;
                         }
 
-                        var secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(file.content);
+                        Dictionary<string, string>? secretFiles = null;
+                        try
+                        {
+                            secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(file.content);
+                        }
+                        catch
+                        {
+                            Console.Write($"\n    ERR: File content cannot be read: {file.name}");
+                        }
+
+                        if (secretFiles == null)
+                        {
+                            failed = true;
+                            break;
+                        }
+
                         foreach (var secret in secretFiles)
                         {
                             string configFileName = secret.Key;
