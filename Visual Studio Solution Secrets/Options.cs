@@ -20,6 +20,17 @@ namespace VisualStudioSolutionSecrets
     }
 
 
+    [Verb("changekey", HelpText = "Change the encryption key and encrypts all existing secrets with the new key.")]
+    internal class ChangeKeyOptions
+    {
+        [Option('p', "passphrase", Group = "Key", HelpText = "Passphare for creating the encryption key.")]
+        public string? Passphrase { get; set; }
+
+        [Option('f', "keyfile", Group = "Key", HelpText = "Key file path to use for creating the encryption key.")]
+        public string? KeyFile { get; set; }
+    }
+
+
     [Verb("push", HelpText = "Push encrypted solution secrets.")]
     internal class PushSecrectsOptions
     {

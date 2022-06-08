@@ -11,7 +11,7 @@ namespace VisualStudioSolutionSecrets.Encryption
     {
         void Init(string passphrase);
         void Init(Stream keyfile);
-        string? Encrypt(string fileName, string plainText);
-        string? Decrypt(string fileName, string encrypted);
+        string? Encrypt(string plainText);
+        string? Decrypt(string encrypted);
     }
 }

@@ -189,9 +189,44 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
+        private async Task<HeaderFile?> GetHeaderFile(Gist gist)
+        {
+            if (gist.files != null)
+            {
+                foreach (var file in gist.files)
+                {
+                    if (file.Key == "secrets")
+                    {
+                        string content;
+                        HttpClient httpClient = new HttpClient();
+                        try
+                        {
+                            content = await httpClient.GetStringAsync(file.Value.raw_url);
+                        }
+                        catch
+                        {
+                            break;
+                        }
+
+                        if (content != null)
+                        {
+                            try
+                            {
+                                return JsonSerializer.Deserialize<HeaderFile>(content);
+                            }
+                            catch
+                            { }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+
         public async Task<ICollection<(string name, string? content)>> PullFilesAsync()
         {
-            List<(string name, string? content)> files = new List<(string name, string? content)>();
+            var files = new List<(string name, string? content)>();
             var gist = await GetGistAsync();
             if (gist?.files != null)
             {
@@ -214,6 +249,82 @@ namespace VisualStudioSolutionSecrets.Repository
                 }
             }
             return files;
+        }
+
+
+        public async Task<ICollection<SolutionSettings>> PullAllSecretsAsync()
+        {
+            var data = new List<SolutionSettings>();
+
+            const int GIST_PER_PAGE = 100;
+            for (int page = 1; page < 1000; page++)
+            {
+                var gists = await SendRequest<List<Gist>>(HttpMethod.Get, $"https://api.github.com/gists?per_page={GIST_PER_PAGE}&page={page}");
+                if (gists == null || gists.Count == 0)
+                {
+                    break;
+                }
+                for (int i = 0; i < gists.Count; i++)
+                {
+                    var gist = gists[i];
+                    if (gist.files == null)
+                    {
+                        continue;
+                    }
+
+                    // Check if the gist is a solution secrets
+                    HeaderFile? header = await GetHeaderFile(gist);
+                    if (header == null || !header.IsVersionSupported())
+                    {
+                        continue;
+                    }
+
+                    if (header.solutionFile != null)
+                    {
+                        var files = new List<(string name, string? content)>();
+
+                        foreach (var file in gist.files)
+                        {
+                            if (file.Key == "secrets")
+                            {
+                                continue;
+                            }
+
+                            string? content = file.Value.content;
+                            if (content == null && file.Value.raw_url != null)
+                            {
+                                HttpClient httpClient = new HttpClient();
+                                try
+                                {
+                                    content = await httpClient.GetStringAsync(file.Value.raw_url);
+                                }
+                                catch
+                                {
+                                    continue;
+                                }
+                            }
+                            files.Add((file.Key, content));
+                        }
+
+                        if (files.Count > 0)
+                        {
+                            var solutionSettings = new SolutionSettings
+                            {
+                                SolutionName = header.solutionFile,
+                                Settings = files
+                            };
+
+                            data.Add(solutionSettings);
+                        }
+                    }
+                }
+                if (gists.Count < GIST_PER_PAGE)
+                {
+                    break;
+                }
+            }
+
+            return data;
         }
 
 

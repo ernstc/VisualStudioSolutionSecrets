@@ -98,7 +98,7 @@ namespace VisualStudioSolutionSecrets.Encryption
         }
 
 
-        public string? Encrypt(string fileName, string plainText)
+        public string? Encrypt(string plainText)
         {
             try
             {
@@ -151,7 +151,7 @@ namespace VisualStudioSolutionSecrets.Encryption
         }
 
 
-        public string? Decrypt(string fileName, string encrypted)
+        public string? Decrypt(string encrypted)
         {
             try
             {

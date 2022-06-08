@@ -6,6 +6,13 @@ using System.Threading.Tasks;
 
 namespace VisualStudioSolutionSecrets.Repository
 {
+
+    public class SolutionSettings {
+        public string SolutionName { get; set; }
+        public ICollection<(string name, string? content)> Settings { get; set; }
+    }
+
+
     public interface IRepository : IService
     {
         string? SolutionName { get; set; }
@@ -13,5 +20,6 @@ namespace VisualStudioSolutionSecrets.Repository
         Task CompleteDeviceFlowAuthorizationAsync();
         Task<bool> PushFilesAsync(ICollection<(string name, string? content)> files);
         Task<ICollection<(string name, string? content)>> PullFilesAsync();
+        Task<ICollection<SolutionSettings>> PullAllSecretsAsync();
     }
 }

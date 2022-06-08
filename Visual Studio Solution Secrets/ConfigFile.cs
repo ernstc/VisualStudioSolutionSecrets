@@ -59,7 +59,7 @@ namespace VisualStudioSolutionSecrets
         {
             if (_cipher != null && Content != null)
             {
-                var encryptedContent = _cipher.Encrypt(_uniqueFileName, Content);
+                var encryptedContent = _cipher.Encrypt(Content);
                 if (encryptedContent != null)
                 {
                     Content = encryptedContent;
@@ -74,7 +74,7 @@ namespace VisualStudioSolutionSecrets
         {
             if (_cipher != null && Content != null)
             {
-                Content = _cipher.Decrypt(_uniqueFileName, Content);
+                Content = _cipher.Decrypt(Content);
                 return Content != null;
             }
             return false;

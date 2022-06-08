@@ -13,16 +13,6 @@ using VisualStudioSolutionSecrets.Repository;
 namespace VisualStudioSolutionSecrets
 {
 
-
-    class HeaderFile
-    {
-        public string visualStudioSolutionSecretsVersion { get; set; } = null!;
-        public DateTime lastUpload { get; set; }
-        public string solutionFile { get; set; } = null!;
-    }
-
-
-
     static class Program
     {
 
@@ -49,6 +39,7 @@ namespace VisualStudioSolutionSecrets
 
             CommandLine.Parser.Default.ParseArguments<
                 InitOptions,
+                ChangeKeyOptions,
                 PushSecrectsOptions,
                 PullSecrectsOptions,
                 SearchSecrectsOptions,
@@ -65,6 +56,7 @@ namespace VisualStudioSolutionSecrets
 
             .MapResult(
                 (InitOptions options) => { return Execute(Init, options); },
+                (ChangeKeyOptions options) => { return Execute(ChangeKey, options); },
                 (PushSecrectsOptions options) => { return Execute(PushSecrets, options); },
                 (PullSecrectsOptions options) => { return Execute(PullSecrets, options); },
                 (SearchSecrectsOptions options) => { return Execute(SearchSecrets, options); },
@@ -194,6 +186,71 @@ namespace VisualStudioSolutionSecrets
             }
         }
 
+
+        static bool Confirm()
+        {
+            while (true)
+            {
+                Console.WriteLine("    Do you want to continue? [Y] Yes, [N] No");
+                var key = Console.ReadKey();
+                if (key.Key == ConsoleKey.Y)
+                {
+                    return true;
+                }
+                else if (key.Key == ConsoleKey.N)
+                {
+                    return false;
+                }
+            }
+        }
+
+
+        static bool AreEncryptionKeyParametersValid(string? passphrase, string? keyFile)
+        {
+            if (!string.IsNullOrEmpty(passphrase))
+            {
+                if (!string.IsNullOrEmpty(keyFile))
+                {
+                    Console.WriteLine("\n    WARN: You have specified passphrase and keyfile, but only passphrase will be used.");
+                }
+
+                if (!ValidatePassphrase(passphrase))
+                {
+                    Console.WriteLine("\n    WARN: The passphrase is weak. It should contains at least 8 characters in upper and lower case, at least one digit and at least one symbol between !@#$%^&*()_+=[{]};:<>|./?,-\n");
+                    if (!Confirm())
+                    {
+                        return false;
+                    }
+                }
+            }
+            else if (!string.IsNullOrEmpty(keyFile))
+            {
+                if (!File.Exists(keyFile))
+                {
+                    Console.WriteLine("\n    ERR: Cannot create encryption key. Key file not found.");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+
+        static void GenerateEncryptionKey(string? passphrase, string? keyFile)
+        {
+            Console.Write("Generating encryption key ...");
+            if (!string.IsNullOrEmpty(passphrase))
+            {
+                _cipher.Init(passphrase);
+            }
+            else if (!string.IsNullOrEmpty(keyFile))
+            {
+                using var file = File.OpenRead(keyFile);
+                _cipher.Init(file);
+                file.Close();
+            }
+            Console.WriteLine("Done\n");
+        }
+
         #endregion
 
 
@@ -204,36 +261,164 @@ namespace VisualStudioSolutionSecrets
         {
             InitDependencies();
 
-            Console.Write("Generating encryption key ...");
-            if (!string.IsNullOrEmpty(options.Passphrase))
+            if (AreEncryptionKeyParametersValid(options.Passphrase, options.KeyFile))
             {
-                if (!string.IsNullOrEmpty(options.KeyFile))
-                {
-                    Console.WriteLine("\n    WARN: You have specified passphrase and keyfile, but only passphrase will be used.");
-                }
-
-                if (!ValidatePassphrase(options.Passphrase))
-                {
-                    Console.WriteLine("\n    WARN: The passphrase is weak. It should contains at least 8 characters in upper and lower case, at least one digit and at least one symbol between !@#$%^&*()_+=[{]};:<>|./?,-\n");
-                }
-
-                _cipher.Init(options.Passphrase);
+                GenerateEncryptionKey(options.Passphrase, options.KeyFile);
+                await AuthenticateRepositoryAsync();
             }
-            else if (!string.IsNullOrEmpty(options.KeyFile))
+        }
+
+
+
+        /*
+         * 1) Validate encryption key parameters
+         * 2) Authenticate to repository
+         * 3) Load existing secrets with the current key
+         * 4) Generate the new encryption key
+         * 5) Encrypt secrets with the new key
+         * 6) Push encrypted secrets
+         * 
+         */
+
+
+        static async Task ChangeKey(ChangeKeyOptions options)
+        {
+            InitDependencies();
+
+            if (!await CanSync())
             {
-                if (!File.Exists(options.KeyFile))
-                {
-                    Console.WriteLine("\n    ERR: Cannot create encryption key. Key file not found.");
-                    return;
-                }
-
-                using var file = File.OpenRead(options.KeyFile);
-                _cipher.Init(file);
-                file.Close();
+                return;
             }
-            Console.WriteLine("Done\n");
+
+            if (!AreEncryptionKeyParametersValid(options.Passphrase, options.KeyFile))
+            {
+                return;
+            }
 
             await AuthenticateRepositoryAsync();
+
+
+            Console.Write("Loading existing secrets ...");
+            var allSecrets = await _repository.PullAllSecretsAsync();
+            Console.WriteLine("Done\n");
+
+            if (allSecrets.Count == 0)
+            {
+                Console.WriteLine("\nThere are no solution settings to that need to be encrypted with the new key.");
+            }
+
+            var successfulSolutionSecrets = new List<SolutionSettings>();
+
+            foreach (var solutionSecrets in allSecrets)
+            {
+                bool decryptionSucceded = true;
+                var decryptedSettings = new List<(string name, string? content)>();
+                foreach (var settings in solutionSecrets.Settings)
+                {
+                    if (settings.content == null)
+                        continue;
+
+                    string? decryptedContent = _cipher.Decrypt(settings.content);
+                    if (decryptedContent == null)
+                    {
+                        decryptionSucceded = false;
+                        break;
+                    }
+                    decryptedSettings.Add((settings.name, decryptedContent));
+                }
+                if (decryptionSucceded)
+                {
+                    solutionSecrets.Settings = decryptedSettings;
+                    successfulSolutionSecrets.Add(solutionSecrets);
+                }
+            }
+
+            if (successfulSolutionSecrets.Count != allSecrets.Count)
+            {
+                Console.WriteLine("\n    WARN: Some solution settings cannot be decrypted with the current encryption key.");
+                if (!Confirm())
+                {
+                    return;
+                }
+            }
+
+            GenerateEncryptionKey(options.Passphrase, options.KeyFile);
+
+            Console.Write("Saving secrets with the new key ...");
+
+            // TODO: Save secrets
+            foreach (var solutionSecrets in successfulSolutionSecrets)
+            {
+                var headerFile = new HeaderFile
+                {
+                    visualStudioSolutionSecretsVersion = _versionString!,
+                    lastUpload = DateTime.UtcNow,
+                    solutionFile = solutionSecrets.SolutionName
+                };
+
+                List<(string fileName, string? content)> files = new List<(string fileName, string? content)>();
+                files.Add(("secrets", JsonSerializer.Serialize(headerFile)));
+
+
+
+                Dictionary<string, Dictionary<string, string>> secrets = new Dictionary<string, Dictionary<string, string>>();
+
+                bool failed = false;
+                foreach (var settings in solutionSecrets.Settings)
+                {
+                    var settingFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(settings.content);
+                    var encryptedSettingFiles = new Dictionary<string, string>();
+
+                    foreach (var entry in settingFiles)
+                    {
+                        string? encryptedValue = _cipher.Encrypt(entry.Value);
+                        if (encryptedValue != null)
+                        {
+                            encryptedSettingFiles.Add(entry.Key, encryptedValue);
+                        }
+                    }
+
+                    /*
+                    if (configFile.content != null)
+                    {
+                        if (configFile.Encrypt())
+                        {
+                            if (!secrets.ContainsKey(configFile.GroupName))
+                            {
+                                secrets.Add(configFile.GroupName, new Dictionary<string, string>());
+                            }
+                            secrets[configFile.GroupName].Add(configFile.FileName, configFile.Content);
+                        }
+                        else
+                        {
+                            failed = true;
+                            break;
+                        }
+                    }
+                    */
+                }
+
+                foreach (var group in secrets)
+                {
+                    string groupContent = JsonSerializer.Serialize(group.Value);
+                    files.Add((group.Key, groupContent));
+                }
+
+                if (!failed)
+                {
+                    if (!await _repository.PushFilesAsync(files))
+                    {
+                        failed = true;
+                    }
+                }
+
+                Console.WriteLine(failed ? "Failed" : "Done");
+
+
+
+            }
+
+            Console.WriteLine("Done\n");
         }
 
 
@@ -377,12 +562,8 @@ namespace VisualStudioSolutionSecrets
                     continue;
                 }
 
-                Version headerVersion = new Version(header.visualStudioSolutionSecretsVersion);
-                Version minVersion = new Version(Versions.MinimumFileFormatSupported);
-                if (headerVersion.Major > minVersion.Major)
+                if (!header.IsVersionSupported())
                 {
-                    Console.WriteLine($"\n    ERR: Header file has incompatible version {header.visualStudioSolutionSecretsVersion}");
-                    Console.WriteLine($"\n         Consider to install an updated version of this tool.");
                     continue;
                 }
 
