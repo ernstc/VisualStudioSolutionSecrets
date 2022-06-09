@@ -32,7 +32,7 @@ namespace VisualStudioSolutionSecrets
 
 
     [Verb("push", HelpText = "Push encrypted solution secrets.")]
-    internal class PushSecrectsOptions
+    internal class PushSecretsOptions
     {
         [Option("path")]
         public string? Path { get; set; }
@@ -43,7 +43,7 @@ namespace VisualStudioSolutionSecrets
 
 
     [Verb("pull", HelpText = "Pull solution secrets and decrypt them.")]
-    internal class PullSecrectsOptions
+    internal class PullSecretsOptions
     {
         [Option("path", HelpText = "Path for searching solutions.")]
         public string? Path { get; set; }
@@ -55,7 +55,7 @@ namespace VisualStudioSolutionSecrets
 
 
     [Verb("search", HelpText = "Search for solution secrets.")]
-    internal class SearchSecrectsOptions
+    internal class SearchSecretsOptions
     {
         [Option("path", HelpText = "Path for searching solutions.")]
         public string? Path { get; set; }
@@ -66,7 +66,7 @@ namespace VisualStudioSolutionSecrets
 
 
     [Verb("status", HelpText = "Shows initialization status for the tool.")]
-    internal class StatusOptions
+    internal class StatusCheckOptions
     {
     }
 
