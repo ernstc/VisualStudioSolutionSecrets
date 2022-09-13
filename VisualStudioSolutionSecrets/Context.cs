@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Dynamic;
 using System.Reflection;
 using VisualStudioSolutionSecrets.Encryption;
+using VisualStudioSolutionSecrets.IO;
 using VisualStudioSolutionSecrets.Repository;
 
 
@@ -16,17 +18,35 @@ namespace VisualStudioSolutionSecrets
         public Version? CurrentVersion { get; }
 
 
-        public ICipher Cipher { get; set; } = null!;
-        public IRepository Repository { get; set; } = null!;
+        public IFileSystem IO { get; private set; } = null!;
+        public ICipher Cipher { get; private set; } = null!;
+        public IRepository Repository { get; private set; } = null!;
 
 
-        public Context()
+        private Context()
         {
             _versionString = Assembly.GetEntryAssembly()?
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion;
 
             _currentVersion = string.IsNullOrEmpty(_versionString) ? new Version() : new Version(_versionString);
+        }
+
+
+        private static Context _current = null!;
+        public static Context Current => _current;
+
+
+        public static void Create(
+            IFileSystem fileSystem,
+            ICipher cipher,
+            IRepository repository
+            )
+        {
+            _current = new Context();
+            _current.IO = fileSystem;
+            _current.Cipher = cipher;
+            _current.Repository = repository;                
         }
 
     }

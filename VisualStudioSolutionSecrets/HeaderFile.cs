@@ -4,7 +4,7 @@
 namespace VisualStudioSolutionSecrets
 {
 
-    internal class HeaderFile
+    public class HeaderFile
     {
         public string visualStudioSolutionSecretsVersion { get; set; } = null!;
         public DateTime lastUpload { get; set; }
@@ -13,15 +13,22 @@ namespace VisualStudioSolutionSecrets
 
         public bool IsVersionSupported()
         {
-            Version headerVersion = new Version(visualStudioSolutionSecretsVersion);
-            Version minVersion = new Version(Versions.MinimumFileFormatSupported);
-            if (headerVersion.Major > minVersion.Major)
+            try
             {
-                Console.WriteLine($"\n    ERR: Header file has incompatible version {visualStudioSolutionSecretsVersion}");
-                Console.WriteLine($"\n         Consider to install an updated version of this tool.");
+                Version headerVersion = new Version(visualStudioSolutionSecretsVersion);
+                Version minVersion = new Version(Versions.MinimumFileFormatSupported);
+                if (headerVersion.Major > minVersion.Major)
+                {
+                    Console.WriteLine($"\n    ERR: Header file has incompatible version {visualStudioSolutionSecretsVersion}");
+                    Console.WriteLine($"\n         Consider to install an updated version of this tool.");
+                    return false;
+                }
+                return true;
+            }
+            catch
+            {
                 return false;
             }
-            return true;
         }
 
     }

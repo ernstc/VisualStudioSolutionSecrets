@@ -52,10 +52,10 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
         protected string[] GetSolutionFiles(string? path, bool all)
         {
-            var directory = path ?? Directory.GetCurrentDirectory();
+            var directory = path ?? Context.Current.IO.GetCurrentDirectory();
             try
             {
-                return Directory.GetFiles(directory, "*.sln", all ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+                return Context.Current.IO.GetFiles(directory, "*.sln", all ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
             }
             catch (Exception ex)
             {

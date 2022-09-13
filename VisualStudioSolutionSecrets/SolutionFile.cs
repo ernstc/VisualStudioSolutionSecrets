@@ -35,7 +35,7 @@ namespace VisualStudioSolutionSecrets
 
         public SolutionFile(string filePath, ICipher? cipher = null)
         {
-            FileInfo fileInfo = new FileInfo(filePath);
+            FileInfo fileInfo = Context.Current.IO.GetFileInfo(filePath);
             _filePath = filePath;
             _solutionFolderPath = fileInfo.Directory?.FullName ?? String.Empty;
             _cipher = cipher;
@@ -47,7 +47,7 @@ namespace VisualStudioSolutionSecrets
         {
             Dictionary<string, ConfigFile> configFiles = new Dictionary<string, ConfigFile>();
 
-            string[] lines = File.ReadAllLines(_filePath);
+            string[] lines = Context.Current.IO.FileReadAllLines(_filePath);
             foreach (string line in lines)
             {
                 if (line.StartsWith("Project("))
@@ -60,15 +60,15 @@ namespace VisualStudioSolutionSecrets
 
                         if (_projRegex.IsMatch(value))
                         {
-                            string projectFilePath = Path.Combine(_solutionFolderPath, Path.Combine(value.Split('\\')));
+                            string projectFilePath = Context.Current.IO.PathCombine(_solutionFolderPath, Context.Current.IO.PathCombine(value.Split('\\')));
                             string projectFileContent;
 
-                            FileInfo projectFile = new FileInfo(projectFilePath);
+                            FileInfo projectFile = Context.Current.IO.GetFileInfo(projectFilePath);
                             if (projectFile.Exists)
                             {
                                 try
                                 {
-                                    projectFileContent = File.ReadAllText(projectFilePath);
+                                    projectFileContent = Context.Current.IO.FileReadAllText(projectFilePath);
                                 }
                                 catch
                                 {
@@ -79,7 +79,7 @@ namespace VisualStudioSolutionSecrets
                                 var secrects = GetProjectSecretsFilePath(projectFileContent);
                                 if (secrects == null && projectFile.Directory != null)
                                 {
-                                    secrects = GetDotNetFrameworkProjectSecretFiles(projectFileContent, projectFile.Directory);
+                                    secrects = GetDotNetFrameworkProjectSecretFiles(projectFileContent, projectFile.Directory.FullName);
                                 }
 
                                 if (secrects != null)
@@ -128,7 +128,7 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        private SecretFileInfo? GetDotNetFrameworkProjectSecretFiles(string projectFileContent, DirectoryInfo projectFolder)
+        private SecretFileInfo? GetDotNetFrameworkProjectSecretFiles(string projectFileContent, string projectFolderPath)
         {
             const string openTag = "<ProjectTypeGuids>";
             const string closeTag = "</ProjectTypeGuids>";
@@ -143,10 +143,10 @@ namespace VisualStudioSolutionSecrets
                     string[] projectGuids = projectFileContent.Substring(idx + openTag.Length, endIdx - idx - openTag.Length).ToLower().Split(';');
                     if (projectGuids.Contains(ASPNET_MVC5_PROJECT_GUID))
                     {
-                        var webConfigFiles = projectFolder.GetFiles("web*.config", SearchOption.TopDirectoryOnly);
+                        var webConfigFiles = Context.Current.IO.GetFiles(projectFolderPath, "web*.config", SearchOption.TopDirectoryOnly);
                         foreach (var webConfigFile in webConfigFiles)
                         {
-                            XDocument xml = XDocument.Load(webConfigFile.FullName);
+                            XDocument xml = XDocument.Load(webConfigFile);
                             var addNodes = xml.Descendants(XName.Get("configBuilders"))
                                 .Descendants(XName.Get("builders"))
                                 .Descendants(XName.Get("add"));
@@ -185,12 +185,12 @@ namespace VisualStudioSolutionSecrets
             string userProfileFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             string filePath = GetSecretsFilePath(secretsId, userProfileFolder, configFile.FileName);
 
-            FileInfo fileInfo = new FileInfo(filePath);
+            FileInfo fileInfo = Context.Current.IO.GetFileInfo(filePath);
             if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
             {
-                Directory.CreateDirectory(fileInfo.Directory.FullName);
+                Context.Current.IO.CreateDirectory(fileInfo.Directory.FullName);
             }
-            File.WriteAllText(filePath, configFile.Content);
+            Context.Current.IO.FileWriteAllText(filePath, configFile.Content ?? String.Empty);
         }
 
 

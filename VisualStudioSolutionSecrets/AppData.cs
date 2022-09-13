@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -16,12 +15,12 @@ namespace VisualStudioSolutionSecrets
 
         public static T? LoadData<T>(string fileName) where T: class, new()
         {
-            string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), APP_DATA_FOLDER, fileName);
-            if (File.Exists(filePath))
+            string filePath = Context.Current.IO.PathCombine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), APP_DATA_FOLDER, fileName);
+            if (Context.Current.IO.FileExists(filePath))
             {
                 try
                 {
-                    return JsonSerializer.Deserialize<T>(File.ReadAllText(filePath));
+                    return JsonSerializer.Deserialize<T>(Context.Current.IO.FileReadAllText(filePath));
                 }
                 catch
                 {
@@ -33,16 +32,16 @@ namespace VisualStudioSolutionSecrets
 
         public static void SaveData<T>(string fileName, T data) where T : class, new()
         {
-            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), APP_DATA_FOLDER);
-            Directory.CreateDirectory(folderPath);
-            string filePath = Path.Combine(folderPath, fileName);
+            string folderPath = Context.Current.IO.PathCombine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), APP_DATA_FOLDER);
+            Context.Current.IO.CreateDirectory(folderPath);
+            string filePath = Context.Current.IO.PathCombine(folderPath, fileName);
             try
             {
                 string json = JsonSerializer.Serialize<T>(data, new JsonSerializerOptions 
                 {
                     WriteIndented = true
                 });
-                File.WriteAllText(filePath, JsonSerializer.Serialize<T>(data));
+                Context.Current.IO.FileWriteAllText(filePath, JsonSerializer.Serialize<T>(data));
             }
             catch
             {

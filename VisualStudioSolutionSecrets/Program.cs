@@ -4,6 +4,7 @@ using CommandLine;
 using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Encryption;
+using VisualStudioSolutionSecrets.IO;
 using VisualStudioSolutionSecrets.Repository;
 
 
@@ -12,9 +13,6 @@ namespace VisualStudioSolutionSecrets
 
     static class Program
     {
-
-        static Context _context = new Context();
-
 
         static void Main(string[] args)
         {
@@ -54,8 +52,11 @@ namespace VisualStudioSolutionSecrets
 
         private static void InitDependencies()
         {
-            _context.Cipher = new Cipher();
-            _context.Repository = new GistRepository();
+            Context.Create(
+                fileSystem: new DefaultFileSystem(),
+                cipher: new Cipher(),
+                repository: new GistRepository()
+                );
         }
 
 
@@ -63,7 +64,7 @@ namespace VisualStudioSolutionSecrets
         {
             CheckForUpdates().Wait();
             InitDependencies();
-            command.Execute(_context, options).Wait();
+            command.Execute(Context.Current, options).Wait();
             return 0;
         }
 
@@ -91,10 +92,10 @@ namespace VisualStudioSolutionSecrets
 
         static async Task CheckForUpdates()
         {
-            if (_context.CurrentVersion != null)
+            if (Context.Current.CurrentVersion != null)
             {
                 var lastVersion = await Versions.CheckForNewVersion();
-                var currentVersion = _context.CurrentVersion;
+                var currentVersion = Context.Current.CurrentVersion;
 
                 var v1 = new Version(lastVersion.Major, lastVersion.Minor, lastVersion.Build);
                 var v2 = new Version(currentVersion.Major, currentVersion.Minor, currentVersion.Build);

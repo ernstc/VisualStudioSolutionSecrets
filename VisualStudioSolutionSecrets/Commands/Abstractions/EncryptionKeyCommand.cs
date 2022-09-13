@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Text.RegularExpressions;
 
 
@@ -51,7 +50,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             }
             else if (!string.IsNullOrEmpty(keyFile))
             {
-                if (!File.Exists(keyFile))
+                if (!Context.Current.IO.FileExists(keyFile))
                 {
                     Console.WriteLine("\n    ERR: Cannot create encryption key. Key file not found.");
                     return false;
@@ -70,7 +69,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             }
             else if (!string.IsNullOrEmpty(keyFile))
             {
-                using var file = File.OpenRead(keyFile);
+                using var file = Context.Current.IO.FileOpenRead(keyFile);
                 Context.Cipher.Init(file);
                 file.Close();
             }
