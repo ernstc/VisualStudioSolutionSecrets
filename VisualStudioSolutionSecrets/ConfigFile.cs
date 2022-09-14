@@ -43,18 +43,6 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public ConfigFile(string configFilePath, string uniqueFileName, string content, ICipher? cipher)
-        {
-            FileInfo fileInfo = Context.Current.IO.GetFileInfo(configFilePath);
-
-            _fileName = fileInfo.Name;
-            _configFilePath = configFilePath;
-            _uniqueFileName = uniqueFileName;
-            Content = content;
-            _cipher = cipher;
-        }
-
-
         public bool Encrypt()
         {
             if (_cipher != null && Content != null)
@@ -74,8 +62,12 @@ namespace VisualStudioSolutionSecrets
         {
             if (_cipher != null && Content != null)
             {
-                Content = _cipher.Decrypt(Content);
-                return Content != null;
+                var decryptedContent = _cipher.Decrypt(Content);
+                if (decryptedContent != null)
+                {
+                    Content = decryptedContent;
+                    return true;
+                }
             }
             return false;
         }
