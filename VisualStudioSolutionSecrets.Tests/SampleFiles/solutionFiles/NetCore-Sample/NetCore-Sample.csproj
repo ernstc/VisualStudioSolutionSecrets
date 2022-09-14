@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>NetCore_Sample</RootNamespace>
+    <UserSecretsId>c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99</UserSecretsId>
+  </PropertyGroup>
+
+</Project>
