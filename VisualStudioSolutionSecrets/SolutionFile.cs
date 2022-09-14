@@ -60,7 +60,7 @@ namespace VisualStudioSolutionSecrets
 
                         if (_projRegex.IsMatch(value))
                         {
-                            string projectFilePath = Context.Current.IO.PathCombine(_solutionFolderPath, Context.Current.IO.PathCombine(value.Split('\\')));
+                            string projectFilePath = Path.Combine(_solutionFolderPath, Path.Combine(value.Split(Path.PathSeparator)));
                             string projectFileContent;
 
                             FileInfo projectFile = Context.Current.IO.GetFileInfo(projectFilePath);
@@ -84,7 +84,7 @@ namespace VisualStudioSolutionSecrets
 
                                 if (secrects != null)
                                 {
-                                    string groupName = $"secrets\\{secrects.SecretsId}.json";
+                                    string groupName = $"secrets{Path.PathSeparator}{secrects.SecretsId}.json";
                                     if (!configFiles.ContainsKey(secrects.FilePath))
                                     {
                                         var configFile = new ConfigFile(secrects.FilePath, groupName, _cipher);
@@ -115,7 +115,7 @@ namespace VisualStudioSolutionSecrets
                 if (endIdx > idx)
                 {
                     string secretsId = projectFileContent.Substring(idx + openTag.Length, endIdx - idx - openTag.Length);
-                    string userProfileFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                    string userProfileFolder = Context.Current.IO.GetUserProfileFolderPath();
                     return new SecretFileInfo
                     {
                         SecretsId = secretsId,
@@ -162,7 +162,7 @@ namespace VisualStudioSolutionSecrets
                                     && type != null
                                     && type.StartsWith(secretsBuilderTypeName, StringComparison.OrdinalIgnoreCase))
                                 {
-                                    string userProfileFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                                    string userProfileFolder = Context.Current.IO.GetUserProfileFolderPath();
                                     return new SecretFileInfo
                                     {
                                         SecretsId = userSecretsId,
@@ -182,7 +182,7 @@ namespace VisualStudioSolutionSecrets
         public void SaveConfigFile(ConfigFile configFile)
         {
             string secretsId = configFile.GroupName.Substring(8, 36);
-            string userProfileFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            string userProfileFolder = Context.Current.IO.GetUserProfileFolderPath();
             string filePath = GetSecretsFilePath(secretsId, userProfileFolder, configFile.FileName);
 
             FileInfo fileInfo = Context.Current.IO.GetFileInfo(filePath);

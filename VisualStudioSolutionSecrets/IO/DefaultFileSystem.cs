@@ -39,6 +39,11 @@ namespace VisualStudioSolutionSecrets.IO
             File.WriteAllText(path, contents);
         }
 
+        public string GetApplicationDataFolderPath()
+        {
+            return Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        }
+
         public string GetCurrentDirectory()
         {
             return Directory.GetCurrentDirectory();
@@ -54,19 +59,9 @@ namespace VisualStudioSolutionSecrets.IO
             return Directory.GetFiles(path, searchPattern, searchOption);
         }
 
-        public string PathCombine(string path1, string path2)
+        public string GetUserProfileFolderPath()
         {
-            return Path.Combine(path1, path2);
-        }
-
-        public string PathCombine(string path1, string path2, string path3)
-        {
-            return Path.Combine(path1, path2, path3);
-        }
-
-        public string PathCombine(params string[] paths)
-        {
-            return Path.Combine(paths);
+            return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         }
     }
 }

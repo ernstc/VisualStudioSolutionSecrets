@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace VisualStudioSolutionSecrets
 
         public static T? LoadData<T>(string fileName) where T: class, new()
         {
-            string filePath = Context.Current.IO.PathCombine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), APP_DATA_FOLDER, fileName);
+            string filePath = Path.Combine(Context.Current.IO.GetApplicationDataFolderPath(), APP_DATA_FOLDER, fileName);
             if (Context.Current.IO.FileExists(filePath))
             {
                 try
@@ -32,9 +33,9 @@ namespace VisualStudioSolutionSecrets
 
         public static void SaveData<T>(string fileName, T data) where T : class, new()
         {
-            string folderPath = Context.Current.IO.PathCombine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), APP_DATA_FOLDER);
+            string folderPath = Path.Combine(Context.Current.IO.GetApplicationDataFolderPath(), APP_DATA_FOLDER);
             Context.Current.IO.CreateDirectory(folderPath);
-            string filePath = Context.Current.IO.PathCombine(folderPath, fileName);
+            string filePath = Path.Combine(folderPath, fileName);
             try
             {
                 string json = JsonSerializer.Serialize<T>(data, new JsonSerializerOptions 

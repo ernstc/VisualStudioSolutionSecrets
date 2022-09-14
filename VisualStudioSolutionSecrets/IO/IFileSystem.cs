@@ -15,11 +15,10 @@ namespace VisualStudioSolutionSecrets.IO
         string[] FileReadAllLines(string path);
         string FileReadAllText(string path);
         void FileWriteAllText(string path, string contents);
+        string GetApplicationDataFolderPath();
         string GetCurrentDirectory();
         FileInfo GetFileInfo(string fileName);
         string[] GetFiles(string path, string searchPattern, SearchOption searchOption);
-        string PathCombine(string path1, string path2);
-        string PathCombine(string path1, string path2, string path3);
-        string PathCombine(params string[] paths);
+        string GetUserProfileFolderPath();
     }
 }
