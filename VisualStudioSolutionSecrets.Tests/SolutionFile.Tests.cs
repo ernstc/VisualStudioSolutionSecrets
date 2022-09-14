@@ -29,6 +29,10 @@ namespace VisualStudioSolutionSecrets.Tests
                 .Returns((string path) => defaultFileSystem.FileReadAllLines(path));
 
             fileSystemMock
+                .Setup(o => o.FileReadAllText(It.IsAny<string>()))
+                .Returns((string path) => defaultFileSystem.FileReadAllText(path));
+
+            fileSystemMock
                 .Setup(o => o.GetApplicationDataFolderPath())
                 .Returns(Constants.SampleFilesPath);
 
