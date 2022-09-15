@@ -60,7 +60,7 @@ namespace VisualStudioSolutionSecrets
 
                         if (_projRegex.IsMatch(value))
                         {
-                            string projectFilePath = Path.Combine(_solutionFolderPath, Path.Combine(value.Split(Path.PathSeparator)));
+                            string projectFilePath = Path.Combine(_solutionFolderPath, Path.Combine(value.Split(@"\")));
                             string projectFileContent;
 
                             FileInfo projectFile = Context.Current.IO.GetFileInfo(projectFilePath);
@@ -84,7 +84,7 @@ namespace VisualStudioSolutionSecrets
 
                                 if (secrects != null)
                                 {
-                                    string groupName = $"secrets{Path.PathSeparator}{secrects.SecretsId}.json";
+                                    string groupName = $"secrets\\{secrects.SecretsId}.json";
                                     if (!configFiles.ContainsKey(secrects.FilePath))
                                     {
                                         var configFile = new ConfigFile(secrects.FilePath, groupName, _cipher);
@@ -115,11 +115,10 @@ namespace VisualStudioSolutionSecrets
                 if (endIdx > idx)
                 {
                     string secretsId = projectFileContent.Substring(idx + openTag.Length, endIdx - idx - openTag.Length);
-                    string userProfileFolder = Context.Current.IO.GetUserProfileFolderPath();
                     return new SecretFileInfo
                     {
                         SecretsId = secretsId,
-                        FilePath = GetSecretsFilePath(secretsId, userProfileFolder, "secrets.json")
+                        FilePath = GetSecretsFilePath(secretsId, "secrets.json")
                     };
                 }
             }
@@ -162,11 +161,10 @@ namespace VisualStudioSolutionSecrets
                                     && type != null
                                     && type.StartsWith(secretsBuilderTypeName, StringComparison.OrdinalIgnoreCase))
                                 {
-                                    string userProfileFolder = Context.Current.IO.GetUserProfileFolderPath();
                                     return new SecretFileInfo
                                     {
                                         SecretsId = userSecretsId,
-                                        FilePath = GetSecretsFilePath(userSecretsId, userProfileFolder, "secrets.xml")
+                                        FilePath = GetSecretsFilePath(userSecretsId, "secrets.xml")
                                     };
                                 }
                             }
@@ -182,8 +180,7 @@ namespace VisualStudioSolutionSecrets
         public void SaveConfigFile(ConfigFile configFile)
         {
             string secretsId = configFile.GroupName.Substring(8, 36);
-            string userProfileFolder = Context.Current.IO.GetUserProfileFolderPath();
-            string filePath = GetSecretsFilePath(secretsId, userProfileFolder, configFile.FileName);
+            string filePath = GetSecretsFilePath(secretsId, configFile.FileName);
 
             FileInfo fileInfo = Context.Current.IO.GetFileInfo(filePath);
             if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
@@ -194,11 +191,13 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        private static string GetSecretsFilePath(string secretsId, string userProfileFolder, string fileName)
+        private static string GetSecretsFilePath(string secretsId, string fileName)
         {
-            return (Environment.OSVersion.Platform == System.PlatformID.Win32NT) ?
-                $"{userProfileFolder}\\AppData\\Roaming\\Microsoft\\UserSecrets\\{secretsId}\\{fileName}" :
-                $"{userProfileFolder}/.microsoft/usersecrets/{secretsId}/{fileName}";
+            return Path.Combine(
+                Context.Current.IO.GetSecretsFolderPath(),
+                secretsId,
+                fileName
+                );
         }
     }
 }

@@ -17,28 +17,15 @@ namespace VisualStudioSolutionSecrets.Tests
 
         public SolutionFileTests()
         {
-            var defaultFileSystem = new DefaultFileSystem();
-            var fileSystemMock = new Mock<IFileSystem>();
-
-            fileSystemMock
-                .Setup(o => o.GetFileInfo(It.IsAny<string>()))
-                .Returns((string path) => defaultFileSystem.GetFileInfo(path));
-
-            fileSystemMock
-                .Setup(o => o.FileReadAllLines(It.IsAny<string>()))
-                .Returns((string path) => defaultFileSystem.FileReadAllLines(path));
-
-            fileSystemMock
-                .Setup(o => o.FileReadAllText(It.IsAny<string>()))
-                .Returns((string path) => defaultFileSystem.FileReadAllText(path));
+            var fileSystemMock = new Mock<DefaultFileSystem>();
 
             fileSystemMock
                 .Setup(o => o.GetApplicationDataFolderPath())
                 .Returns(Constants.SampleFilesPath);
 
             fileSystemMock
-                .Setup(o => o.GetUserProfileFolderPath())
-                .Returns(Constants.SampleFilesPath);
+                .Setup(o => o.GetSecretsFolderPath())
+                .Returns(Constants.SecretFilesPath);
 
             _fileSystem = fileSystemMock.Object;
         }
@@ -59,6 +46,13 @@ namespace VisualStudioSolutionSecrets.Tests
             var secretConfigFiles = solutionFile.GetProjectsSecretConfigFiles();
 
             Assert.NotNull(secretConfigFiles);
+            Assert.Equal(2, secretConfigFiles.Count);
+            Assert.Contains(secretConfigFiles, item => item.FileName.EndsWith(".json"));
+            Assert.Contains(secretConfigFiles, item => item.FileName.EndsWith(".xml"));
+            Assert.Equal(
+                secretConfigFiles.ElementAt(0).GroupName,
+                secretConfigFiles.ElementAt(1).GroupName
+                );
         }
 
 

@@ -19,6 +19,6 @@ namespace VisualStudioSolutionSecrets.IO
         string GetCurrentDirectory();
         FileInfo GetFileInfo(string fileName);
         string[] GetFiles(string path, string searchPattern, SearchOption searchOption);
-        string GetUserProfileFolderPath();
+        string GetSecretsFolderPath();
     }
 }

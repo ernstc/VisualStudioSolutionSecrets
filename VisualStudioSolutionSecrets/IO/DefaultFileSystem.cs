@@ -39,7 +39,7 @@ namespace VisualStudioSolutionSecrets.IO
             File.WriteAllText(path, contents);
         }
 
-        public string GetApplicationDataFolderPath()
+        public virtual string GetApplicationDataFolderPath()
         {
             return Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         }
@@ -59,9 +59,11 @@ namespace VisualStudioSolutionSecrets.IO
             return Directory.GetFiles(path, searchPattern, searchOption);
         }
 
-        public string GetUserProfileFolderPath()
+        public virtual string GetSecretsFolderPath()
         {
-            return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            return (Environment.OSVersion.Platform == System.PlatformID.Win32NT) ?
+               Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData\\Roaming\\Microsoft\\UserSecrets") :
+               Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".microsoft/usersecrets");
         }
     }
 }
