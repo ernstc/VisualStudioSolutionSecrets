@@ -43,7 +43,12 @@ namespace VisualStudioSolutionSecrets.IO
 
         public virtual string GetApplicationDataFolderPath()
         {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), APP_DATA_FOLDER);
+            string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            if (String.IsNullOrEmpty(appDataFolder) && Environment.OSVersion.Platform == System.PlatformID.Unix)
+            {
+                appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config");
+            }
+            return Path.Combine(appDataFolder, APP_DATA_FOLDER);
         }
 
         public string GetCurrentDirectory()
