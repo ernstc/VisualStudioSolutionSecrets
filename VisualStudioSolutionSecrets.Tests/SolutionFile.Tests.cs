@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,9 +14,8 @@ namespace VisualStudioSolutionSecrets.Tests
     public class SolutionFileTests
     {
 
-        private IFileSystem _fileSystem;
 
-        public SolutionFileTests()
+        private void CreateContext(string? secretsSubFolderPath = null)
         {
             var fileSystemMock = new Mock<DefaultFileSystem>();
 
@@ -23,22 +23,26 @@ namespace VisualStudioSolutionSecrets.Tests
                 .Setup(o => o.GetApplicationDataFolderPath())
                 .Returns(Constants.SampleFilesPath);
 
+            string secretsFilesPath = Constants.SecretFilesPath;
+            if (secretsSubFolderPath != null)
+                secretsFilesPath = Path.Combine(secretsFilesPath, secretsSubFolderPath);
+
             fileSystemMock
                 .Setup(o => o.GetSecretsFolderPath())
-                .Returns(Constants.SecretFilesPath);
+                .Returns(secretsFilesPath);
 
-            _fileSystem = fileSystemMock.Object;
+            Context.Create(
+                fileSystemMock.Object,
+                new Mock<ICipher>().Object,
+                new Mock<IRepository>().Object
+                );
         }
 
 
         [Fact]
         public void GetProjectsSecretConfigFiles()
         {
-            Context.Create(
-                _fileSystem,
-                new Mock<ICipher>().Object,
-                new Mock<IRepository>().Object
-                );
+            CreateContext();
 
             var solutionFilePath = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln");
             SolutionFile solutionFile = new SolutionFile(solutionFilePath);
@@ -59,7 +63,28 @@ namespace VisualStudioSolutionSecrets.Tests
         [Fact]
         public void SaveConfigFile()
         {
-            Assert.Fail("Not implemented.");
+            // Phase 1: Load config files.
+            CreateContext();
+
+            var solutionFilePath = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln");
+            SolutionFile solutionFile = new SolutionFile(solutionFilePath);
+
+            var secretConfigFiles = solutionFile.GetProjectsSecretConfigFiles();
+            var configFile = secretConfigFiles.ElementAt(0);
+
+            // Phase 2: Save the first config file found in a subfolder and check that the files has been saved.
+            const string TEST_SUBFOLDER_NAME = "configFileSaveTest";
+            const string DEST_SECRET_FOLDER_PATH = $"{TEST_SUBFOLDER_NAME}\\c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99";
+
+            CreateContext(TEST_SUBFOLDER_NAME);
+
+            solutionFile.SaveConfigFile(configFile);
+
+            string savedConfigFilePath = Path.Combine(Constants.SecretFilesPath, DEST_SECRET_FOLDER_PATH, configFile.FileName);
+            Assert.True(File.Exists(savedConfigFilePath));
+
+            string savedConfigFileContet = File.ReadAllText(savedConfigFilePath);
+            Assert.Equal(configFile.Content, savedConfigFileContet);
         }
 
     }
