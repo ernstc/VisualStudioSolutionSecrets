@@ -50,20 +50,14 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        private static void InitDependencies()
-        {
-            Context.Create(
-                fileSystem: new DefaultFileSystem(),
-                cipher: new Cipher(),
-                repository: new GistRepository()
-                );
-        }
-
-
         private static int Execute<TOptions>(Command<TOptions> command, TOptions options)
         {
             CheckForUpdates().Wait();
-            InitDependencies();
+            Context.Configure(context =>
+            {
+                context.Cipher = new Cipher();
+                context.Repository = new GistRepository();
+            });
             command.Execute(Context.Current, options).Wait();
             return 0;
         }

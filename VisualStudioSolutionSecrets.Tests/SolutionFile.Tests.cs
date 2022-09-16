@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
+using NuGet.Protocol.Core.Types;
 using VisualStudioSolutionSecrets.Encryption;
 using VisualStudioSolutionSecrets.IO;
 using VisualStudioSolutionSecrets.Repository;
@@ -13,7 +14,6 @@ namespace VisualStudioSolutionSecrets.Tests
 {
     public class SolutionFileTests
     {
-
 
         private void CreateContext(string? secretsSubFolderPath = null)
         {
@@ -31,11 +31,10 @@ namespace VisualStudioSolutionSecrets.Tests
                 .Setup(o => o.GetSecretsFolderPath())
                 .Returns(secretsFilesPath);
 
-            Context.Create(
-                fileSystemMock.Object,
-                new Mock<ICipher>().Object,
-                new Mock<IRepository>().Object
-                );
+            Context.Configure(context =>
+            {
+                context.IO = fileSystemMock.Object;
+            });
         }
 
 

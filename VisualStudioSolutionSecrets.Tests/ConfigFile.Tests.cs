@@ -21,11 +21,11 @@ namespace VisualStudioSolutionSecrets.Tests
 
             cipher.Setup(o => o.Encrypt(It.IsAny<string>())).Returns("encrypted");
 
-            Context.Create(
-                new DefaultFileSystem(),
-                cipher.Object,
-                repository.Object
-                );
+            Context.Configure(context =>
+            {
+                context.Cipher = cipher.Object;
+                context.Repository = repository.Object;
+            });
 
             string configFilePath = Path.Combine(Constants.ConfigFilesPath, "configFile.json");
 
@@ -44,11 +44,11 @@ namespace VisualStudioSolutionSecrets.Tests
 
             cipher.Setup(o => o.Encrypt(It.IsAny<string>())).Returns((string)null);
 
-            Context.Create(
-                new DefaultFileSystem(),
-                cipher.Object,
-                repository.Object
-                );
+            Context.Configure(context =>
+            {
+                context.Cipher = cipher.Object;
+                context.Repository = repository.Object;
+            });
 
             string configFilePath = Path.Combine(Constants.ConfigFilesPath, "configFile.json");
 
@@ -68,11 +68,11 @@ namespace VisualStudioSolutionSecrets.Tests
 
             cipher.Setup(o => o.Decrypt(It.IsAny<string>())).Returns("decrypted");
 
-            Context.Create(
-                new DefaultFileSystem(),
-                cipher.Object,
-                repository.Object
-                );
+            Context.Configure(context =>
+            {
+                context.Cipher = cipher.Object;
+                context.Repository = repository.Object;
+            });
 
             string configFilePath = Path.Combine(Constants.ConfigFilesPath, "configFile.json");
 
@@ -91,11 +91,11 @@ namespace VisualStudioSolutionSecrets.Tests
 
             cipher.Setup(o => o.Encrypt(It.IsAny<string>())).Returns((string)null);
 
-            Context.Create(
-                new DefaultFileSystem(),
-                cipher.Object,
-                repository.Object
-                );
+            Context.Configure(context =>
+            {
+                context.Cipher = cipher.Object;
+                context.Repository = repository.Object;
+            });
 
             string configFilePath = Path.Combine(Constants.ConfigFilesPath, "configFile.json");
 

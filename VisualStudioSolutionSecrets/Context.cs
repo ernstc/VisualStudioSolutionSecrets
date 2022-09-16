@@ -9,46 +9,55 @@ using VisualStudioSolutionSecrets.Repository;
 namespace VisualStudioSolutionSecrets
 {
 
-	public sealed class Context
-	{
-        private string? _versionString;
-        private Version? _currentVersion;
 
+    public class ContextConfiguration
+    {
+        public IFileSystem? IO;
+        public ICipher? Cipher;
+        public IRepository? Repository;
+    }
+
+
+
+
+    public sealed class Context
+	{
         public string? VersionString { get; }
         public Version? CurrentVersion { get; }
 
 
-        public IFileSystem IO { get; private set; } = null!;
+        public IFileSystem IO { get; private set; } = new DefaultFileSystem();
         public ICipher Cipher { get; private set; } = null!;
         public IRepository Repository { get; private set; } = null!;
 
 
         private Context()
         {
-            _versionString = Assembly.GetEntryAssembly()?
+            VersionString = Assembly.GetEntryAssembly()?
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion;
 
-            _currentVersion = string.IsNullOrEmpty(_versionString) ? new Version() : new Version(_versionString);
+            CurrentVersion = string.IsNullOrEmpty(VersionString) ? new Version() : new Version(VersionString);
         }
 
 
         private static Context _current = null!;
-        public static Context Current => _current;
+        public static Context Current => _current ?? new Context();
 
-
-        public static void Create(
-            IFileSystem fileSystem,
-            ICipher cipher,
-            IRepository repository
-            )
+        
+        public static void Configure(Action<ContextConfiguration> configureAction)
         {
-            _current = new Context() 
-            { 
-                IO = fileSystem, 
-                Cipher = cipher, 
-                Repository = repository 
-            };
+            if (configureAction == null)
+                throw new ArgumentNullException(nameof(configureAction));
+
+            ContextConfiguration configuration = new ContextConfiguration();
+            configureAction(configuration);
+
+            if (_current == null) _current = new Context();
+
+            if (configuration.IO != null) _current.IO = configuration.IO;
+            if (configuration.Cipher != null) _current.Cipher = configuration.Cipher;
+            if (configuration.Repository != null) _current.Repository = configuration.Repository;
         }
 
     }
