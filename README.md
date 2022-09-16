@@ -1,4 +1,4 @@
-![Nuget](https://img.shields.io/nuget/dt/vs-secrets) ![Nuget](https://img.shields.io/nuget/v/vs-secrets)
+[![.NET](https://github.com/ernstc/VisualStudioSolutionSecrets/actions/workflows/dotnet.yml/badge.svg)](https://github.com/ernstc/VisualStudioSolutionSecrets/actions/workflows/dotnet.yml) ![Nuget](https://img.shields.io/nuget/dt/vs-secrets) ![Nuget](https://img.shields.io/nuget/v/vs-secrets)
 
 # ***Visual Studio Solution Secrets***
 
