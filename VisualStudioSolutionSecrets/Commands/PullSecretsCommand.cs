@@ -65,6 +65,8 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 if (!header.IsVersionSupported())
                 {
+                    Console.WriteLine($"\n    ERR: Header file has incompatible version {header.visualStudioSolutionSecretsVersion}");
+                    Console.WriteLine($"\n         Consider to install an updated version of this tool.");
                     continue;
                 }
 

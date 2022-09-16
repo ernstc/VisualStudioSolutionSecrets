@@ -17,13 +17,7 @@ namespace VisualStudioSolutionSecrets
             {
                 Version headerVersion = new Version(visualStudioSolutionSecretsVersion);
                 Version minVersion = new Version(Versions.MinimumFileFormatSupported);
-                if (headerVersion.Major > minVersion.Major)
-                {
-                    Console.WriteLine($"\n    ERR: Header file has incompatible version {visualStudioSolutionSecretsVersion}");
-                    Console.WriteLine($"\n         Consider to install an updated version of this tool.");
-                    return false;
-                }
-                return true;
+                return headerVersion.Major <= minVersion.Major;
             }
             catch
             {

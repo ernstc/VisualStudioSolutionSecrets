@@ -274,8 +274,14 @@ namespace VisualStudioSolutionSecrets.Repository
 
                     // Check if the gist is a solution secrets
                     HeaderFile? header = await GetHeaderFile(gist);
-                    if (header == null || !header.IsVersionSupported())
+                    if (header == null)
                     {
+                        continue;
+                    }
+                    else if (!header.IsVersionSupported())
+                    {
+                        Console.WriteLine($"\n    ERR: Header file has incompatible version {header.visualStudioSolutionSecretsVersion}");
+                        Console.WriteLine($"\n         Consider to install an updated version of this tool.");
                         continue;
                     }
 
