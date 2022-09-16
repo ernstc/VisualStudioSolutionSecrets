@@ -74,13 +74,13 @@ namespace VisualStudioSolutionSecrets.Tests
 
             // Phase 2: Save the first config file found in a subfolder and check that the files has been saved.
             const string TEST_SUBFOLDER_NAME = "configFileSaveTest";
-            const string DEST_SECRET_FOLDER_PATH = $"{TEST_SUBFOLDER_NAME}\\c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99";
+            string destinationSecretsFolderPath = $"{TEST_SUBFOLDER_NAME}{Path.DirectorySeparatorChar}c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99";
 
             CreateContext(TEST_SUBFOLDER_NAME);
 
             solutionFile.SaveConfigFile(configFile);
 
-            string savedConfigFilePath = Path.Combine(Constants.SecretFilesPath, DEST_SECRET_FOLDER_PATH, configFile.FileName);
+            string savedConfigFilePath = Path.Combine(Constants.SecretFilesPath, destinationSecretsFolderPath, configFile.FileName);
             Assert.True(File.Exists(savedConfigFilePath));
 
             string savedConfigFileContet = File.ReadAllText(savedConfigFilePath);
