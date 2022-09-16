@@ -43,10 +43,12 @@ namespace VisualStudioSolutionSecrets
             IRepository repository
             )
         {
-            _current = new Context();
-            _current.IO = fileSystem;
-            _current.Cipher = cipher;
-            _current.Repository = repository;                
+            _current = new Context() 
+            { 
+                IO = fileSystem, 
+                Cipher = cipher, 
+                Repository = repository 
+            };
         }
 
     }
