@@ -467,28 +467,35 @@ namespace VisualStudioSolutionSecrets.Repository
             try
             {
                 Process.Start(url);
+                return;
             }
             catch
+            { }
+
+            try
             {
                 // hack because of this: https://github.com/dotnet/corefx/issues/10361
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     url = url.Replace("&", "^&");
                     Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                    return;
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     Process.Start("xdg-open", url);
+                    return;
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     Process.Start("open", url);
-                }
-                else
-                {
-                    throw;
+                    return;
                 }
             }
+            catch
+            { }
+
+            Console.WriteLine($"\nOpen the URL below with your preferred browser:\n{url}\n");
         }
 
     }
