@@ -10,13 +10,9 @@ namespace VisualStudioSolutionSecrets
 {
     public static class AppData
     {
-
-        private const string APP_DATA_FOLDER = @"Visual Studio Solution Secrets";
-
-
         public static T? LoadData<T>(string fileName) where T: class, new()
         {
-            string filePath = Path.Combine(Context.Current.IO.GetApplicationDataFolderPath(), APP_DATA_FOLDER, fileName);
+            string filePath = Path.Combine(Context.Current.IO.GetApplicationDataFolderPath(), fileName);
             if (Context.Current.IO.FileExists(filePath))
             {
                 try
@@ -24,8 +20,7 @@ namespace VisualStudioSolutionSecrets
                     return JsonSerializer.Deserialize<T>(Context.Current.IO.FileReadAllText(filePath));
                 }
                 catch
-                {
-                }
+                { }
             }
             return null;
         }
@@ -33,7 +28,7 @@ namespace VisualStudioSolutionSecrets
 
         public static void SaveData<T>(string fileName, T data) where T : class, new()
         {
-            string folderPath = Path.Combine(Context.Current.IO.GetApplicationDataFolderPath(), APP_DATA_FOLDER);
+            string folderPath = Context.Current.IO.GetApplicationDataFolderPath();
             Context.Current.IO.CreateDirectory(folderPath);
             string filePath = Path.Combine(folderPath, fileName);
             try
@@ -42,11 +37,10 @@ namespace VisualStudioSolutionSecrets
                 {
                     WriteIndented = true
                 });
-                Context.Current.IO.FileWriteAllText(filePath, JsonSerializer.Serialize<T>(data));
+                Context.Current.IO.FileWriteAllText(filePath, json);
             }
             catch
-            {
-            }
+            { }
         }
 
     }

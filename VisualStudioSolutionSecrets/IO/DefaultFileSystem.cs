@@ -9,6 +9,8 @@ namespace VisualStudioSolutionSecrets.IO
 {
     public class DefaultFileSystem : IFileSystem
     {
+        private const string APP_DATA_FOLDER = @"Visual Studio Solution Secrets";
+
         public DirectoryInfo CreateDirectory(string path)
         {
             return Directory.CreateDirectory(path);
@@ -41,7 +43,7 @@ namespace VisualStudioSolutionSecrets.IO
 
         public virtual string GetApplicationDataFolderPath()
         {
-            return Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), APP_DATA_FOLDER);
         }
 
         public string GetCurrentDirectory()
