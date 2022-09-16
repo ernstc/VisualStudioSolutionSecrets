@@ -1,4 +1,15 @@
 {
-	"item1": "value1",
-	"item2": "value2"
+  "IntValue": 1,
+  "StringValue": "string",
+  "DateTimeValue": "2022-09-16T16:00:01",
+  "DateTimeOffsetValue": "2022-09-16T16:00:01+02:00",
+  "BoolValue": true,
+  "IntArrayValue": [
+    100,
+    200
+  ],
+  "ObjectValue": {
+    "IntValue": 2,
+    "StringValue": null
+  }
 }
