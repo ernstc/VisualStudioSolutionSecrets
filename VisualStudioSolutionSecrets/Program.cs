@@ -58,6 +58,7 @@ namespace VisualStudioSolutionSecrets
                 context.Cipher = new Cipher();
                 context.Repository = new GistRepository();
             });
+            Context.Current.Cipher.RefreshStatus().Wait();
             command.Execute(Context.Current, options).Wait();
             return 0;
         }

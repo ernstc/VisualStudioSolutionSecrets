@@ -23,13 +23,6 @@ namespace VisualStudioSolutionSecrets.Encryption
         }
 
 
-
-        public Cipher()
-        {
-            RefreshStatus();
-        }
-
-
         public Task<bool> IsReady()
         {
             return Task.FromResult(!string.IsNullOrEmpty(_key));
