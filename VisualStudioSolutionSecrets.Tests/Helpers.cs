@@ -11,10 +11,10 @@ namespace VisualStudioSolutionSecrets.Tests
     {
         public static string GetAbsoluteTestPath(string relativePath)
         {
-            var codeBaseUrl = new Uri(Assembly.GetExecutingAssembly().CodeBase);
-            var codeBasePath = Uri.UnescapeDataString(codeBaseUrl.AbsolutePath);
+            var assemblyLocation = new Uri(Assembly.GetExecutingAssembly().Location);
+            var codeBasePath = Uri.UnescapeDataString(assemblyLocation.AbsolutePath);
             var dirPath = Path.GetDirectoryName(codeBasePath);
-            return Path.Combine(dirPath, relativePath);
+            return Path.Combine(dirPath ?? String.Empty, relativePath);
         }
     }
 }

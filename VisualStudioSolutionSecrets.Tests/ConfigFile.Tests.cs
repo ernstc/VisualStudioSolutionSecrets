@@ -42,7 +42,7 @@ namespace VisualStudioSolutionSecrets.Tests
             var cipher = new Mock<ICipher>();
             var repository = new Mock<IRepository>();
 
-            cipher.Setup(o => o.Encrypt(It.IsAny<string>())).Returns((string)null);
+            cipher.Setup(o => o.Encrypt(It.IsAny<string>())).Returns((string?)null);
 
             Context.Configure(context =>
             {
@@ -89,7 +89,7 @@ namespace VisualStudioSolutionSecrets.Tests
             var cipher = new Mock<ICipher>();
             var repository = new Mock<IRepository>();
 
-            cipher.Setup(o => o.Encrypt(It.IsAny<string>())).Returns((string)null);
+            cipher.Setup(o => o.Encrypt(It.IsAny<string>())).Returns((string?)null);
 
             Context.Configure(context =>
             {
