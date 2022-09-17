@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 
@@ -11,9 +12,15 @@ namespace VisualStudioSolutionSecrets.Commands
 
         protected override async Task Execute(InitOptions options)
 		{
-			if (AreEncryptionKeyParametersValid(options.Passphrase, options.KeyFile))
+			string? keyFile = options.KeyFile;
+			if (keyFile != null && !Path.IsPathFullyQualified(keyFile))
 			{
-				GenerateEncryptionKey(options.Passphrase, options.KeyFile);
+				keyFile = Path.Combine(Context.IO.GetCurrentDirectory(), keyFile);
+            }
+
+            if (AreEncryptionKeyParametersValid(options.Passphrase, keyFile))
+			{
+				GenerateEncryptionKey(options.Passphrase, keyFile);
 				await AuthenticateRepositoryAsync();
 			}
 		}
