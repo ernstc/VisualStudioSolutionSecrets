@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
+using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.Encryption;
 using VisualStudioSolutionSecrets.IO;
 using VisualStudioSolutionSecrets.Repository;
@@ -21,12 +22,30 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             IFileSystem fileSystem = MockFileSystem();
             IRepository repository = MockRepository();
 
+            // Configure mocked dependencies
             Context.Configure(context =>
             {
                 context.IO = fileSystem;
                 context.Repository = repository;
                 context.Cipher = new Cipher();
             });
+        }
+
+
+        protected async Task InitializeCipher()
+        {
+            await new InitCommand().Execute(Context.Current, new InitOptions { Passphrase = Constants.PASSPHRASE });
+            await Context.Current.Cipher.RefreshStatus();
+        }
+
+
+        protected void DisposeCipherFiles()
+        {
+            string cipherFilePath = Path.Combine(Constants.ConfigFilesPath, "cipher.json");
+            if (File.Exists(cipherFilePath))
+            {
+                File.Delete(cipherFilePath);
+            }
         }
 
 
@@ -64,7 +83,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 {
                     foreach (var item in collection)
                     {
-                        string filePath = Path.Combine(Constants.RepositoryFilesPath, item.name);
+                        string fileName = item.name;
+                        if (!fileName.EndsWith(".json")) fileName = fileName + ".json";
+                        string filePath = Path.Combine(Constants.RepositoryFilesPath, fileName);
+                        var fileInfo = new FileInfo(filePath);
+                        Directory.CreateDirectory(fileInfo.DirectoryName!);
                         File.WriteAllText(filePath, item.content);
                     }
                     return true;
