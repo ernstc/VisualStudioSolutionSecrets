@@ -8,25 +8,28 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 	internal abstract class EncryptionKeyCommand<TOptions> : Command<TOptions>
 	{
 
-        private bool ValidatePassphrase(string passphrase)
+        internal bool ValidatePassphrase(string passphrase)
         {
             if (string.IsNullOrWhiteSpace(passphrase))
             {
                 return false;
             }
 
-            var hasNumber = new Regex(@"[0-9]+");
-            var hasUpperChar = new Regex(@"[A-Z]+");
-            var hasMiniMaxChars = new Regex(@".{8,}");
+            var startsWithSpace = new Regex(@"^\s");
+            var endsWithSpace = new Regex(@"\s$");
             var hasLowerChar = new Regex(@"[a-z]+");
-            var hasSymbols = new Regex(@"[!@#$%^&*()_+=\[{\]};:<>|./?,-]");
+            var hasUpperChar = new Regex(@"[A-Z]+");
+            var hasNumber = new Regex(@"[0-9]+");
+            var hasSymbols = new Regex(@"[!@#$%^&*()_+=\[{\]};:<>|./?,-]+");
 
             return
-                hasLowerChar.IsMatch(passphrase)
+                !startsWithSpace.IsMatch(passphrase)
+                && !endsWithSpace.IsMatch(passphrase)
+                && hasLowerChar.IsMatch(passphrase)
                 && hasUpperChar.IsMatch(passphrase)
-                && hasMiniMaxChars.IsMatch(passphrase)
                 && hasNumber.IsMatch(passphrase)
-                && hasSymbols.IsMatch(passphrase);
+                && hasSymbols.IsMatch(passphrase)
+                && passphrase.Length >= 8;
         }
 
 
