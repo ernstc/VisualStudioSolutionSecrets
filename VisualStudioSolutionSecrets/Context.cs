@@ -33,7 +33,7 @@ namespace VisualStudioSolutionSecrets
 
         private Context()
         {
-            VersionString = Assembly.GetEntryAssembly()?
+            VersionString = this.GetType().Assembly?
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion;
 
