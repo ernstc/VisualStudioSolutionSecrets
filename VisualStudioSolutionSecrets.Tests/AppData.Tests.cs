@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using VisualStudioSolutionSecrets.IO;
+using VisualStudioSolutionSecrets.Tests.Helpers;
 
 namespace VisualStudioSolutionSecrets.Tests
 {
@@ -77,11 +78,11 @@ namespace VisualStudioSolutionSecrets.Tests
 
             AppData.SaveData(FILE_NAME, data);
 
-            string filePath = Helpers.GetAbsoluteTestPath(Path.Combine(Constants.ConfigFilesPath, FILE_NAME));
+            string filePath = FilesHelper.GetAbsoluteTestPath(Path.Combine(Constants.ConfigFilesPath, FILE_NAME));
 
             Assert.True(File.Exists(filePath));
 
-            string referenceFilePath = Helpers.GetAbsoluteTestPath(Path.Combine(Constants.ConfigFilesPath, REFERENCE_FILE_NAME));
+            string referenceFilePath = FilesHelper.GetAbsoluteTestPath(Path.Combine(Constants.ConfigFilesPath, REFERENCE_FILE_NAME));
             string referenceContent = File.ReadAllText(referenceFilePath);
             string content = File.ReadAllText(filePath);
 
