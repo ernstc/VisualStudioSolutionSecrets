@@ -51,7 +51,7 @@ namespace VisualStudioSolutionSecrets.IO
             return Path.Combine(appDataFolder, APP_DATA_FOLDER);
         }
 
-        public string GetCurrentDirectory()
+        public virtual string GetCurrentDirectory()
         {
             return Directory.GetCurrentDirectory();
         }

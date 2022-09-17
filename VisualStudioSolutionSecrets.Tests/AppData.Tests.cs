@@ -5,11 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using VisualStudioSolutionSecrets.IO;
-using VisualStudioSolutionSecrets.Tests.Helpers;
 
 namespace VisualStudioSolutionSecrets.Tests
 {
-    public class AppDataTests
+    public class AppDataTests : IDisposable
     {
 
         const string FILE_NAME = "testAppData.json";
@@ -54,6 +53,16 @@ namespace VisualStudioSolutionSecrets.Tests
         }
 
 
+        public void Dispose()
+        {
+            string filePath = Path.Combine(Constants.ConfigFilesPath, FILE_NAME);
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+
+
         private static void ConfigureContext()
         {
             var fileSystemMock = new Mock<DefaultFileSystem>();
@@ -78,11 +87,11 @@ namespace VisualStudioSolutionSecrets.Tests
 
             AppData.SaveData(FILE_NAME, data);
 
-            string filePath = FilesHelper.GetAbsoluteTestPath(Path.Combine(Constants.ConfigFilesPath, FILE_NAME));
+            string filePath = Path.Combine(Constants.ConfigFilesPath, FILE_NAME);
 
             Assert.True(File.Exists(filePath));
 
-            string referenceFilePath = FilesHelper.GetAbsoluteTestPath(Path.Combine(Constants.ConfigFilesPath, REFERENCE_FILE_NAME));
+            string referenceFilePath = Path.Combine(Constants.ConfigFilesPath, REFERENCE_FILE_NAME);
             string referenceContent = File.ReadAllText(referenceFilePath);
             string content = File.ReadAllText(filePath);
 
