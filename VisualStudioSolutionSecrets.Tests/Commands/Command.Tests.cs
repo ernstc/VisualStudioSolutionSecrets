@@ -85,7 +85,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                     {
                         string fileName = item.name;
                         if (!fileName.EndsWith(".json")) fileName = fileName + ".json";
-                        string filePath = Path.Combine(Constants.RepositoryFilesPath, fileName);
+                        string filePath = Path.Combine(Constants.RepositoryFilesPath, fileName.Replace('\\', Path.DirectorySeparatorChar));
                         var fileInfo = new FileInfo(filePath);
                         Directory.CreateDirectory(fileInfo.DirectoryName!);
                         File.WriteAllText(filePath, item.content);
