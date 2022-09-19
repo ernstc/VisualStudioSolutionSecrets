@@ -46,7 +46,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 };
 
                 List<(string fileName, string? content)> files = new List<(string fileName, string? content)>();
-                files.Add(("secrets", JsonSerializer.Serialize(headerFile)));
+                files.Add(("secrets.json", JsonSerializer.Serialize(headerFile)));
 
                 var configFiles = solution.GetProjectsSecretConfigFiles();
                 if (configFiles.Count == 0)
