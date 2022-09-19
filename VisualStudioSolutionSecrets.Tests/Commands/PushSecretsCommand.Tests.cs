@@ -10,20 +10,16 @@ using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Encryption;
 using VisualStudioSolutionSecrets.Repository;
-
+using VisualStudioSolutionSecrets.Tests.Helpers;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
     public class PushSecretsCommandTests : CommandTests, IDisposable
     {
 
-        private PushSecretsCommand _command;
-
-
         public PushSecretsCommandTests()
         {
             ConfigureContext();
-            _command = new PushSecretsCommand();
         }
 
 
@@ -72,7 +68,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         public async void PushPathTest()
         {
             await InitializeCipher();
-            await _command.Execute(Context.Current, new PushSecretsOptions
+
+            await CallCommand.Push(new PushSecretsOptions
             {
                 Path = Constants.SolutionFilesPath
             });
@@ -85,7 +82,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         public async void PushRelativePathTest()
         {
             await InitializeCipher();
-            await _command.Execute(Context.Current, new PushSecretsOptions
+
+            await CallCommand.Push(new PushSecretsOptions
             {
                 Path = "."
             });
@@ -98,7 +96,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         public async void PushPathWithoutSolutionTest()
         {
             await InitializeCipher();
-            await _command.Execute(Context.Current, new PushSecretsOptions
+
+            await CallCommand.Push(new PushSecretsOptions
             {
                 Path = "unknown"
             });
@@ -113,7 +112,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         public async void PushAllWithinPathTest()
         {
             await InitializeCipher();
-            await _command.Execute(Context.Current, new PushSecretsOptions
+
+            await CallCommand.Push(new PushSecretsOptions
             {
                 Path = Constants.SampleFilesPath,
                 All = true

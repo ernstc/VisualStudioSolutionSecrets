@@ -8,6 +8,7 @@ using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.Encryption;
 using VisualStudioSolutionSecrets.IO;
 using VisualStudioSolutionSecrets.Repository;
+using VisualStudioSolutionSecrets.Tests.Helpers;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
@@ -34,8 +35,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
         protected async Task InitializeCipher()
         {
-            await new InitCommand().Execute(Context.Current, new InitOptions { Passphrase = Constants.PASSPHRASE });
-            await Context.Current.Cipher.RefreshStatus();
+            await CallCommand.Init(new InitOptions { Passphrase = Constants.PASSPHRASE });
         }
 
 
@@ -98,10 +98,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 .ReturnsAsync(() =>
                 {
                     List<(string name, string? content)> files = new();
-                    string[] filesPath = Directory.GetFiles(Constants.RepositoryFilesPath);
+                    string[] filesPath = Directory.GetFiles(Constants.RepositoryFilesPath, "*.json", SearchOption.AllDirectories);
                     foreach (var filePath in filesPath)
                     {
-                        files.Add((new FileInfo(filePath).Name, File.ReadAllText(filePath)));
+                        string fileName = new FileInfo(filePath).Name;
+                        if (!fileName.StartsWith("secrets")) fileName = "secrets\\" + fileName;
+                        files.Add((fileName, File.ReadAllText(filePath)));
                     }
                     return files;
                 });

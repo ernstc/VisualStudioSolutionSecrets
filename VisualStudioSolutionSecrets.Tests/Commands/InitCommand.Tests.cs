@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VisualStudioSolutionSecrets.Commands;
+using VisualStudioSolutionSecrets.Tests.Helpers;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
@@ -28,8 +29,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             ConfigureContext();
 
-            var command = new InitCommand();
-            await command.Execute(Context.Current, new InitOptions
+            await CallCommand.Init(new InitOptions
             {
                 Passphrase = "Passphrase.1"
             });
@@ -44,8 +44,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             ConfigureContext();
 
-            var command = new InitCommand();
-            await command.Execute(Context.Current, new InitOptions
+            await CallCommand.Init(new InitOptions
             {
                 KeyFile = "initFile.key"
             });
