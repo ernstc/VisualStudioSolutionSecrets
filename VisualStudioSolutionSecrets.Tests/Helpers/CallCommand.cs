@@ -38,6 +38,7 @@ namespace VisualStudioSolutionSecrets.Tests.Helpers
         {
             var command = new ChangeKeyCommand();
             await command.Execute(Context.Current, options);
+            await Context.Current.Cipher.RefreshStatus();
         }
 
     }
