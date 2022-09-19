@@ -12,8 +12,21 @@ using VisualStudioSolutionSecrets.Repository;
 
 namespace VisualStudioSolutionSecrets.Tests
 {
-    public class SolutionFileTests
+    public class SolutionFileTests : IDisposable
     {
+
+        const string TEST_SUBFOLDER_NAME = "configFileSaveTest";
+
+
+        public void Dispose()
+        {
+            string testFolderPath = Path.Combine(Constants.SecretFilesPath, TEST_SUBFOLDER_NAME);
+            if (Directory.Exists(testFolderPath))
+            {
+                Directory.Delete(testFolderPath, true);
+            }
+        }
+
 
         private void CreateContext(string? secretsSubFolderPath = null)
         {
@@ -72,7 +85,6 @@ namespace VisualStudioSolutionSecrets.Tests
             var configFile = secretConfigFiles.ElementAt(0);
 
             // Phase 2: Save the first config file found in a subfolder and check that the files has been saved.
-            const string TEST_SUBFOLDER_NAME = "configFileSaveTest";
             string destinationSecretsFolderPath = $"{TEST_SUBFOLDER_NAME}{Path.DirectorySeparatorChar}c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99";
 
             CreateContext(TEST_SUBFOLDER_NAME);
