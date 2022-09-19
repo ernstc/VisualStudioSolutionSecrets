@@ -23,6 +23,10 @@ namespace VisualStudioSolutionSecrets.Repository
         private const string CLIENT_ID = "b0e87a43f71306d87649";
         private const string SCOPE = "gist";
 
+        private const int GIST_PER_PAGE = 100;
+        private const int GIST_PAGES_LIMIT = 1000;
+
+
         private DeviceFlowResponse? _deviceFlowResponse;
 
         private string? _oauthAccessToken;
@@ -163,8 +167,7 @@ namespace VisualStudioSolutionSecrets.Repository
         {
             if (_gist == null && _repositoryName != null)
             {
-                const int GIST_PER_PAGE = 100;
-                for (int page = 1; page < 1000; page++)
+                for (int page = 1; page < GIST_PAGES_LIMIT; page++)
                 {
                     var gists = await SendRequest<List<Gist>>(HttpMethod.Get, $"https://api.github.com/gists?per_page={GIST_PER_PAGE}&page={page}");
                     if (gists == null || gists.Count == 0)
@@ -195,7 +198,10 @@ namespace VisualStudioSolutionSecrets.Repository
             {
                 foreach (var file in gist.files)
                 {
-                    if (file.Key == "secrets")
+                    if (
+                        file.Key == "secrets.json"
+                        || file.Key == "secrets"    // This check is for compatibility with versions <= 1.1.x
+                        )
                     {
                         string content;
                         HttpClient httpClient = new HttpClient();
@@ -256,8 +262,7 @@ namespace VisualStudioSolutionSecrets.Repository
         {
             var data = new List<SolutionSettings>();
 
-            const int GIST_PER_PAGE = 100;
-            for (int page = 1; page < 1000; page++)
+            for (int page = 1; page < GIST_PAGES_LIMIT; page++)
             {
                 var gists = await SendRequest<List<Gist>>(HttpMethod.Get, $"https://api.github.com/gists?per_page={GIST_PER_PAGE}&page={page}");
                 if (gists == null || gists.Count == 0)
@@ -291,7 +296,10 @@ namespace VisualStudioSolutionSecrets.Repository
 
                         foreach (var file in gist.files)
                         {
-                            if (file.Key == "secrets")
+                            if (
+                                file.Key == "secrets.json"
+                                || file.Key == "secrets"    // This check is for compatibility with versions <= 1.1.x
+                                )
                             {
                                 continue;
                             }
@@ -337,6 +345,10 @@ namespace VisualStudioSolutionSecrets.Repository
         public async Task<bool> PushFilesAsync(ICollection<(string name, string? content)> files)
         {
             var gist = await GetGistAsync();
+            if (gist != null)
+            {
+                await DeleteGist(gist);
+            }
 
             HttpClient client = new HttpClient(new HttpClientHandler()
             {
@@ -348,9 +360,7 @@ namespace VisualStudioSolutionSecrets.Repository
             if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
                 client.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
 
-            HttpRequestMessage request = gist == null ?
-                new HttpRequestMessage(HttpMethod.Post, "https://api.github.com/gists") :
-                new HttpRequestMessage(HttpMethod.Patch, $"https://api.github.com/gists/{gist.id}");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://api.github.com/gists");
 
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
 
@@ -380,6 +390,37 @@ namespace VisualStudioSolutionSecrets.Repository
 
                 var response = await client.SendAsync(request);
                 var responseJson = await response.Content.ReadAsStringAsync();
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+
+        private async Task<bool> DeleteGist(Gist gist)
+        {
+            if (gist == null)
+                throw new ArgumentNullException(nameof(gist));
+
+            HttpClient client = new HttpClient(new HttpClientHandler()
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
+            });
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
+
+            if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
+                client.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, $"https://api.github.com/gists/{gist.id}");
+
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+
+            try
+            {
+                var response = await client.SendAsync(request);
                 return response.IsSuccessStatusCode;
             }
             catch
