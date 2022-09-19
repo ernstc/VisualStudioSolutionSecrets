@@ -10,7 +10,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-
+using VisualStudioSolutionSecrets.Utilities;
 
 namespace VisualStudioSolutionSecrets.Repository
 {
@@ -132,7 +132,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
             if (_oauthAccessToken == null)
             {
-                OpenBrowser(_deviceFlowResponse.verification_uri);
+                WebBrowser.OpenUrl(_deviceFlowResponse.verification_uri);
 
                 for (int seconds = _deviceFlowResponse.expires_in; seconds > 0; seconds -= _deviceFlowResponse.interval)
                 {
@@ -459,43 +459,6 @@ namespace VisualStudioSolutionSecrets.Repository
                 Console.WriteLine($"ERR: {ex.Message}");
             }
             return null;
-        }
-
-
-        private static void OpenBrowser(string url)
-        {
-            try
-            {
-                Process.Start(url);
-                return;
-            }
-            catch
-            { }
-
-            try
-            {
-                // hack because of this: https://github.com/dotnet/corefx/issues/10361
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    url = url.Replace("&", "^&");
-                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
-                    return;
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    Process.Start("xdg-open", url);
-                    return;
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    Process.Start("open", url);
-                    return;
-                }
-            }
-            catch
-            { }
-
-            Console.WriteLine($"\nOpen the URL below with your preferred browser:\n{url}\n");
         }
 
     }
