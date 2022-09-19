@@ -31,7 +31,24 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             await CallCommand.Init(new InitOptions
             {
-                Passphrase = "Passphrase.1"
+                Passphrase = Constants.PASSPHRASE
+            });
+
+            Assert.True(File.Exists(_generatedFilePath));
+            Assert.Equal(File.ReadAllText(_sampleFilePath), File.ReadAllText(_generatedFilePath));
+        }
+
+
+
+
+        [Fact]
+        public async void InitWithKeyFileTest()
+        {
+            ConfigureContext();
+
+            await CallCommand.Init(new InitOptions
+            {
+                KeyFile = Path.Combine(Constants.SolutionFilesPath, "initFile.key")
             });
 
             Assert.True(File.Exists(_generatedFilePath));
@@ -40,7 +57,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async void InitWithKeyFileTest()
+        public async void InitWithKeyFileWithRelativePathTest()
         {
             ConfigureContext();
 
