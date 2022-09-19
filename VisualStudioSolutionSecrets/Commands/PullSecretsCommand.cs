@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
@@ -18,7 +19,13 @@ namespace VisualStudioSolutionSecrets.Commands
                 return;
             }
 
-            string[] solutionFiles = GetSolutionFiles(options.Path, options.All);
+            string? path = options.Path;
+            if (path != null && !Path.IsPathFullyQualified(path))
+            {
+                path = Path.Combine(Context.IO.GetCurrentDirectory(), path);
+            }
+
+            string[] solutionFiles = GetSolutionFiles(path, options.All);
             if (solutionFiles.Length == 0)
             {
                 Console.WriteLine("Solution files not found.\n");
@@ -39,8 +46,8 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 Console.Write($"Pulling secrets for solution: {solution.Name} ...");
 
-                var files = await Context.Repository.PullFilesAsync();
-                if (files.Count == 0)
+                var repositoryFiles = await Context.Repository.PullFilesAsync();
+                if (repositoryFiles.Count == 0)
                 {
                     Console.WriteLine("Failed, secrets not found");
                     continue;
@@ -48,9 +55,13 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 // Validate header file
                 HeaderFile? header = null;
-                foreach (var file in files)
+                foreach (var file in repositoryFiles)
                 {
-                    if (file.name == "secrets" && file.content != null)
+                    if ((
+                        file.name == "secrets.json" 
+                        || file.name == "secrets"   // This check is for compatibility with versions <= 1.1.x
+                        ) 
+                        && file.content != null)
                     {
                         header = JsonSerializer.Deserialize<HeaderFile>(file.content);
                         break;
@@ -71,24 +82,27 @@ namespace VisualStudioSolutionSecrets.Commands
                 }
 
                 bool failed = false;
-                foreach (var file in files)
+                foreach (var repositoryFile in repositoryFiles)
                 {
-                    if (file.name != "secrets")
+                    if (
+                        repositoryFile.name != "secrets.json" 
+                        && repositoryFile.name != "secrets"     // This check is for compatibility with versions <= 1.1.x
+                        )
                     {
-                        if (file.content == null)
+                        if (repositoryFile.content == null)
                         {
-                            Console.Write($"\n    ERR: File has no content: {file.name}");
+                            Console.Write($"\n    ERR: File has no content: {repositoryFile.name}");
                             continue;
                         }
 
                         Dictionary<string, string>? secretFiles = null;
                         try
                         {
-                            secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(file.content);
+                            secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(repositoryFile.content);
                         }
                         catch
                         {
-                            Console.Write($"\n    ERR: File content cannot be read: {file.name}");
+                            Console.Write($"\n    ERR: File content cannot be read: {repositoryFile.name}");
                         }
 
                         if (secretFiles == null)
@@ -109,7 +123,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                             foreach (var configFile in configFiles)
                             {
-                                if (configFile.GroupName == file.name
+                                if (configFile.GroupName == repositoryFile.name
                                     && configFile.FileName == configFileName)
                                 {
                                     configFile.Content = secret.Value;
