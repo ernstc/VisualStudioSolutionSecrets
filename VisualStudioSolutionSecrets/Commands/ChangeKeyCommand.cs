@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Repository;
+using static System.Net.WebRequestMethods;
 
 
 namespace VisualStudioSolutionSecrets.Commands
@@ -19,7 +21,6 @@ namespace VisualStudioSolutionSecrets.Commands
         * 4) Generate the new encryption key
         * 5) Encrypt secrets with the new key
         * 6) Push encrypted secrets
-        * 
         */
 
         protected override async Task Execute(ChangeKeyOptions options)
@@ -29,13 +30,18 @@ namespace VisualStudioSolutionSecrets.Commands
                 return;
             }
 
-            if (!AreEncryptionKeyParametersValid(options.Passphrase, options.KeyFile))
+            string? keyFile = options.KeyFile;
+            if (keyFile != null && !Path.IsPathFullyQualified(keyFile))
+            {
+                keyFile = Path.Combine(Context.IO.GetCurrentDirectory(), keyFile);
+            }
+
+            if (!AreEncryptionKeyParametersValid(options.Passphrase, keyFile))
             {
                 return;
             }
 
             await AuthenticateRepositoryAsync();
-
 
             Console.Write("Loading existing secrets ...");
             var allSecrets = await Context.Repository.PullAllSecretsAsync();
@@ -52,23 +58,58 @@ namespace VisualStudioSolutionSecrets.Commands
             {
                 bool decryptionSucceded = true;
                 var decryptedSettings = new List<(string name, string? content)>();
+
                 foreach (var settings in solutionSecrets.Settings)
                 {
                     if (settings.content == null)
                         continue;
 
-                    string? decryptedContent = Context.Cipher.Decrypt(settings.content);
-                    if (decryptedContent == null)
+                    Dictionary<string, string>? secretFiles = null;
+                    try
                     {
-                        decryptionSucceded = false;
+                        secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(settings.content);
+                    }
+                    catch
+                    {
+                        Console.Write($"\n    ERR: File content cannot be read: {settings.name}");
+                    }
+
+                    if (secretFiles == null)
+                    {
+                        //failed = true;
                         break;
                     }
-                    decryptedSettings.Add((settings.name, decryptedContent));
+
+                    var decryptedFiles = new Dictionary<string, string>();
+                    foreach (var secret in secretFiles)
+                    {
+                        string configFileName = secret.Key;
+
+                        // This check is for compatibility with version 1.0.x
+                        if (configFileName == "content")
+                        {
+                            configFileName = "secrets.json";
+                        }
+
+                        string? decryptedContent = Context.Cipher.Decrypt(secret.Value);
+                        if (decryptedContent == null)
+                        {
+                            decryptionSucceded = false;
+                            break;
+                        }
+                        decryptedFiles.Add(secret.Key, decryptedContent);
+                    }
+
+                    decryptedSettings.Add((settings.name, JsonSerializer.Serialize(decryptedFiles)));                   
                 }
+
                 if (decryptionSucceded)
                 {
-                    solutionSecrets.Settings = decryptedSettings;
-                    successfulSolutionSecrets.Add(solutionSecrets);
+                    successfulSolutionSecrets.Add(new SolutionSettings
+                    {
+                        SolutionName = solutionSecrets.SolutionName,
+                        Settings = decryptedSettings
+                    });
                 }
             }
 
@@ -81,11 +122,10 @@ namespace VisualStudioSolutionSecrets.Commands
                 }
             }
 
-            GenerateEncryptionKey(options.Passphrase, options.KeyFile);
+            GenerateEncryptionKey(options.Passphrase, keyFile);
 
             Console.Write("Saving secrets with the new key ...");
 
-            // TODO: Save secrets
             foreach (var solutionSecrets in successfulSolutionSecrets)
             {
                 var headerFile = new HeaderFile
@@ -95,56 +135,39 @@ namespace VisualStudioSolutionSecrets.Commands
                     solutionFile = solutionSecrets.SolutionName
                 };
 
-                List<(string fileName, string? content)> files = new List<(string fileName, string? content)>();
-                files.Add(("secrets", JsonSerializer.Serialize(headerFile)));
-
-
-
-                Dictionary<string, Dictionary<string, string>> secrets = new Dictionary<string, Dictionary<string, string>>();
+                var files = new List<(string fileName, string? content)>
+                {
+                    ("secrets.json", JsonSerializer.Serialize(headerFile))
+                };
 
                 bool failed = false;
                 foreach (var settings in solutionSecrets.Settings)
                 {
-                    var settingFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(settings.content);
-                    var encryptedSettingFiles = new Dictionary<string, string>();
+                    var secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(settings.content);
 
-                    foreach (var entry in settingFiles)
+                    var encryptedFiles = new Dictionary<string, string>();
+                    foreach (var secret in secretFiles)
                     {
-                        string? encryptedValue = Context.Cipher.Encrypt(entry.Value);
-                        if (encryptedValue != null)
-                        {
-                            encryptedSettingFiles.Add(entry.Key, encryptedValue);
-                        }
-                    }
-
-                    /*
-                    if (configFile.content != null)
-                    {
-                        if (configFile.Encrypt())
-                        {
-                            if (!secrets.ContainsKey(configFile.GroupName))
-                            {
-                                secrets.Add(configFile.GroupName, new Dictionary<string, string>());
-                            }
-                            secrets[configFile.GroupName].Add(configFile.FileName, configFile.Content);
-                        }
-                        else
+                        string? encryptedContent = Context.Cipher.Encrypt(secret.Value);
+                        if (encryptedContent == null)
                         {
                             failed = true;
                             break;
                         }
+                        encryptedFiles.Add(secret.Key, encryptedContent);
                     }
-                    */
-                }
 
-                foreach (var group in secrets)
-                {
-                    string groupContent = JsonSerializer.Serialize(group.Value);
-                    files.Add((group.Key, groupContent));
+                    if (failed)
+                    {
+                        break;
+                    }
+
+                    files.Add((settings.name, JsonSerializer.Serialize(encryptedFiles)));
                 }
 
                 if (!failed)
                 {
+                    Context.Repository.SolutionName = solutionSecrets.SolutionName;
                     if (!await Context.Repository.PushFilesAsync(files))
                     {
                         failed = true;
@@ -152,9 +175,6 @@ namespace VisualStudioSolutionSecrets.Commands
                 }
 
                 Console.WriteLine(failed ? "Failed" : "Done");
-
-
-
             }
 
             Console.WriteLine("Done\n");

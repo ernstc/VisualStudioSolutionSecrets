@@ -108,6 +108,35 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                     return files;
                 });
 
+            repository
+                .Setup(o => o.PullAllSecretsAsync())
+                .ReturnsAsync(() =>
+                {
+
+                    List<(string name, string? content)> files = new();
+                    string[] filesPath = Directory.GetFiles(Constants.RepositoryFilesPath, "*.json", SearchOption.AllDirectories);
+                    foreach (var filePath in filesPath)
+                    {
+                        string fileName = new FileInfo(filePath).Name;
+                        if (fileName != "secrets.json")
+                        {
+                            if (!fileName.StartsWith("secrets")) fileName = "secrets\\" + fileName;
+                            files.Add((fileName, File.ReadAllText(filePath)));
+                        }
+                    }
+
+                    List<SolutionSettings> secrets = new List<SolutionSettings>
+                    {
+                        new SolutionSettings
+                        {
+                            SolutionName = "SolutionSample.sln",
+                            Settings = files
+                        }
+                    };
+
+                    return secrets;
+                });
+
             return repository.Object;
         }
 
