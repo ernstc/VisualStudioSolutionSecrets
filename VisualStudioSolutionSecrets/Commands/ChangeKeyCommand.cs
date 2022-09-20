@@ -14,15 +14,6 @@ namespace VisualStudioSolutionSecrets.Commands
 	internal class ChangeKeyCommand : EncryptionKeyCommand<ChangeKeyOptions>
 	{
 
-        /*
-        * 1) Validate encryption key parameters
-        * 2) Authenticate to repository
-        * 3) Load existing secrets with the current key
-        * 4) Generate the new encryption key
-        * 5) Encrypt secrets with the new key
-        * 6) Push encrypted secrets
-        */
-
         protected override async Task Execute(ChangeKeyOptions options)
         {
             if (!await CanSync())

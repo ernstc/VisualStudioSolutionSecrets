@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 
@@ -11,7 +12,13 @@ namespace VisualStudioSolutionSecrets.Commands
 
         protected override Task Execute(SearchSecretsOptions options)
         {
-            string[] solutionFiles = GetSolutionFiles(options.Path, options.All);
+            string? path = options.Path;
+            if (path != null && !Path.IsPathFullyQualified(path))
+            {
+                path = Path.Combine(Context.IO.GetCurrentDirectory(), path);
+            }
+
+            string[] solutionFiles = GetSolutionFiles(path, options.All);
             if (solutionFiles.Length == 0)
             {
                 Console.WriteLine("Solution files not found.\n");

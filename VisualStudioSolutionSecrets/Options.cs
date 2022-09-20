@@ -65,9 +65,14 @@ namespace VisualStudioSolutionSecrets
     }
 
 
-    [Verb("status", HelpText = "Shows initialization status for the tool.")]
+    [Verb("status", HelpText = "Shows the status for the tool and the solutions.")]
     internal class StatusCheckOptions
     {
+        [Option("path", HelpText = "Path for searching solutions. The status for the found solutions will be shown.")]
+        public string? Path { get; set; }
+
+        [Option("all", HelpText = "When true, search in the specified path and its sub-tree.", Default = true)]
+        public bool All { get; set; }
     }
 
 }
