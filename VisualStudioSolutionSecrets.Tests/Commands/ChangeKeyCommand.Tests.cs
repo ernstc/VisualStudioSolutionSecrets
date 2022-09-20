@@ -123,7 +123,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             await CallCommand.ChangeKey(new ChangeKeyOptions
             {
-                KeyFile = Path.Combine(Constants.SolutionFilesPath, "initFile2.key")
+                KeyFile = Path.Combine(Constants.TestFilesPath, "initFile2.key")
             });
 
             ChangeSecretsFilesPath();

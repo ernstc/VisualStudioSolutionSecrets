@@ -15,6 +15,8 @@ namespace VisualStudioSolutionSecrets.Tests
         public static readonly string RepositoryFilesPath = Path.Combine(SampleFilesPath, "repository");
         public static readonly string SecretFilesPath = Path.Combine(SampleFilesPath, "secrets");
         public static readonly string SolutionFilesPath = Path.Combine(SampleFilesPath, "solutionFiles");
+        public static readonly string TestFilesPath = Path.Combine(SampleFilesPath, "testFiles");
+
 
         public const string PASSPHRASE = "Passphrase.1";
     }

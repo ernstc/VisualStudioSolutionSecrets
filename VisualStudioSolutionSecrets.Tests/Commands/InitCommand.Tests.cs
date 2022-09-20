@@ -48,7 +48,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             await CallCommand.Init(new InitOptions
             {
-                KeyFile = Path.Combine(Constants.SolutionFilesPath, "initFile.key")
+                KeyFile = Path.Combine(Constants.TestFilesPath, "initFile.key")
             });
 
             Assert.True(File.Exists(_generatedFilePath));
