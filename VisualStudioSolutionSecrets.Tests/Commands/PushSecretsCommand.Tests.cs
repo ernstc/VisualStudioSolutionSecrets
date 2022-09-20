@@ -6,10 +6,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Moq;
-using VisualStudioSolutionSecrets.Commands;
-using VisualStudioSolutionSecrets.Commands.Abstractions;
-using VisualStudioSolutionSecrets.Encryption;
-using VisualStudioSolutionSecrets.Repository;
 using VisualStudioSolutionSecrets.Tests.Helpers;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
@@ -67,7 +63,10 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async void PushPathTest()
         {
-            await InitializeCipher();
+            await CallCommand.Init(new InitOptions
+            {
+                Passphrase = Constants.PASSPHRASE
+            });
 
             await CallCommand.Push(new PushSecretsOptions
             {
@@ -81,7 +80,10 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async void PushRelativePathTest()
         {
-            await InitializeCipher();
+            await CallCommand.Init(new InitOptions
+            {
+                Passphrase = Constants.PASSPHRASE
+            });
 
             await CallCommand.Push(new PushSecretsOptions
             {
@@ -95,7 +97,10 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async void PushPathWithoutSolutionTest()
         {
-            await InitializeCipher();
+            await CallCommand.Init(new InitOptions
+            {
+                Passphrase = Constants.PASSPHRASE
+            });
 
             await CallCommand.Push(new PushSecretsOptions
             {
@@ -111,7 +116,10 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async void PushAllWithinPathTest()
         {
-            await InitializeCipher();
+            await CallCommand.Init(new InitOptions
+            {
+                Passphrase = Constants.PASSPHRASE
+            });
 
             await CallCommand.Push(new PushSecretsOptions
             {

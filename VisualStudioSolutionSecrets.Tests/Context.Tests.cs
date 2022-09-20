@@ -12,6 +12,7 @@ namespace VisualStudioSolutionSecrets.Tests
 {
     public class ContextTests
     {
+
         [Fact]
         public void DefaultContextTest()
         {
@@ -73,5 +74,6 @@ namespace VisualStudioSolutionSecrets.Tests
         {
             Assert.NotNull(Context.Current.CurrentVersion);
         }
+
     }
 }

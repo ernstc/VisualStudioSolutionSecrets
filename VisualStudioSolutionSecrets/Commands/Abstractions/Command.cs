@@ -21,6 +21,18 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         protected abstract Task Execute(TOptions options);
 
 
+        protected string? EnsureFullyQualifiedPath(string? path)
+        {
+            string? fullyQualifiedPath = path;
+            if (fullyQualifiedPath != null && !Path.IsPathFullyQualified(fullyQualifiedPath))
+            {
+                fullyQualifiedPath = Path.Combine(Context.IO.GetCurrentDirectory(), fullyQualifiedPath);
+            }
+
+            return fullyQualifiedPath;
+        }
+
+
         protected bool Confirm()
         {
             while (true)

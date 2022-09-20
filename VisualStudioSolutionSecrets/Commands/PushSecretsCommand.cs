@@ -19,11 +19,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 return;
             }
 
-            string? path = options.Path;
-            if (path != null && !Path.IsPathFullyQualified(path))
-            {
-                path = Path.Combine(Context.IO.GetCurrentDirectory(), path);
-            }
+            string? path = EnsureFullyQualifiedPath(options.Path);
 
             string[] solutionFiles = GetSolutionFiles(path, options.All);
             if (solutionFiles.Length == 0)

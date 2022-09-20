@@ -52,5 +52,6 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             Assert.False(_command.ValidatePassphrase(passphrase));
         }
+
     }
 }

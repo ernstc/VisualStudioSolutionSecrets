@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Moq;
-using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.Encryption;
 using VisualStudioSolutionSecrets.IO;
 using VisualStudioSolutionSecrets.Repository;
-using VisualStudioSolutionSecrets.Tests.Helpers;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
@@ -43,12 +40,6 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 context.Repository = repository;
                 context.Cipher = new Cipher();
             });
-        }
-
-
-        protected async Task InitializeCipher()
-        {
-            await CallCommand.Init(new InitOptions { Passphrase = Constants.PASSPHRASE });
         }
 
 

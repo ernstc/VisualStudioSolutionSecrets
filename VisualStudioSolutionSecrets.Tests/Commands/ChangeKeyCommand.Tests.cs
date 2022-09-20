@@ -79,8 +79,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         }
 
 
-        [Fact]
-        public async void ChangeKeyWithPassphrase()
+        private static async Task PrepareTest()
         {
             await CallCommand.Init(new InitOptions
             {
@@ -91,6 +90,13 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             {
                 Path = Constants.SolutionFilesPath
             });
+        }
+
+
+        [Fact]
+        public async void ChangeKeyWithPassphrase()
+        {
+            await PrepareTest();
 
             await CallCommand.ChangeKey(new ChangeKeyOptions
             {
@@ -111,15 +117,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async Task ChangeKeyWithKeyFile()
         {
-            await CallCommand.Init(new InitOptions
-            {
-                Passphrase = Constants.PASSPHRASE
-            });
-
-            await CallCommand.Push(new PushSecretsOptions
-            {
-                Path = Constants.SolutionFilesPath
-            });
+            await PrepareTest();
 
             await CallCommand.ChangeKey(new ChangeKeyOptions
             {
@@ -140,15 +138,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async Task ChangeKeyWithKeyFileWithRelativePath()
         {
-            await CallCommand.Init(new InitOptions
-            {
-                Passphrase = Constants.PASSPHRASE
-            });
-
-            await CallCommand.Push(new PushSecretsOptions
-            {
-                Path = Constants.SolutionFilesPath
-            });
+            await PrepareTest();
 
             await CallCommand.ChangeKey(new ChangeKeyOptions
             {

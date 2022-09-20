@@ -13,18 +13,38 @@ namespace VisualStudioSolutionSecrets.Tests
     public class ConfigFileTests
     {
 
+        public ConfigFileTests()
+        {
+            // Mock dependencies
+            var repository = new Mock<IRepository>();
+            var fileSystemMock = new Mock<DefaultFileSystem>();
+
+            fileSystemMock
+                .Setup(o => o.GetApplicationDataFolderPath())
+                .Returns(Constants.ConfigFilesPath);
+
+            fileSystemMock
+                .Setup(o => o.GetCurrentDirectory())
+                .Returns(Constants.SolutionFilesPath);
+
+            // Configure mocked dependencies
+            Context.Configure(context =>
+            {
+                context.IO = fileSystemMock.Object;
+                context.Repository = repository.Object;
+            });
+        }
+
+
         [Fact]
         public void ConfigFileEncryption()
         {
             var cipher = new Mock<ICipher>();
-            var repository = new Mock<IRepository>();
-
             cipher.Setup(o => o.Encrypt(It.IsAny<string>())).Returns("encrypted");
 
             Context.Configure(context =>
             {
                 context.Cipher = cipher.Object;
-                context.Repository = repository.Object;
             });
 
             string configFilePath = Path.Combine(Constants.ConfigFilesPath, "configFile.json");
@@ -40,14 +60,11 @@ namespace VisualStudioSolutionSecrets.Tests
         public void ConfigFileEncryptionFailed()
         {
             var cipher = new Mock<ICipher>();
-            var repository = new Mock<IRepository>();
-
             cipher.Setup(o => o.Encrypt(It.IsAny<string>())).Returns((string?)null);
 
             Context.Configure(context =>
             {
                 context.Cipher = cipher.Object;
-                context.Repository = repository.Object;
             });
 
             string configFilePath = Path.Combine(Constants.ConfigFilesPath, "configFile.json");
@@ -64,14 +81,11 @@ namespace VisualStudioSolutionSecrets.Tests
         public void ConfigFileDecryption()
         {
             var cipher = new Mock<ICipher>();
-            var repository = new Mock<IRepository>();
-
             cipher.Setup(o => o.Decrypt(It.IsAny<string>())).Returns("decrypted");
 
             Context.Configure(context =>
             {
                 context.Cipher = cipher.Object;
-                context.Repository = repository.Object;
             });
 
             string configFilePath = Path.Combine(Constants.ConfigFilesPath, "configFile.json");
@@ -87,14 +101,11 @@ namespace VisualStudioSolutionSecrets.Tests
         public void ConfigFileDecryptionFailed()
         {
             var cipher = new Mock<ICipher>();
-            var repository = new Mock<IRepository>();
-
             cipher.Setup(o => o.Encrypt(It.IsAny<string>())).Returns((string?)null);
 
             Context.Configure(context =>
             {
                 context.Cipher = cipher.Object;
-                context.Repository = repository.Object;
             });
 
             string configFilePath = Path.Combine(Constants.ConfigFilesPath, "configFile.json");

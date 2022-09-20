@@ -12,19 +12,15 @@ namespace VisualStudioSolutionSecrets.Commands
 
         protected override async Task Execute(InitOptions options)
 		{
-			string? keyFile = options.KeyFile;
-			if (keyFile != null && !Path.IsPathFullyQualified(keyFile))
-			{
-				keyFile = Path.Combine(Context.IO.GetCurrentDirectory(), keyFile);
-            }
+			string? keyFile = EnsureFullyQualifiedPath(options.KeyFile);
 
-            if (AreEncryptionKeyParametersValid(options.Passphrase, keyFile))
+			if (AreEncryptionKeyParametersValid(options.Passphrase, keyFile))
 			{
 				GenerateEncryptionKey(options.Passphrase, keyFile);
 				await AuthenticateRepositoryAsync();
 			}
 		}
 
-    }
+	}
 }
 

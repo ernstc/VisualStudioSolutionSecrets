@@ -21,11 +21,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 return;
             }
 
-            string? keyFile = options.KeyFile;
-            if (keyFile != null && !Path.IsPathFullyQualified(keyFile))
-            {
-                keyFile = Path.Combine(Context.IO.GetCurrentDirectory(), keyFile);
-            }
+            string? keyFile = EnsureFullyQualifiedPath(options.KeyFile);
 
             if (!AreEncryptionKeyParametersValid(options.Passphrase, keyFile))
             {

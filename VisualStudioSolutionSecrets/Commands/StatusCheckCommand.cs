@@ -30,11 +30,7 @@ namespace VisualStudioSolutionSecrets.Commands
             {
                 Console.WriteLine("Checking solutions status...\n\n");
 
-                string? path = options.Path;
-                if (path != null && !Path.IsPathFullyQualified(path))
-                {
-                    path = Path.Combine(Context.IO.GetCurrentDirectory(), path);
-                }
+                string? path = EnsureFullyQualifiedPath(options.Path);
 
                 Console.WriteLine("Solution                                |  Version                 |  Last Update          |  Status");
                 Console.WriteLine("------------------------------------------------------------------------------------------------------");

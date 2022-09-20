@@ -53,17 +53,7 @@ namespace VisualStudioSolutionSecrets.Tests
         }
 
 
-        public void Dispose()
-        {
-            string filePath = Path.Combine(Constants.ConfigFilesPath, FILE_NAME);
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
-        }
-
-
-        private static void ConfigureContext()
+        public AppDataTests()
         {
             var fileSystemMock = new Mock<DefaultFileSystem>();
 
@@ -78,11 +68,19 @@ namespace VisualStudioSolutionSecrets.Tests
         }
 
 
+        public void Dispose()
+        {
+            string filePath = Path.Combine(Constants.ConfigFilesPath, FILE_NAME);
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+
+
         [Fact]
         public void SaveDataTest()
         {
-            ConfigureContext();
-
             SampleData data = GetSampleData();
 
             AppData.SaveData(FILE_NAME, data);
@@ -102,8 +100,6 @@ namespace VisualStudioSolutionSecrets.Tests
         [Fact]
         public void LoadDataTest()
         {
-            ConfigureContext();
-           
             SampleData data = GetSampleData();
 
             var loadedData = AppData.LoadData<SampleData>(REFERENCE_FILE_NAME);

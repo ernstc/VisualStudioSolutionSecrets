@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
-using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.IO;
 using VisualStudioSolutionSecrets.Tests.Helpers;
 
@@ -63,19 +62,6 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         }
 
 
-        private async Task PrepareTest()
-        {
-            await InitializeCipher();
-
-            await CallCommand.Push(new PushSecretsOptions
-            {
-                Path = Constants.SolutionFilesPath
-            });
-
-            ChangeSecretsFilesPath();
-        }
-
-
         private void VerifyTestResults()
         {
             string originalFilePath1 = Path.Combine(Constants.SecretFilesPath, "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99", "secrets.json");
@@ -89,6 +75,22 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             Assert.Equal(File.ReadAllText(originalFilePath1), File.ReadAllText(pulledFilePath1));
             Assert.Equal(File.ReadAllText(originalFilePath2), File.ReadAllText(pulledFilePath2));
+        }
+
+
+        private async Task PrepareTest()
+        {
+            await CallCommand.Init(new InitOptions
+            {
+                Passphrase = Constants.PASSPHRASE
+            });
+
+            await CallCommand.Push(new PushSecretsOptions
+            {
+                Path = Constants.SolutionFilesPath
+            });
+
+            ChangeSecretsFilesPath();
         }
 
 

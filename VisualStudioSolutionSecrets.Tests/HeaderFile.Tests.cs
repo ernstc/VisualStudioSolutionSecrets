@@ -40,5 +40,6 @@ namespace VisualStudioSolutionSecrets.Tests
 
             Assert.False(isSupported);
         }
+
     }
 }
