@@ -1,0 +1,12 @@
+﻿Checking status...
+
+             Ecryption key status: OK
+  Repository authorization status: OK
+
+
+Checking solutions status...
+
+
+Solution                                |  Version                 |  Last Update          |  Status
+------------------------------------------------------------------------------------------------------
+SolutionSample.sln                      |  #.#.#                   |  ####-##-## ##:##:##  |  OK

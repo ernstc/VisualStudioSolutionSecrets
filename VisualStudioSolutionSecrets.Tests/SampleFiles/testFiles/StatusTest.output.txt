@@ -1,0 +1,4 @@
+﻿Checking status...
+
+             Ecryption key status: OK
+  Repository authorization status: OK

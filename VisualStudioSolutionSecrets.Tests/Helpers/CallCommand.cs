@@ -41,5 +41,12 @@ namespace VisualStudioSolutionSecrets.Tests.Helpers
             await Context.Current.Cipher.RefreshStatus();
         }
 
+
+        public static async Task Status(StatusCheckOptions options)
+        {
+            var command = new StatusCheckCommand();
+            await command.Execute(Context.Current, options);
+        }
+
     }
 }

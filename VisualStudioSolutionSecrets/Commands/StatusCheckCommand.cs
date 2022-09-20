@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -27,7 +28,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
             if (isCipherReady && isRepositoryReady && options.Path != null)
             {
-                Console.WriteLine("Checking solutions status...\n");
+                Console.WriteLine("Checking solutions status...\n\n");
 
                 string? path = options.Path;
                 if (path != null && !Path.IsPathFullyQualified(path))
@@ -35,8 +36,8 @@ namespace VisualStudioSolutionSecrets.Commands
                     path = Path.Combine(Context.IO.GetCurrentDirectory(), path);
                 }
 
-                Console.WriteLine("Solution                                |  Version                 | Last Update    | Status");
-                Console.WriteLine("---------------------------------------------------------------------------------------------");
+                Console.WriteLine("Solution                                |  Version                 |  Last Update          |  Status");
+                Console.WriteLine("------------------------------------------------------------------------------------------------------");
 
                 string[] solutionFiles = GetSolutionFiles(path, options.All);
                 foreach (string solutionFile in solutionFiles)
@@ -66,7 +67,7 @@ namespace VisualStudioSolutionSecrets.Commands
             }
             else
             {
-                status = "Valid";
+                status = "OK";
                 HeaderFile? header = null;
                
                 foreach (var file in repositoryFiles)
@@ -87,8 +88,19 @@ namespace VisualStudioSolutionSecrets.Commands
                         break;
                     }
 
-                    string? decryptedContent = Context.Current.Cipher.Decrypt(file.content!);
-                    if (decryptedContent == null)
+                    bool isFileOk = true;
+                    var contents = JsonSerializer.Deserialize<Dictionary<string, string>>(file.content);
+                    foreach (var item in contents)
+                    {
+                        string? decryptedContent = Context.Current.Cipher.Decrypt(item.Value);
+                        if (decryptedContent == null)
+                        {
+                            isFileOk = false;
+                            break;
+                        }
+                    }
+
+                    if (!isFileOk)
                     {
                         status = "ERROR";
                         break;
@@ -96,9 +108,9 @@ namespace VisualStudioSolutionSecrets.Commands
                 }
 
                 version = header?.visualStudioSolutionSecretsVersion ?? String.Empty;
-                lastUpdate = header?.lastUpload.ToString("dd/MM/yyyy HH:mm:ss") ?? String.Empty;
+                lastUpdate = header?.lastUpload.ToString("yyyy-MM-dd HH:mm:ss") ?? String.Empty;
             }
-            Console.WriteLine($"{solution.Name:40}| {version:10} | {lastUpdate} | {status}");
+            Console.WriteLine($"{solution.Name,-38}  |  {version,-22}  |  {lastUpdate,-19}  |  {status}");
         }
 
     }
