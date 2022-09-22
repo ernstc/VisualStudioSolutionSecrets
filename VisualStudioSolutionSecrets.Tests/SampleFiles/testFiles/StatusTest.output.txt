@@ -1,4 +1,6 @@
-﻿Checking status...
+﻿vs-secrets 1.2.0
+
+Checking status...
 
              Ecryption key status: OK
   Repository authorization status: OK
