@@ -103,13 +103,20 @@ namespace VisualStudioSolutionSecrets.Commands
 
                         bool isFileOk = true;
                         var contents = JsonSerializer.Deserialize<Dictionary<string, string>>(file.content);
-                        foreach (var item in contents)
+                        if (contents == null)
                         {
-                            string? decryptedContent = Context.Current.Cipher.Decrypt(item.Value);
-                            if (decryptedContent == null)
+                            isFileOk = false;
+                        }
+                        else
+                        {
+                            foreach (var item in contents)
                             {
-                                isFileOk = false;
-                                break;
+                                string? decryptedContent = Context.Current.Cipher.Decrypt(item.Value);
+                                if (decryptedContent == null)
+                                {
+                                    isFileOk = false;
+                                    break;
+                                }
                             }
                         }
 
@@ -128,7 +135,7 @@ namespace VisualStudioSolutionSecrets.Commands
             }
 
             string solutionName = solution.Name;
-            if (solutionName.Length > 48) solutionName = solutionName.Substring(0, 45) + "...";
+            if (solutionName.Length > 48) solutionName = solutionName[..45] + "...";
 
             var color = Console.ForegroundColor;
 

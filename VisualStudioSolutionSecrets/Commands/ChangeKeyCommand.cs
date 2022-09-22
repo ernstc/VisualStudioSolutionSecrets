@@ -49,7 +49,9 @@ namespace VisualStudioSolutionSecrets.Commands
                 foreach (var settings in solutionSecrets.Settings)
                 {
                     if (settings.content == null)
+                    {
                         continue;
+                    }
 
                     Dictionary<string, string>? secretFiles = null;
                     try
@@ -87,7 +89,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         decryptedFiles.Add(secret.Key, decryptedContent);
                     }
 
-                    decryptedSettings.Add((settings.name, JsonSerializer.Serialize(decryptedFiles)));                   
+                    decryptedSettings.Add((settings.name, JsonSerializer.Serialize(decryptedFiles)));
                 }
 
                 if (decryptionSucceded)
@@ -130,7 +132,15 @@ namespace VisualStudioSolutionSecrets.Commands
                 bool failed = false;
                 foreach (var settings in solutionSecrets.Settings)
                 {
+                    if (settings.content == null)
+                        continue;
+
                     var secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(settings.content);
+                    if (secretFiles == null)
+                    {
+                        failed = true;
+                        break;
+                    }
 
                     var encryptedFiles = new Dictionary<string, string>();
                     foreach (var secret in secretFiles)
