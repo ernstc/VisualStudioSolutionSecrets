@@ -97,12 +97,16 @@ namespace VisualStudioSolutionSecrets
 
                 if (v1 > v2)
                 {
-                    ShowLogo();
-                    Console.WriteLine($"Current version: {currentVersion}\n");
-                    Console.WriteLine($">>> New version available: {lastVersion} <<<");
-                    Console.WriteLine("Use the command below for upgrading to the latest version:\n");
-                    Console.WriteLine("    dotnet tool update vs-secrets --global\n");
-                    Console.WriteLine("------------------------------------------------------------");
+                    Console.WriteLine($@"
+------------------------------------------------------------
+
+>>> New version available: {lastVersion.ToString(lastVersion.Revision == 0 ? 3 : 4)} <<<
+Use the command below for upgrading to the latest version:
+
+    dotnet tool update vs-secrets --global
+
+------------------------------------------------------------
+");
                 }
             }
         }
