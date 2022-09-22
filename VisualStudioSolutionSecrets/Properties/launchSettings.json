@@ -2,7 +2,7 @@
   "profiles": {
     "Visual Studio Solution Secrets": {
       "commandName": "Project",
-      "commandLineArgs": "status",
+      "commandLineArgs": "status --path . --all",
       "workingDirectory": "C:\\Projects"
     }
   }

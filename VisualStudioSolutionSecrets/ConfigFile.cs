@@ -29,7 +29,7 @@ namespace VisualStudioSolutionSecrets
 
         public ConfigFile(string configFilePath, string uniqueFileName, ICipher? cipher)
         {
-            FileInfo fileInfo = Context.Current.IO.GetFileInfo(configFilePath);
+            FileInfo fileInfo = new FileInfo(configFilePath);
 
             _fileName = fileInfo.Name;
             _configFilePath = configFilePath;
@@ -38,7 +38,7 @@ namespace VisualStudioSolutionSecrets
 
             if (fileInfo.Exists)
             {
-                Content = Context.Current.IO.FileReadAllText(_configFilePath);
+                Content = File.ReadAllText(_configFilePath);
             }
         }
 

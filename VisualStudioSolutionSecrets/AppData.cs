@@ -13,11 +13,11 @@ namespace VisualStudioSolutionSecrets
         public static T? LoadData<T>(string fileName) where T: class, new()
         {
             string filePath = Path.Combine(Context.Current.IO.GetApplicationDataFolderPath(), fileName);
-            if (Context.Current.IO.FileExists(filePath))
+            if (File.Exists(filePath))
             {
                 try
                 {
-                    return JsonSerializer.Deserialize<T>(Context.Current.IO.FileReadAllText(filePath));
+                    return JsonSerializer.Deserialize<T>(File.ReadAllText(filePath));
                 }
                 catch
                 { }
@@ -29,7 +29,7 @@ namespace VisualStudioSolutionSecrets
         public static void SaveData<T>(string fileName, T data) where T : class, new()
         {
             string folderPath = Context.Current.IO.GetApplicationDataFolderPath();
-            Context.Current.IO.CreateDirectory(folderPath);
+            Directory.CreateDirectory(folderPath);
             string filePath = Path.Combine(folderPath, fileName);
             try
             {
@@ -37,7 +37,7 @@ namespace VisualStudioSolutionSecrets
                 {
                     WriteIndented = true
                 });
-                Context.Current.IO.FileWriteAllText(filePath, json);
+                File.WriteAllText(filePath, json);
             }
             catch
             { }

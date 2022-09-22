@@ -35,7 +35,7 @@ namespace VisualStudioSolutionSecrets
 
         public SolutionFile(string filePath, ICipher? cipher = null)
         {
-            FileInfo fileInfo = Context.Current.IO.GetFileInfo(filePath);
+            FileInfo fileInfo = new FileInfo(filePath);
             _filePath = filePath;
             _solutionFolderPath = fileInfo.Directory?.FullName ?? String.Empty;
             _cipher = cipher;
@@ -47,7 +47,7 @@ namespace VisualStudioSolutionSecrets
         {
             Dictionary<string, ConfigFile> configFiles = new Dictionary<string, ConfigFile>();
 
-            string[] lines = Context.Current.IO.FileReadAllLines(_filePath);
+            string[] lines = File.ReadAllLines(_filePath);
             foreach (string line in lines)
             {
                 if (line.StartsWith("Project("))
@@ -63,12 +63,12 @@ namespace VisualStudioSolutionSecrets
                             string projectFilePath = Path.Combine(_solutionFolderPath, Path.Combine(value.Split(@"\")));
                             string projectFileContent;
 
-                            FileInfo projectFile = Context.Current.IO.GetFileInfo(projectFilePath);
+                            FileInfo projectFile = new FileInfo(projectFilePath);
                             if (projectFile.Exists)
                             {
                                 try
                                 {
-                                    projectFileContent = Context.Current.IO.FileReadAllText(projectFilePath);
+                                    projectFileContent = File.ReadAllText(projectFilePath);
                                 }
                                 catch
                                 {
@@ -142,7 +142,7 @@ namespace VisualStudioSolutionSecrets
                     string[] projectGuids = projectFileContent.Substring(idx + openTag.Length, endIdx - idx - openTag.Length).ToLower().Split(';');
                     if (projectGuids.Contains(ASPNET_MVC5_PROJECT_GUID))
                     {
-                        var webConfigFiles = Context.Current.IO.GetFiles(projectFolderPath, "web*.config", SearchOption.TopDirectoryOnly);
+                        var webConfigFiles = Directory.GetFiles(projectFolderPath, "web*.config", SearchOption.TopDirectoryOnly);
                         foreach (var webConfigFile in webConfigFiles)
                         {
                             XDocument xml = XDocument.Load(webConfigFile);
@@ -182,12 +182,12 @@ namespace VisualStudioSolutionSecrets
             string secretsId = configFile.GroupName.Substring(8, 36);
             string filePath = GetSecretsFilePath(secretsId, configFile.FileName);
 
-            FileInfo fileInfo = Context.Current.IO.GetFileInfo(filePath);
+            FileInfo fileInfo = new FileInfo(filePath);
             if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
             {
-                Context.Current.IO.CreateDirectory(fileInfo.Directory.FullName);
+                Directory.CreateDirectory(fileInfo.Directory.FullName);
             }
-            Context.Current.IO.FileWriteAllText(filePath, configFile.Content ?? String.Empty);
+            File.WriteAllText(filePath, configFile.Content ?? String.Empty);
         }
 
 

@@ -67,7 +67,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             var directory = path ?? Context.Current.IO.GetCurrentDirectory();
             try
             {
-                return Context.Current.IO.GetFiles(directory, "*.sln", all ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+                return Directory.GetFiles(directory, "*.sln", all ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
             }
             catch (Exception ex)
             {

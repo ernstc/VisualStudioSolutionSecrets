@@ -11,36 +11,6 @@ namespace VisualStudioSolutionSecrets.IO
     {
         private const string APP_DATA_FOLDER = @"Visual Studio Solution Secrets";
 
-        public DirectoryInfo CreateDirectory(string path)
-        {
-            return Directory.CreateDirectory(path);
-        }
-
-        public bool FileExists(string path)
-        {
-            return File.Exists(path);
-        }
-
-        public FileStream FileOpenRead(string path)
-        {
-            return File.OpenRead(path);
-        }
-
-        public string[] FileReadAllLines(string path)
-        {
-            return File.ReadAllLines(path);
-        }
-
-        public string FileReadAllText(string path)
-        {
-            return File.ReadAllText(path);
-        }
-
-        public void FileWriteAllText(string path, string contents)
-        {
-            File.WriteAllText(path, contents);
-        }
-
         public virtual string GetApplicationDataFolderPath()
         {
             string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -54,16 +24,6 @@ namespace VisualStudioSolutionSecrets.IO
         public virtual string GetCurrentDirectory()
         {
             return Directory.GetCurrentDirectory();
-        }
-
-        public FileInfo GetFileInfo(string fileName)
-        {
-            return new FileInfo(fileName);
-        }
-
-        public string[] GetFiles(string path, string searchPattern, SearchOption searchOption)
-        {
-            return Directory.GetFiles(path, searchPattern, searchOption);
         }
 
         public virtual string GetSecretsFolderPath()
