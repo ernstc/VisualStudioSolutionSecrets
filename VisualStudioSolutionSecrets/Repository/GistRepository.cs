@@ -198,10 +198,7 @@ namespace VisualStudioSolutionSecrets.Repository
             {
                 foreach (var file in gist.files)
                 {
-                    if (
-                        file.Key == "secrets.json"
-                        || file.Key == "secrets"    // This check is for compatibility with versions <= 1.1.x
-                        )
+                    if (file.Key == "secrets")
                     {
                         string content;
                         HttpClient httpClient = new HttpClient();
@@ -296,10 +293,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
                         foreach (var file in gist.files)
                         {
-                            if (
-                                file.Key == "secrets.json"
-                                || file.Key == "secrets"    // This check is for compatibility with versions <= 1.1.x
-                                )
+                            if (file.Key == "secrets")
                             {
                                 continue;
                             }

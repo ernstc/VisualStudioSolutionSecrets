@@ -106,7 +106,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                     foreach (var filePath in filesPath)
                     {
                         string fileName = new FileInfo(filePath).Name;
-                        if (!fileName.StartsWith("secrets")) fileName = "secrets\\" + fileName;
+
+                        if (fileName == "secrets.json")
+                            fileName = "secrets";
+                        else if (!fileName.StartsWith("secrets"))
+                            fileName = "secrets\\" + fileName;
+
                         files.Add((fileName, File.ReadAllText(filePath)));
                     }
                     return files;

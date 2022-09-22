@@ -84,11 +84,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                     foreach (var file in repositoryFiles)
                     {
-                        if ((
-                            file.name == "secrets.json"
-                            || file.name == "secrets"   // This check is for compatibility with versions <= 1.1.x
-                            )
-                            && file.content != null)
+                        if (file.name == "secrets" && file.content != null)
                         {
                             header = JsonSerializer.Deserialize<HeaderFile>(file.content);
                             continue;

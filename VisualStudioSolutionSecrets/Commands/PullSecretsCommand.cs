@@ -53,11 +53,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 HeaderFile? header = null;
                 foreach (var file in repositoryFiles)
                 {
-                    if ((
-                        file.name == "secrets.json" 
-                        || file.name == "secrets"   // This check is for compatibility with versions <= 1.1.x
-                        ) 
-                        && file.content != null)
+                    if (file.name == "secrets" && file.content != null)
                     {
                         header = JsonSerializer.Deserialize<HeaderFile>(file.content);
                         break;
@@ -73,17 +69,14 @@ namespace VisualStudioSolutionSecrets.Commands
                 if (!header.IsVersionSupported())
                 {
                     Console.WriteLine($"\n    ERR: Header file has incompatible version {header.visualStudioSolutionSecretsVersion}");
-                    Console.WriteLine($"\n         Consider to install an updated version of this tool.");
+                    Console.WriteLine("\n         Consider to install an updated version of this tool.");
                     continue;
                 }
 
                 bool failed = false;
                 foreach (var repositoryFile in repositoryFiles)
                 {
-                    if (
-                        repositoryFile.name != "secrets.json" 
-                        && repositoryFile.name != "secrets"     // This check is for compatibility with versions <= 1.1.x
-                        )
+                    if (repositoryFile.name != "secrets")
                     {
                         if (repositoryFile.content == null)
                         {

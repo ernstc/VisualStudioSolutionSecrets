@@ -126,7 +126,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 var files = new List<(string fileName, string? content)>
                 {
-                    ("secrets.json", JsonSerializer.Serialize(headerFile))
+                    ("secrets", JsonSerializer.Serialize(headerFile))
                 };
 
                 bool failed = false;
