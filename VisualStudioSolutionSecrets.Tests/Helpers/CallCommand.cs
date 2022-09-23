@@ -42,6 +42,13 @@ namespace VisualStudioSolutionSecrets.Tests.Helpers
         }
 
 
+        public static async Task Search(SearchSecretsOptions options)
+        {
+            var command = new SearchSecretsCommand();
+            await command.Execute(Context.Current, options);
+        }
+
+
         public static async Task Status(StatusCheckOptions options)
         {
             var command = new StatusCheckCommand();
