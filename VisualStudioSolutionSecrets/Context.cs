@@ -9,7 +9,6 @@ using VisualStudioSolutionSecrets.Repository;
 namespace VisualStudioSolutionSecrets
 {
 
-
     public class ContextConfiguration
     {
         public IFileSystem? IO;
@@ -18,27 +17,14 @@ namespace VisualStudioSolutionSecrets
     }
 
 
-
-
     public sealed class Context
 	{
         public string? VersionString { get; }
         public Version? CurrentVersion { get; }
 
-
         public IFileSystem IO { get; private set; } = new DefaultFileSystem();
         public ICipher Cipher { get; private set; } = null!;
         public IRepository Repository { get; private set; } = null!;
-
-
-        private Context()
-        {
-            VersionString = this.GetType().Assembly?
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-                .InformationalVersion;
-
-            CurrentVersion = string.IsNullOrEmpty(VersionString) ? new Version() : new Version(VersionString);
-        }
 
 
         private static Context _current = null!;
@@ -60,6 +46,16 @@ namespace VisualStudioSolutionSecrets
             if (configuration.Repository != null) _current.Repository = configuration.Repository;
         }
 
+
+        private Context()
+        {
+            string? version = this.GetType().Assembly?
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                .InformationalVersion;
+
+            VersionString = version != null ? version.Split('-')[0] : null;
+            CurrentVersion = string.IsNullOrEmpty(VersionString) ? new Version() : new Version(VersionString);
+        }
+
     }
 }
-
