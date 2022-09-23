@@ -10,3 +10,5 @@ Checking solutions synchronization status...
 
 Solution                                          |  Version   |  Last Update          |  Status
 ------------------------------------------------------------------------------------------------------------
+ReallySuperVeryVeryVeryLongNameForSolutionFil...  |            |                       |  No secrests found
+SolutionSample.sln                                |  #.#.#     |  ####-##-## ##:##:##  |  OK

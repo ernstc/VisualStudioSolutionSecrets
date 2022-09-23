@@ -48,6 +48,31 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
+        public async Task StatusWithSolutionsRelativePathTest()
+        {
+            await CallCommand.Init(new InitOptions
+            {
+                Passphrase = Constants.PASSPHRASE
+            });
+
+            await CallCommand.Push(new PushSecretsOptions
+            {
+                Path = Constants.SolutionFilesPath
+            });
+
+            ClearOutput();
+
+            await CallCommand.Status(new StatusCheckOptions
+            {
+                Path = ".",
+                All = false
+            });
+
+            VerifyOutput();
+        }
+
+
+        [Fact]
         public async Task StatusWithSolutionsPathTest()
         {
             await CallCommand.Init(new InitOptions
@@ -64,7 +89,33 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             await CallCommand.Status(new StatusCheckOptions
             {
-                Path = "."
+                Path = Constants.SampleFilesPath,
+                All = false
+            });
+
+            VerifyOutput();
+        }
+
+
+        [Fact]
+        public async Task StatusWithSolutionsPathAllTest()
+        {
+            await CallCommand.Init(new InitOptions
+            {
+                Passphrase = Constants.PASSPHRASE
+            });
+
+            await CallCommand.Push(new PushSecretsOptions
+            {
+                Path = Constants.SolutionFilesPath
+            });
+
+            ClearOutput();
+
+            await CallCommand.Status(new StatusCheckOptions
+            {
+                Path = Constants.SampleFilesPath,
+                All = true
             });
 
             VerifyOutput();
