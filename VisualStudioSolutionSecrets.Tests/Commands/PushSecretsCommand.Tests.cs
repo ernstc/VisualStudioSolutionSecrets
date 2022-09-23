@@ -61,7 +61,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async void PushPathTest()
+        public async Task PushPathTest()
         {
             await CallCommand.Init(new InitOptions
             {
@@ -78,7 +78,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async void PushRelativePathTest()
+        public async Task PushRelativePathTest()
         {
             await CallCommand.Init(new InitOptions
             {
@@ -95,7 +95,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async void PushPathWithoutSolutionTest()
+        public async Task PushPathWithoutSolutionTest()
         {
             await CallCommand.Init(new InitOptions
             {
@@ -114,7 +114,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async void PushAllWithinPathTest()
+        public async Task PushAllWithinPathTest()
         {
             await CallCommand.Init(new InitOptions
             {

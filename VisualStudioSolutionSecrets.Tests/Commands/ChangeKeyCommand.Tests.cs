@@ -94,7 +94,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async void ChangeKeyWithPassphrase()
+        public async Task ChangeKeyWithPassphrase()
         {
             await PrepareTest();
 

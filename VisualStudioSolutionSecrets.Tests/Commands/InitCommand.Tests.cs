@@ -30,7 +30,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async void InitWithPassphraseTest()
+        public async Task InitWithPassphraseTest()
         {
             await CallCommand.Init(new InitOptions
             {
@@ -43,7 +43,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async void InitWithKeyFileTest()
+        public async Task InitWithKeyFileTest()
         {
             await CallCommand.Init(new InitOptions
             {
@@ -56,7 +56,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async void InitWithKeyFileWithRelativePathTest()
+        public async Task InitWithKeyFileWithRelativePathTest()
         {
             await CallCommand.Init(new InitOptions
             {

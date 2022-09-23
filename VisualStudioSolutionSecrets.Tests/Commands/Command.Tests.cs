@@ -202,9 +202,15 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             for (int i = 0; i < expectedLines.Count; i++)
             {
                 string pattern = "^" + expectedLines[i]
-                    .Replace("#", @"\d")
+                    .Replace('\\', Path.DirectorySeparatorChar)
+                    .Replace(@"\", @"\\")
                     .Replace("|", @"\|")
-                    .Replace(".", @"\.") + "$";
+                    .Replace("#", @"\d")
+                    .Replace(".", @"\.")
+                    .Replace("*", @".*")
+                    .Replace("(", @"\(")
+                    .Replace(")", @"\)")
+                    + "$";
 
                 Assert.Matches(pattern, generatedLines[i]);
             }

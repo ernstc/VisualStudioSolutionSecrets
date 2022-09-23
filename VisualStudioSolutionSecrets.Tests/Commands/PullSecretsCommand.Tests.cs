@@ -95,7 +95,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async void PullPathTest()
+        public async Task PullPathTest()
         {
             await PrepareTest();
 
@@ -109,7 +109,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async void PullRelativePathTest()
+        public async Task PullRelativePathTest()
         {
             await PrepareTest();
 
@@ -123,7 +123,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async void PullPathWithoutSolutionTest()
+        public async Task PullPathWithoutSolutionTest()
         {
             await PrepareTest();
 
@@ -141,7 +141,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async void PullAllWithinPathTest()
+        public async Task PullAllWithinPathTest()
         {
             await PrepareTest();
 
