@@ -202,7 +202,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             for (int i = 0; i < expectedLines.Count; i++)
             {
                 string pattern = "^" + expectedLines[i]
-                    .Replace('\\', Path.DirectorySeparatorChar)
+                    .Replace(Path.DirectorySeparatorChar, '\\')
                     .Replace(@"\", @"\\")
                     .Replace("|", @"\|")
                     .Replace("#", @"\d")
