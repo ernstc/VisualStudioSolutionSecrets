@@ -90,8 +90,8 @@ namespace VisualStudioSolutionSecrets.Tests
             Assert.True(File.Exists(filePath));
 
             string referenceFilePath = Path.Combine(Constants.ConfigFilesPath, REFERENCE_FILE_NAME);
-            string referenceContent = File.ReadAllText(referenceFilePath);
-            string content = File.ReadAllText(filePath);
+            var referenceContent = File.ReadAllLines(referenceFilePath);
+            var content = File.ReadAllLines(filePath);
 
             Assert.Equal(referenceContent, content);
         }

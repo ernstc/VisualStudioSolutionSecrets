@@ -54,7 +54,7 @@ namespace VisualStudioSolutionSecrets.Tests.Encryption
             cipher.Init(Constants.PASSPHRASE);
 
             Assert.True(File.Exists(_generatedFilePath));
-            Assert.Equal(File.ReadAllText(_sampleFilePath), File.ReadAllText(_generatedFilePath));
+            Assert.Equal(File.ReadAllLines(_sampleFilePath), File.ReadAllLines(_generatedFilePath));
         }
 
 
@@ -67,7 +67,7 @@ namespace VisualStudioSolutionSecrets.Tests.Encryption
             cipher.Init(File.OpenRead(keyFile));
 
             Assert.True(File.Exists(_generatedFilePath));
-            Assert.Equal(File.ReadAllText(_sampleFilePath), File.ReadAllText(_generatedFilePath));
+            Assert.Equal(File.ReadAllLines(_sampleFilePath), File.ReadAllLines(_generatedFilePath));
         }
 
 

@@ -38,7 +38,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             });
 
             Assert.True(File.Exists(_generatedFilePath));
-            Assert.Equal(File.ReadAllText(_sampleFilePath), File.ReadAllText(_generatedFilePath));
+            Assert.Equal(File.ReadAllLines(_sampleFilePath), File.ReadAllLines(_generatedFilePath));
         }
 
 
@@ -51,7 +51,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             });
 
             Assert.True(File.Exists(_generatedFilePath));
-            Assert.Equal(File.ReadAllText(_sampleFilePath), File.ReadAllText(_generatedFilePath));
+            Assert.Equal(File.ReadAllLines(_sampleFilePath), File.ReadAllLines(_generatedFilePath));
         }
 
 
@@ -64,7 +64,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             });
 
             Assert.True(File.Exists(_generatedFilePath));
-            Assert.Equal(File.ReadAllText(_sampleFilePath), File.ReadAllText(_generatedFilePath));
+            Assert.Equal(File.ReadAllLines(_sampleFilePath), File.ReadAllLines(_generatedFilePath));
         }
         
     }
