@@ -2,14 +2,18 @@
 
 # ***Visual Studio Solution Secrets***
 
-Tool for syncing Visual Studio solution secrets across different development machines.
+Synchronize Visual Studio solution secrets across different development machines.
 
 * [Get Started](#get-started)
 * [Best Practices](#best-practices)
 * [The Problem](#the-problem)
 * [The Solution](#the-solution)
-* [How to use it](#how-to-use-it)
-* [Visual Studio Solution Secrets files](#visual-studio-solution-secrets-files)
+* [How to install](#how-to-install)
+* [Configure the encryption key and authorizations](#configure-the-encryption-key-and-authorizations)
+* [Push solution secrets](#push-solution-secrets)
+* [Pull solution secrets](#pull-solution-secrets)
+* [Utility commands](#utility-commands)
+* [Configuration files](#configuration-files)
 
 # Get Started
 
@@ -27,57 +31,70 @@ vs-secrets pull
 
 # Best Practices
 
-If you are good in DevOps practices, you should know that secrets (sensitive data like passwords, connection strings, access keys, etc.) must not be committed with your code in any case and must not be deployed with the apps.
+As a good practices in DevOps, you must not store secrets (sensitive data like passwords, connection strings, access keys, etc.) in your source code that is committed in a shared repository and secrets must not be deployed with the apps.
 
-Fortunately Visual Studio and .Net help us in separating secrets from our code with the ***User Secrets Manager*** tool that let us store secrets out of the solution folder. The User Secrets Manager hides implementation details, but essentially it stores secrets in files located in the machine's user profile folder.
+Fortunately Visual Studio and .Net help us in separating secrets from our code with the ***User Secrets Manager*** that let us store secrets out of the solution folder. The User Secrets Manager hides implementation details, but essentially it stores secrets in files located in the machine's user profile folder.
 
 You can find the **User Secrets Manager** documentation [here](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-6.0&tabs=windows#secret-manager).
 
 # The Problem
 
-When you change your development machine usually you clone your project code from a remote repository and then you would like to be up and running for developing and testing you code in a matter of seconds.
+The User Secrets Manager is a great tool, but when you change your development machine usually you clone your project code from a remote repository and then you would like to be up and running for coding and testing in a matter of seconds.
 
-But if you have managed secrets with the tool User Secrets Manager you will not be immediatly able to test your code because you will miss something very important on your new machine: **the secret settings** that let your code work.
+But if you have managed secrets with the User Secrets Manager you will not be immediatly able to test your code because you will miss something very important on your new machine: **the secret settings** that let your code work.
 
 # The Solution
 
-For being immediatley ready to start developing and testing on the new development machine you have three choices.
+For being  ready to start coding and testing on the new development machine you have three choices.
 
 1) Manually copy secret files from the old machine to the new one, if you still have access to the old machine.
 2) Recreate the secret settings on your new machine for each project of the solution, but this can be tedious because you have to recover passwords, keys, etc. from different resources and it can be time consuming.
-3) Use **Visual Studio Solution Secrets** tool for synchronizing secret settings through the cloud in a quick and secure way.
+3) **\*\*New\*\*** : use **Visual Studio Solution Secrets** to synchronize secret settings through the cloud in a quick and secure way.
 
-The idea is to use GitHub Gists as the repository for your secrets. Visual Studio Solution Secrets collects all the secret settings used in the solution, encrypts and pushes them on GitHub in a secret Gist, so that only you can see them. The encryption key is generated from a passphrase or a key file that you specify during the one time initialization phase of the tool.
+The idea is to use GitHub Gists as the repository for your secrets. Visual Studio Solution Secrets collects all the secret settings used in the solution, encrypts and pushes them on your GitHub account in a secret Gist, so that only you can see them. The encryption key is generated from a passphrase or a key file that you specify during the one time initialization phase of the tool.
 
-Once you change the development machine, you don't have to copy any file from the old one. Just install the tool, recreate the encryption key with your passphrase or your key file, authorize the tool on GitHub and you are ready.
+Once you change the development machine, you don't have to copy any file from the old one.
+
+Just install the tool, recreate the encryption key with your passphrase or your key file, authorize the tool on GitHub, pull the solutions secrets on your new machine and you are ready to code. It's fast!
 
 ![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/main/Concept.png)
 
-# How to use it
+# How to install
 
-For installing the tool, use the command below:
+The tool is installed using the **dotnet** command line interface:
 
 ```
 dotnet tool install --global vs-secrets
 ```
 
-If you already have the tool, but you want to update to the latest version, use the command:
+If you already have it, but you want to update to the latest version, use the command:
 
 ```
 dotnet tool update --global vs-secrets
 ```
 
-After you have installed the tool, you need to create the encryption key and then authorize it to use yours GitHub Gists. 
-You can do this with the command:
+# Configure the encryption key and authorizations
+
+After the tool is installed, you need to create the encryption key and then authorize the use of your GitHub Gists. 
+
+Create the encryption key from a passphrase:
 ```
 vs-secrets init -p <your-passphrase>
 ```
-For creating the encryption key, by default the tool will ask you for a passphrase. If you prefer, you can use a key file as the input to the encryption key generation algorithm with the command below:
+Otherwise, you can create the encryption key from a key file with the command below:
 ```
 vs-secrets init --keyfile <file-path>
 ```
 
-## Push solution secrets
+In case the encryption key is compromised you can change it. 
+```
+vs-secrets changekey --passphrase <new-passphrase>
+vs-secrets changekey --keyfile <file-path>
+```
+When you change the encryption key with one of the above commands, any secret already encrypted on GitHub is re-encrypted with the new key. In this way the compromised key becomes useless.
+
+
+# Push solution secrets
 
 For pushing the secrets of the solution in current folder:
 ```
@@ -96,7 +113,7 @@ or
 vs-secrets push --path <path> --all
 ```
 
-## Pull solution secrets
+# Pull solution secrets
 
 For pulling the secrets of the solution in current folder:
 ```
@@ -114,26 +131,30 @@ or
 ```
 vs-secrets pull --path <path> --all
 ```
-
-## Searching for solution secrets
+# Utility commands
+## Search for solutions that use secrets
 
 You can also use the tool for just searching solutions and projects that use secrets
 ```
-vs-secrets search
-```
-```
-vs-secrets search --path <solution-path>
-```
-```
-vs-secrets search --all
-```
-```
-vs-secrets search --path <path> --all
+vs-secrets search [--path <solution-path>] [--all]
 ```
 
-# Visual Studio Solution Secrets files
 
-Visual Studio Solution Secrets tool stores its files in the machine's user profile folder.
+## Checking the status
+
+The "status" command let you check for the status of the tool. The command below checks if the encryption key has been defined and if the tool has been authorized to access GitHub Gists:
+```
+vs-secrets status
+```
+If needed, you can check also the synchronization status for a specific solution or for all the solutions in a folder tree:
+
+```
+vs-secrets status --path <solution-path> [--all]
+```
+
+# Configuration files
+
+Visual Studio Solution Secrets stores its configuration files in the machine's user profile folder.
 
 | Platform | Path |
 |----------|------|
@@ -141,7 +162,7 @@ Visual Studio Solution Secrets tool stores its files in the machine's user profi
 | macSO | `~/.config/Visual Studio Solution Secrets` |
 | Linux | `~/.config/Visual Studio Solution Secrets` |
 
-Below are listed the files generated by the tool.
+The files generated by the tool are listed below.
 
 | File | Description |
 |------|-------------|
