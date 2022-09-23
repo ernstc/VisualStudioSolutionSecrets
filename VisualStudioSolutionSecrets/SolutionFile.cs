@@ -60,7 +60,8 @@ namespace VisualStudioSolutionSecrets
 
                         if (_projRegex.IsMatch(value))
                         {
-                            string projectFilePath = Path.Combine(_solutionFolderPath, Path.Combine(value.Split(@"\")));
+                            string projectFileRelativePath = Path.Combine(Path.Combine(value.Split(@"\")));
+                            string projectFilePath = Path.Combine(_solutionFolderPath, projectFileRelativePath);
                             string projectFileContent;
 
                             FileInfo projectFile = new FileInfo(projectFilePath);
@@ -88,7 +89,7 @@ namespace VisualStudioSolutionSecrets
                                     if (!configFiles.ContainsKey(secrects.FilePath))
                                     {
                                         var configFile = new ConfigFile(secrects.FilePath, groupName, _cipher);
-                                        configFile.ProjectFileName = value;
+                                        configFile.ProjectFileName = projectFileRelativePath;
                                         configFiles.Add(secrects.FilePath, configFile);
                                     }
                                 }
