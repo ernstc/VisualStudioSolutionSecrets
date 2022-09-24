@@ -54,15 +54,17 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 Context.Repository.SolutionName = solution.Name;
 
-                Console.Write($"Pushing secrets for solution: {solution.Name} ...");
+                Console.Write($"Pushing secrets for solution: {solution.Name} ... ");
 
                 Dictionary<string, Dictionary<string, string>> secrets = new Dictionary<string, Dictionary<string, string>>();
 
+                bool isEmpty = true;
                 bool failed = false;
                 foreach (var configFile in configFiles)
                 {
                     if (configFile.Content != null)
                     {
+                        isEmpty = false;
                         if (configFile.Encrypt())
                         {
                             if (!secrets.ContainsKey(configFile.GroupName))
@@ -85,7 +87,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     files.Add((group.Key, groupContent));
                 }
 
-                if (!failed)
+                if (!isEmpty && !failed)
                 {
                     if (!await Context.Repository.PushFilesAsync(files))
                     {
@@ -93,7 +95,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     }
                 }
 
-                Console.WriteLine(failed ? "Failed" : "Done");
+                Console.WriteLine(isEmpty ? "Skipped.\n    Warning: Cannot find local secrets for this solution.\n" : failed ? "Failed." : "Done.");
             }
 
             Console.WriteLine("\nFinished.\n");
