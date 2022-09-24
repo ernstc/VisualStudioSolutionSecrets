@@ -39,23 +39,25 @@ You can find the **User Secrets Manager** documentation [here](https://docs.micr
 
 # The Problem
 
-The User Secrets Manager is a great tool, but when you change your development machine usually you clone your project code from a remote repository and then you would like to be up and running for coding and testing in a matter of seconds.
+The User Secrets Manager is a great tool, but when you change your development machine, usually you clone your project code from a remote repository and then you would like to be up and running for coding and testing in a matter of seconds.
 
 But if you have managed secrets with the User Secrets Manager you will not be immediatly able to test your code because you will miss something very important on your new machine: **the secret settings** that let your code work.
 
 # The Solution
 
-For being  ready to start coding and testing on the new development machine you have three choices.
+For being  ready to start coding and testing on the new development machine, you have three choices.
 
 1) Manually copy secret files from the old machine to the new one, if you still have access to the old machine.
 2) Recreate the secret settings on your new machine for each project of the solution, but this can be tedious because you have to recover passwords, keys, etc. from different resources and it can be time consuming.
 3) **\*\*New\*\*** : use **Visual Studio Solution Secrets** to synchronize secret settings through the cloud in a quick and secure way.
 
-The idea is to use GitHub Gists as the repository for your secrets. Visual Studio Solution Secrets collects all the secret settings used in the solution, encrypts and pushes them on your GitHub account in a secret Gist, so that only you can see them. The encryption key is generated from a passphrase or a key file that you specify during the one time initialization phase of the tool.
+The idea is to use GitHub Gists as the repository for your secrets. Visual Studio Solution Secrets collects all the secret settings used in the solution, **encrypts** and pushes them on your GitHub account in a secret Gist, so that only you can see them. The encryption key is generated from a passphrase or a key file that you specify during the one time initialization phase of the tool.
 
 Once you change the development machine, you don't have to copy any file from the old one.
 
-Just install the tool, recreate the encryption key with your passphrase or your key file, authorize the tool on GitHub, pull the solutions secrets on your new machine and you are ready to code. It's fast!
+Just install the tool, recreate the encryption key with your passphrase or your key file, authorize the tool on GitHub, pull the solutions secrets on your new machine and you are ready to code. 
+
+***It's fast!***
 
 ![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/main/Concept.png)
 
@@ -107,9 +109,6 @@ vs-secrets push --path <solution-path>
 For pushing the secrets of all the solutions in a folder tree:
 ```
 vs-secrets push --all
-```
-or
-```
 vs-secrets push --path <path> --all
 ```
 
@@ -126,15 +125,12 @@ vs-secrets pull --path <solution-path>
 For pulling the secrets of all the solutions in a folder tree:
 ```
 vs-secrets pull --all
-```
-or
-```
 vs-secrets pull --path <path> --all
 ```
 # Utility commands
 ## Search for solutions that use secrets
 
-You can also use the tool for just searching solutions and projects that use secrets
+You can use the tool for just searching solutions and projects that use secrets
 ```
 vs-secrets search [--path <solution-path>] [--all]
 ```
@@ -146,10 +142,13 @@ The "status" command let you check for the status of the tool. The command below
 ```
 vs-secrets status
 ```
-If needed, you can check also the synchronization status for a specific solution or for all the solutions in a folder tree:
+If the current folder contains a solution, the "status command" will show also the synchronization status for the secrets of the solutions.
 
+Optionally you can check the synchronization status in another folder using the **--path** parameter or in an entire folder tree adding the **--all** parameter. Here are some examples:
 ```
-vs-secrets status --path <solution-path> [--all]
+vs-secrets status --all
+vs-secrets status --path c:\projects\my-project
+vs-secrets status --path c:\projects --all
 ```
 
 # Configuration files
