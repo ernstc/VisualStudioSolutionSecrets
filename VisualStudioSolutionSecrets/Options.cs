@@ -71,7 +71,7 @@ namespace VisualStudioSolutionSecrets
         [Option("path", HelpText = "Path for searching solutions. The status for the found solutions will be shown.")]
         public string? Path { get; set; }
 
-        [Option("all", HelpText = "When true, search in the specified path and its sub-tree.", Default = true)]
+        [Option("all", HelpText = "When true, search in the specified path and its sub-tree.", Default = false)]
         public bool All { get; set; }
     }
 

@@ -39,22 +39,6 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 Passphrase = Constants.PASSPHRASE
             });
 
-            ClearOutput();
-
-            await CallCommand.Status(new StatusCheckOptions());
-
-            VerifyOutput();
-        }
-
-
-        [Fact]
-        public async Task StatusWithSolutionsRelativePathTest()
-        {
-            await CallCommand.Init(new InitOptions
-            {
-                Passphrase = Constants.PASSPHRASE
-            });
-
             await CallCommand.Push(new PushSecretsOptions
             {
                 Path = Constants.SolutionFilesPath
@@ -62,11 +46,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            await CallCommand.Status(new StatusCheckOptions
-            {
-                Path = ".",
-                All = false
-            });
+            await CallCommand.Status(new StatusCheckOptions());
 
             VerifyOutput();
         }
@@ -89,8 +69,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             await CallCommand.Status(new StatusCheckOptions
             {
-                Path = Constants.SampleFilesPath,
-                All = false
+                Path = Constants.SampleFilesPath
             });
 
             VerifyOutput();
@@ -116,6 +95,31 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             {
                 Path = Constants.SampleFilesPath,
                 All = true
+            });
+
+            VerifyOutput();
+        }
+
+
+        [Fact]
+        public async Task StatusWithSolutionsRelativePathTest()
+        {
+            await CallCommand.Init(new InitOptions
+            {
+                Passphrase = Constants.PASSPHRASE
+            });
+
+            await CallCommand.Push(new PushSecretsOptions
+            {
+                Path = Constants.SolutionFilesPath
+            });
+
+            ClearOutput();
+
+            await CallCommand.Status(new StatusCheckOptions
+            {
+                Path = ".",
+                All = false
             });
 
             VerifyOutput();

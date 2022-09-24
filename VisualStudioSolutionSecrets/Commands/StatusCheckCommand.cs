@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
@@ -27,19 +28,23 @@ namespace VisualStudioSolutionSecrets.Commands
             Console.WriteLine($"  Repository authorization status: {repositoryAuthorizationStatus}\n");
             Console.WriteLine();
 
-            if (isCipherReady && isRepositoryReady && options.Path != null)
+            if (isCipherReady && isRepositoryReady)
             {
-                Console.WriteLine("Checking solutions synchronization status...\n");
-
-                string? path = EnsureFullyQualifiedPath(options.Path);
-
-                Console.WriteLine("Solution                                          |  Version   |  Last Update          |  Status");
-                Console.WriteLine("------------------------------------------------------------------------------------------------------------");
-
+                string? path = options.Path != null ? EnsureFullyQualifiedPath(options.Path) : Context.IO.GetCurrentDirectory();
                 string[] solutionFiles = GetSolutionFiles(path, options.All);
-                foreach (string solutionFile in solutionFiles)
+                if (solutionFiles.Length > 0)
                 {
-                    await GetSolutionStatus(solutionFile);
+                    Console.WriteLine("Checking solutions synchronization status...\n");
+
+                    Console.WriteLine("Solution                                          |  Version   |  Last Update          |  Status");
+                    Console.WriteLine("---------------------------------------------------------------------------------------------------------------");
+
+                    foreach (string solutionFile in solutionFiles)
+                    {
+                        await GetSolutionStatus(solutionFile);
+                    }
+
+                    Console.WriteLine();
                 }
             }
         }
@@ -54,6 +59,10 @@ namespace VisualStudioSolutionSecrets.Commands
             ConsoleColor statusColor;
             ConsoleColor solutionColor;
 
+            bool hasRemoteSecrets = false;
+            bool? hasLocalSecrets = null;
+            bool? isSynchronized = null;
+
             SolutionFile solution = new SolutionFile(solutionFile, Context.Cipher);
             var configFiles = solution.GetProjectsSecretConfigFiles();
             if (configFiles.Count == 0)
@@ -65,15 +74,28 @@ namespace VisualStudioSolutionSecrets.Commands
             }
             else
             {
+                hasLocalSecrets = configFiles.Any(c => !String.IsNullOrWhiteSpace(c.Content));
+                isSynchronized = true;
+
                 solutionColor = ConsoleColor.White;
 
                 Context.Repository.SolutionName = solution.Name;
 
-                var repositoryFiles = await Context.Repository.PullFilesAsync();
-                if (repositoryFiles.Count == 0)
+                var remoteFiles = await Context.Repository.PullFilesAsync();
+                hasRemoteSecrets = remoteFiles.Count > 0;
+
+                if (!hasRemoteSecrets)
                 {
-                    status = "Local only";
-                    statusColor = ConsoleColor.Gray;
+                    if (hasLocalSecrets.Value)
+                    {
+                        status = "Local only";
+                        statusColor = ConsoleColor.Gray;
+                    }
+                    else
+                    {
+                        status = "No secrests found";
+                        statusColor = ConsoleColor.DarkGray;
+                    }
                 }
                 else
                 {
@@ -82,15 +104,15 @@ namespace VisualStudioSolutionSecrets.Commands
 
                     HeaderFile? header = null;
 
-                    foreach (var file in repositoryFiles)
+                    foreach (var remoteFile in remoteFiles)
                     {
-                        if (file.name == "secrets" && file.content != null)
+                        if (remoteFile.name == "secrets" && remoteFile.content != null)
                         {
-                            header = JsonSerializer.Deserialize<HeaderFile>(file.content);
+                            header = JsonSerializer.Deserialize<HeaderFile>(remoteFile.content);
                             continue;
                         }
 
-                        if (file.content == null)
+                        if (remoteFile.content == null)
                         {
                             status = "ERROR";
                             statusColor = ConsoleColor.Red;
@@ -98,7 +120,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         }
 
                         bool isFileOk = true;
-                        var contents = JsonSerializer.Deserialize<Dictionary<string, string>>(file.content);
+                        var contents = JsonSerializer.Deserialize<Dictionary<string, string>>(remoteFile.content);
                         if (contents == null)
                         {
                             isFileOk = false;
@@ -112,6 +134,18 @@ namespace VisualStudioSolutionSecrets.Commands
                                 {
                                     isFileOk = false;
                                     break;
+                                }
+                                else if (hasLocalSecrets.Value)
+                                {
+                                    var localFile = configFiles.FirstOrDefault(c => c.GroupName == remoteFile.name && c.FileName == item.Key);
+                                    if (localFile != null)
+                                    {
+                                        string localContent = File.ReadAllText(localFile.FilePath);
+                                        if (localContent != decryptedContent)
+                                        {
+                                            isSynchronized = false;
+                                        }
+                                    }    
                                 }
                             }
                         }
@@ -154,7 +188,29 @@ namespace VisualStudioSolutionSecrets.Commands
             Console.Write("  |  ");
 
             Console.ForegroundColor = statusColor;
-            Console.WriteLine($"{status}");
+            Console.Write($"{status}");
+
+            if (hasRemoteSecrets)
+            {
+                if (hasLocalSecrets == false)
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.Write(" / ");
+
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    Console.Write("Cloud only");
+                }
+                else if (isSynchronized == false)
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.Write(" / ");
+
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    Console.Write("Not synchronized");
+                }
+            }
+
+            Console.WriteLine();
 
             Console.ForegroundColor = color;
         }
