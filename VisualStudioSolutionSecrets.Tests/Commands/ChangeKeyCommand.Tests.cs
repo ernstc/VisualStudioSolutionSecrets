@@ -94,6 +94,23 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
+        public async Task ChangeKeyWithoutParameters()
+        {
+            await CallCommand.Init(new InitOptions
+            {
+                Passphrase = Constants.PASSPHRASE
+            });
+
+            string encryptionKeyFilePath = Path.Combine(Constants.ConfigFilesPath, "cipher.json");
+            string encryptionKey = File.ReadAllText(encryptionKeyFilePath);
+
+            await CallCommand.ChangeKey(new ChangeKeyOptions());
+
+            Assert.Equal(encryptionKey, File.ReadAllText(encryptionKeyFilePath));
+        }
+
+
+        [Fact]
         public async Task ChangeKeyWithPassphrase()
         {
             await PrepareTest();

@@ -37,8 +37,9 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         {
             while (true)
             {
-                Console.WriteLine("    Do you want to continue? [Y] Yes, [N] No");
+                Console.Write("    Do you want to continue? [Y] Yes, [N] No : ");
                 var key = Console.ReadKey();
+                Console.WriteLine();
                 if (key.Key == ConsoleKey.Y)
                 {
                     return true;

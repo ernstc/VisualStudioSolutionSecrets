@@ -54,7 +54,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 Context.Repository.SolutionName = solution.Name;
 
-                Console.Write($"Pushing secrets for solution: {solution.Name} ... ");
+                Console.Write($"Pushing secrets for solution: {solution.Name}... ");
 
                 Dictionary<string, Dictionary<string, string>> secrets = new Dictionary<string, Dictionary<string, string>>();
 

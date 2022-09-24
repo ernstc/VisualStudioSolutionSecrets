@@ -24,8 +24,8 @@ namespace VisualStudioSolutionSecrets.Commands
             string encryptionKeyStatus = isCipherReady ? "OK" : "NOT DEFINED";
             string repositoryAuthorizationStatus = isRepositoryReady ? "OK" : "NOT AUTHORIZED";
 
-            Console.WriteLine($"             Ecryption key status: {encryptionKeyStatus}");
-            Console.WriteLine($"  Repository authorization status: {repositoryAuthorizationStatus}\n");
+            Console.WriteLine($"             Ecryption key: {encryptionKeyStatus}");
+            Console.WriteLine($"  Repository authorization: {repositoryAuthorizationStatus}\n");
             Console.WriteLine();
 
             if (isCipherReady && isRepositoryReady)

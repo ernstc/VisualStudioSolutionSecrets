@@ -30,6 +30,15 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
+        public async Task InitWithoutParametersTest()
+        {
+            await CallCommand.Init(new InitOptions());
+
+            Assert.False(File.Exists(_generatedFilePath));
+        }
+
+
+        [Fact]
         public async Task InitWithPassphraseTest()
         {
             await CallCommand.Init(new InitOptions

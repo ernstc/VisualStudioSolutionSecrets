@@ -30,13 +30,13 @@ namespace VisualStudioSolutionSecrets.Commands
 
             await AuthenticateRepositoryAsync();
 
-            Console.Write("Loading existing secrets ...");
+            Console.Write("Loading existing secrets... ");
             var allSecrets = await Context.Repository.PullAllSecretsAsync();
-            Console.WriteLine("Done\n");
+            Console.WriteLine("Done");
 
             if (allSecrets.Count == 0)
             {
-                Console.WriteLine("\nThere are no solution settings to that need to be encrypted with the new key.");
+                Console.WriteLine("\nThere are no solution settings that need to be encrypted with the new key.");
             }
 
             var successfulSolutionSecrets = new List<SolutionSettings>();
@@ -65,7 +65,6 @@ namespace VisualStudioSolutionSecrets.Commands
 
                     if (secretFiles == null)
                     {
-                        //failed = true;
                         break;
                     }
 
@@ -104,7 +103,9 @@ namespace VisualStudioSolutionSecrets.Commands
 
             if (successfulSolutionSecrets.Count != allSecrets.Count)
             {
-                Console.WriteLine("\n    WARN: Some solution settings cannot be decrypted with the current encryption key.");
+                Console.WriteLine("\n    Attention!");
+                Console.WriteLine("    Some solution settings cannot be decrypted with the current encryption key.");
+                Console.WriteLine("    Only some solutions will be re-encrypted with the new key.\n");
                 if (!Confirm())
                 {
                     return;
@@ -113,10 +114,12 @@ namespace VisualStudioSolutionSecrets.Commands
 
             GenerateEncryptionKey(options.Passphrase, keyFile);
 
-            Console.Write("Saving secrets with the new key ...");
+            Console.WriteLine("Saving secrets with the new key...\n");
 
             foreach (var solutionSecrets in successfulSolutionSecrets)
             {
+                Console.Write($"- {solutionSecrets.SolutionName}... ");
+                
                 var headerFile = new HeaderFile
                 {
                     visualStudioSolutionSecretsVersion = Context.VersionString!,
@@ -151,7 +154,15 @@ namespace VisualStudioSolutionSecrets.Commands
                             failed = true;
                             break;
                         }
-                        encryptedFiles.Add(secret.Key, encryptedContent);
+
+                        // This change is for upgrading the secrets file to the 1.2.x+ format.
+                        string fileName = secret.Key;
+                        if (fileName == "content")
+                        {
+                            fileName = "secrets.json";
+                        }
+
+                        encryptedFiles.Add(fileName, encryptedContent);
                     }
 
                     if (failed)
@@ -174,7 +185,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 Console.WriteLine(failed ? "Failed" : "Done");
             }
 
-            Console.WriteLine("Done\n");
+            Console.WriteLine("\nFinished.\n");
         }
 
     }

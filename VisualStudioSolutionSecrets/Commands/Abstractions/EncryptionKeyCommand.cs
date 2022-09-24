@@ -36,11 +36,16 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
         protected bool AreEncryptionKeyParametersValid(string? passphrase, string? keyFile)
         {
+            if (string.IsNullOrEmpty(passphrase) && string.IsNullOrEmpty(keyFile))
+            {
+                Console.WriteLine("\nYou must specify a passphrase or key file to create the encryption key.");
+                return false;
+            }
             if (!string.IsNullOrEmpty(passphrase))
             {
                 if (!string.IsNullOrEmpty(keyFile))
                 {
-                    Console.WriteLine("\n    WARN: You have specified passphrase and keyfile, but only passphrase will be used.");
+                    Console.WriteLine("\n    WARN: You have specified passphrase and key file, but only passphrase will be used.");
                 }
 
                 if (!ValidatePassphrase(passphrase))
@@ -56,7 +61,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             {
                 if (!File.Exists(keyFile))
                 {
-                    Console.WriteLine("\n    ERR: Cannot create encryption key. Key file not found.");
+                    Console.WriteLine("\n    ERR: Cannot create the encryption key. Key file not found.");
                     return false;
                 }
             }
@@ -66,7 +71,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
         protected void GenerateEncryptionKey(string? passphrase, string? keyFile)
         {
-            Console.Write("Generating encryption key ...");
+            Console.Write("\nGenerating encryption key... ");
             if (!string.IsNullOrEmpty(passphrase))
             {
                 Context.Cipher.Init(passphrase);

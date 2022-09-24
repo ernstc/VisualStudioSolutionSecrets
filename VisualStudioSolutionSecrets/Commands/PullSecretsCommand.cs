@@ -40,7 +40,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 Context.Repository.SolutionName = solution.Name;
 
-                Console.Write($"Pulling secrets for solution: {solution.Name} ...");
+                Console.Write($"Pulling secrets for solution: {solution.Name}... ");
 
                 var repositoryFiles = await Context.Repository.PullFilesAsync();
                 if (repositoryFiles.Count == 0)
