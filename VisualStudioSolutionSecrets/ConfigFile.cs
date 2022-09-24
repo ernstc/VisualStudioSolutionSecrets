@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ using VisualStudioSolutionSecrets.Encryption;
 namespace VisualStudioSolutionSecrets
 {
 
+    [DebuggerDisplay("Secret = {GroupName}")]
     public class ConfigFile
     {
 
