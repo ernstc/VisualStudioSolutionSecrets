@@ -19,9 +19,11 @@ namespace VisualStudioSolutionSecrets
         private string _name;
         private string _filePath;
         private string _solutionFolderPath;
+        private Guid _solutionGuid;
         private ICipher? _cipher;
 
         public string Name => _name;
+        public Guid SolutionGuid => _solutionGuid;
 
 
 
@@ -40,6 +42,20 @@ namespace VisualStudioSolutionSecrets
             _solutionFolderPath = fileInfo.Directory?.FullName ?? String.Empty;
             _cipher = cipher;
             _name = fileInfo.Name;
+
+            if (fileInfo.Exists)
+            {
+                string[] lines = File.ReadAllLines(filePath);
+                foreach (var line in lines)
+                {
+                    if (line.Contains("SolutionGuid") && line.Contains('='))
+                    {
+                        string guid = line.Split('=')[1];
+                        _solutionGuid = Guid.Parse(guid.Trim());
+                        break;
+                    }
+                }
+            }
         }
 
 
