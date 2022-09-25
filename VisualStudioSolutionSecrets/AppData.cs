@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 
@@ -10,6 +11,19 @@ namespace VisualStudioSolutionSecrets
 {
     public static class AppData
     {
+
+        private static JsonSerializerOptions jsonSeriazerOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+#if NETCOREAPP3_1
+                    IgnoreNullValues = true
+#else
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+#endif
+        };
+
+
         public static T? LoadData<T>(string fileName) where T: class, new()
         {
             string filePath = Path.Combine(Context.Current.IO.GetApplicationDataFolderPath(), fileName);
@@ -17,7 +31,8 @@ namespace VisualStudioSolutionSecrets
             {
                 try
                 {
-                    return JsonSerializer.Deserialize<T>(File.ReadAllText(filePath));
+                    string json = File.ReadAllText(filePath);
+                    return JsonSerializer.Deserialize<T>(json, jsonSeriazerOptions);
                 }
                 catch
                 { }
@@ -33,10 +48,7 @@ namespace VisualStudioSolutionSecrets
             string filePath = Path.Combine(folderPath, fileName);
             try
             {
-                string json = JsonSerializer.Serialize<T>(data, new JsonSerializerOptions 
-                {
-                    WriteIndented = true
-                });
+                string json = JsonSerializer.Serialize<T>(data, jsonSeriazerOptions);
                 File.WriteAllText(filePath, json);
             }
             catch
