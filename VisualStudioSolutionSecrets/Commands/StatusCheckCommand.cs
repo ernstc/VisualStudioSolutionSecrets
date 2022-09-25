@@ -15,7 +15,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
         protected override async Task Execute(StatusCheckOptions options)
         {
-            Console.WriteLine($"vs-secrets {Context.Current.VersionString}\n");
+            Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
             Console.WriteLine("Checking status...\n");
 
             bool isCipherReady = await Context.Cipher.IsReady();

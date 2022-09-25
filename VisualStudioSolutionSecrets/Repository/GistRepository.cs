@@ -118,14 +118,14 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        public async Task<string?> StartDeviceFlowAuthorizationAsync()
+        public async Task<string?> StartAuthorizationFlowAsync()
         {
             _deviceFlowResponse = await SendRequest<DeviceFlowResponse>(HttpMethod.Post, $"https://github.com/login/device/code?client_id={CLIENT_ID}&scope={SCOPE}");
             return _deviceFlowResponse?.user_code;
         }
 
 
-        public async Task CompleteDeviceFlowAuthorizationAsync()
+        public async Task CompleteAuthorizationFlowAsync()
         {
             if (_deviceFlowResponse == null)
             {

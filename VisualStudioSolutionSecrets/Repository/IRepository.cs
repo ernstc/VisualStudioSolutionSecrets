@@ -10,8 +10,8 @@ namespace VisualStudioSolutionSecrets.Repository
     public interface IRepository : IService
     {
         string? SolutionName { get; set; }
-        Task<string?> StartDeviceFlowAuthorizationAsync();
-        Task CompleteDeviceFlowAuthorizationAsync();
+        Task<string?> StartAuthorizationFlowAsync();
+        Task CompleteAuthorizationFlowAsync();
         Task<bool> PushFilesAsync(ICollection<(string name, string? content)> files);
         Task<ICollection<(string name, string? content)>> PullFilesAsync();
         Task<ICollection<SolutionSettings>> PullAllSecretsAsync();

@@ -36,7 +36,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 var headerFile = new HeaderFile
                 {
-                    visualStudioSolutionSecretsVersion = Context.VersionString!,
+                    visualStudioSolutionSecretsVersion = Versions.VersionString!,
                     lastUpload = DateTime.UtcNow,
                     solutionFile = solution.Name
                 };

@@ -87,10 +87,10 @@ namespace VisualStudioSolutionSecrets
 
         static async Task CheckForUpdates()
         {
-            if (Context.Current.CurrentVersion != null)
+            if (Versions.CurrentVersion != null)
             {
                 var lastVersion = await Versions.CheckForNewVersion();
-                var currentVersion = Context.Current.CurrentVersion;
+                var currentVersion = Versions.CurrentVersion;
 
                 var v1 = new Version(lastVersion.Major, lastVersion.Minor, lastVersion.Build);
                 var v2 = new Version(currentVersion.Major, currentVersion.Minor, currentVersion.Build);

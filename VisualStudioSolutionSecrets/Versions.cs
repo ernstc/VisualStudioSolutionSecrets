@@ -6,6 +6,7 @@ using NuGet.Common;
 using NuGet.Protocol.Core.Types;
 using NuGet.Protocol;
 using NuGet.Versioning;
+using System.Reflection;
 
 namespace VisualStudioSolutionSecrets
 {
@@ -15,7 +16,22 @@ namespace VisualStudioSolutionSecrets
 		public const string MinimumFileFormatSupported = "1.0.0";
 
 
-		public static async Task<Version> CheckForNewVersion()
+        public static string? VersionString { get; }
+        public static Version? CurrentVersion { get; }
+
+
+        static Versions()
+        {
+            string? version = typeof(Versions).Assembly?
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                .InformationalVersion;
+
+            VersionString = version?.Split('-')[0];
+            CurrentVersion = string.IsNullOrEmpty(VersionString) ? new Version() : new Version(VersionString);
+        }
+
+
+        public static async Task<Version> CheckForNewVersion()
         {
             ILogger logger = NullLogger.Instance;
             CancellationToken cancellationToken = CancellationToken.None;
@@ -40,4 +56,3 @@ namespace VisualStudioSolutionSecrets
 
 	}
 }
-

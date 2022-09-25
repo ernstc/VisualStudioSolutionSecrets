@@ -12,7 +12,7 @@ namespace VisualStudioSolutionSecrets
 {
 
     [DebuggerDisplay("Secret = {GroupName}")]
-    public class ConfigFile
+    public class SecretsSettingsFile
     {
 
         private readonly string _fileName = null!;
@@ -29,7 +29,7 @@ namespace VisualStudioSolutionSecrets
 
 
 
-        public ConfigFile(string configFilePath, string uniqueFileName, ICipher? cipher)
+        public SecretsSettingsFile(string configFilePath, string uniqueFileName, ICipher? cipher)
         {
             FileInfo fileInfo = new FileInfo(configFilePath);
 
