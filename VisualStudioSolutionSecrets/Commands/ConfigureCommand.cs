@@ -11,7 +11,7 @@ namespace VisualStudioSolutionSecrets.Commands
     {
         protected override async Task Execute(ConfigureOptions options)
         {
-            
+            var configuration = Configuration.Current;
         }
     }
 }
