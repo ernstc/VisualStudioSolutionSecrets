@@ -24,6 +24,7 @@ namespace VisualStudioSolutionSecrets
             CommandLine.Parser.Default.ParseArguments<
                 InitOptions,
                 ChangeKeyOptions,
+                ConfigureOptions,
                 PushSecretsOptions,
                 PullSecretsOptions,
                 SearchSecretsOptions,
@@ -41,6 +42,7 @@ namespace VisualStudioSolutionSecrets
             .MapResult(
                 (InitOptions options) => { return Execute(new InitCommand(), options); },
                 (ChangeKeyOptions options) => { return Execute(new ChangeKeyCommand(), options); },
+                (ConfigureOptions options) => { return Execute(new ConfigureCommand(), options); },
                 (PushSecretsOptions options) => { return Execute(new PushSecretsCommand(), options); },
                 (PullSecretsOptions options) => { return Execute(new PullSecretsCommand(), options); },
                 (SearchSecretsOptions options) => { return Execute(new SearchSecretsCommand(), options); },

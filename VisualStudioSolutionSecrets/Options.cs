@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
-
+using CommandLine.Text;
+using VisualStudioSolutionSecrets.Repository;
 
 namespace VisualStudioSolutionSecrets
 {
@@ -75,4 +76,30 @@ namespace VisualStudioSolutionSecrets
         public bool All { get; set; }
     }
 
+
+    [Verb("configure", HelpText = "Configure the repository to use by default or for the solution in the current directory.")]
+    internal class ConfigureOptions
+    {
+        [Option("default", HelpText = "Changes the default configuration.", Default = false)]
+        public bool Default { get; set; }
+
+        [Option('r', "repo", Required = true, HelpText = "Repository type to use for the solution: \"github\" or \"azurekv\"")]
+        public RepositoryTypesEnum RepositoryType { get; set; }
+
+        [Option('n', "name", HelpText = "Repository name to use for the solution. This setting applies only for Azure Key Vault.")]
+        public string? RepositoryName { get; set; }
+
+        //[Usage]
+        //public static IEnumerable<Example> UsageExamples
+        //{
+        //    get
+        //    {
+        //        return new List<Example>() {
+        //            new Example("Configure the solution to use GitHub", new ConfigureOptions { RepositoryType = RepositoryTypesEnum.GitHub }),
+        //            new Example("Configure the solution to use Azure Key Vault", new ConfigureOptions { RepositoryType = RepositoryTypesEnum.AzureKV, RepositoryName = "my-keyvault" }),
+        //            new Example("Set GitHub as the default repository", new ConfigureOptions { RepositoryType = RepositoryTypesEnum.GitHub, Default = true }),
+        //        };
+        //    }
+        //}
+    }
 }
