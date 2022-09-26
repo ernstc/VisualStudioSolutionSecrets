@@ -23,7 +23,6 @@ namespace VisualStudioSolutionSecrets
         private ICipher? _cipher;
 
         public string Name => _name;
-        public Guid SolutionGuid => _solutionGuid;
 
 
 
@@ -50,7 +49,7 @@ namespace VisualStudioSolutionSecrets
                 {
                     if (line.Contains("SolutionGuid") && line.Contains('='))
                     {
-                        string guid = line.Split('=')[1];
+                        string guid = line.Substring(line.IndexOf('=') + 1);
                         _solutionGuid = Guid.Parse(guid.Trim());
                         break;
                     }
@@ -59,7 +58,16 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public ICollection<SecretsSettingsFile> GetProjectsSecretConfigFiles()
+        public SolutionSynchronizationSettings SynchronizationSettings
+        {
+            get
+            {
+                return Configuration.Current.GetSynchronizationSettings(_solutionGuid);
+            }
+        }
+
+
+        public ICollection<SecretsSettingsFile> GetProjectsSecretSettingsFiles()
         {
             Dictionary<string, SecretsSettingsFile> configFiles = new Dictionary<string, SecretsSettingsFile>();
 
@@ -194,7 +202,7 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public void SaveConfigFile(SecretsSettingsFile configFile)
+        public void SaveSecretSettingsFile(SecretsSettingsFile configFile)
         {
             string secretsId = configFile.GroupName.Substring(8, 36);
             string filePath = GetSecretsFilePath(secretsId, configFile.FileName);

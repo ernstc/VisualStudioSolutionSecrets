@@ -34,6 +34,10 @@ namespace VisualStudioSolutionSecrets.Repository
         private Gist? _gist;
 
 
+        public string RepositoryType => "GitHub";
+        public string? RepositoryName { get; }
+
+
         public string? SolutionName
         {
             get
@@ -118,19 +122,21 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        public async Task<string?> StartAuthorizationFlowAsync()
+        public async Task AuthorizeAsync()
         {
             _deviceFlowResponse = await SendRequest<DeviceFlowResponse>(HttpMethod.Post, $"https://github.com/login/device/code?client_id={CLIENT_ID}&scope={SCOPE}");
-            return _deviceFlowResponse?.user_code;
-        }
-
-
-        public async Task CompleteAuthorizationFlowAsync()
-        {
             if (_deviceFlowResponse == null)
             {
                 return;
             }
+
+            string user_code = _deviceFlowResponse.user_code;
+            if (user_code == null)
+            {
+                return;
+            }
+
+            Console.WriteLine($"\nAuthenticate on GitHub with Device code = {user_code}\n");
 
             await CheckAccessToken();
 

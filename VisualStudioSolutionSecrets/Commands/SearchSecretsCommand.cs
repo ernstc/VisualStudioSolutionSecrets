@@ -26,7 +26,7 @@ namespace VisualStudioSolutionSecrets.Commands
             {
                 SolutionFile solution = new SolutionFile(solutionFile, null);
 
-                var configFiles = solution.GetProjectsSecretConfigFiles();
+                var configFiles = solution.GetProjectsSecretSettingsFiles();
                 if (configFiles.Count > 0)
                 {
                     solutionIndex++;

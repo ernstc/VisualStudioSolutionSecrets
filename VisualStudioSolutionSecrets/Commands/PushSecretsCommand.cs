@@ -46,7 +46,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     ("secrets", JsonSerializer.Serialize(headerFile))
                 };
 
-                var configFiles = solution.GetProjectsSecretConfigFiles();
+                var configFiles = solution.GetProjectsSecretSettingsFiles();
                 if (configFiles.Count == 0)
                 {
                     continue;

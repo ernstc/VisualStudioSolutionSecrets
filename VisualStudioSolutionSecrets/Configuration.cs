@@ -71,5 +71,20 @@ namespace VisualStudioSolutionSecrets
                 return _current;
             }
         }
+
+
+        public SolutionSynchronizationSettings GetSynchronizationSettings(Guid solutionGuid)
+        {
+            string key = solutionGuid.ToString();
+            if (ContainsKey(key))
+            {
+                return this[key];
+            }
+            else
+            {
+                return Default;
+            }
+        }
+
     }
 }

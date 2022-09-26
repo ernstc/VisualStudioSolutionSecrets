@@ -59,7 +59,7 @@ namespace VisualStudioSolutionSecrets.Tests
             var solutionFilePath = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln");
             SolutionFile solutionFile = new SolutionFile(solutionFilePath);
 
-            var secretConfigFiles = solutionFile.GetProjectsSecretConfigFiles();
+            var secretConfigFiles = solutionFile.GetProjectsSecretSettingsFiles();
 
             Assert.NotNull(secretConfigFiles);
             Assert.Equal(2, secretConfigFiles.Count);
@@ -81,7 +81,7 @@ namespace VisualStudioSolutionSecrets.Tests
             var solutionFilePath = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln");
             SolutionFile solutionFile = new SolutionFile(solutionFilePath);
 
-            var secretConfigFiles = solutionFile.GetProjectsSecretConfigFiles();
+            var secretConfigFiles = solutionFile.GetProjectsSecretSettingsFiles();
             var configFile = secretConfigFiles.ElementAt(0);
 
             // Phase 2: Save the first config file found in a subfolder and check that the files has been saved.
@@ -89,7 +89,7 @@ namespace VisualStudioSolutionSecrets.Tests
 
             CreateContext(secretsSubFolderPath: TEST_SUBFOLDER_NAME);
 
-            solutionFile.SaveConfigFile(configFile);
+            solutionFile.SaveSecretSettingsFile(configFile);
 
             string savedConfigFilePath = Path.Combine(Constants.SecretFilesPath, destinationSecretsFolderPath, configFile.FileName);
             Assert.True(File.Exists(savedConfigFilePath));

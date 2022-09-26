@@ -43,5 +43,21 @@ namespace VisualStudioSolutionSecrets
             if (configuration.Repository != null) _current.Repository = configuration.Repository;
         }
 
+
+        internal IRepository? GetRepository(SolutionSynchronizationSettings settings)
+        {
+            switch (settings.Repository)
+            {
+                case RepositoryTypesEnum.AzureKV:
+                    return new AzureKeyVaultRepository();
+
+                case RepositoryTypesEnum.GitHub:
+                    return new GistRepository();
+               
+                default:
+                    return _current.Repository;
+            }
+        }
+
     }
 }

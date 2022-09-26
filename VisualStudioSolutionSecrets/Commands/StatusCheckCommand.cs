@@ -72,7 +72,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
             try
             {
-                var configFiles = solution.GetProjectsSecretConfigFiles();
+                var configFiles = solution.GetProjectsSecretSettingsFiles();
                 if (configFiles.Count == 0)
                 {
                     // This solution has not projects with secrets.

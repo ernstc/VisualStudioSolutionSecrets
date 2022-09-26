@@ -4,7 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
-
+using VisualStudioSolutionSecrets.Repository;
 
 namespace VisualStudioSolutionSecrets.Commands
 {
@@ -34,15 +34,23 @@ namespace VisualStudioSolutionSecrets.Commands
             {
                 SolutionFile solution = new SolutionFile(solutionFile, Context.Cipher);
 
-                var configFiles = solution.GetProjectsSecretConfigFiles();
+                var synchronizationSettings = solution.SynchronizationSettings;
+                IRepository? repository = Context.GetRepository(synchronizationSettings);
+                if (repository == null)
+                {
+                    Console.Write($"Skipping solution \"{solution.Name}\". Wrong repository.");
+                    continue;
+                }
+
+                var configFiles = solution.GetProjectsSecretSettingsFiles();
                 if (configFiles.Count == 0)
                     continue;
 
-                Context.Repository.SolutionName = solution.Name;
+                repository.SolutionName = solution.Name;
 
                 Console.Write($"Pulling secrets for solution: {solution.Name}... ");
 
-                var repositoryFiles = await Context.Repository.PullFilesAsync();
+                var repositoryFiles = await repository.PullFilesAsync();
                 if (repositoryFiles.Count == 0)
                 {
                     Console.WriteLine("Failed, secrets not found");
@@ -118,7 +126,7 @@ namespace VisualStudioSolutionSecrets.Commands
                                     configFile.Content = secret.Value;
                                     if (configFile.Decrypt())
                                     {
-                                        solution.SaveConfigFile(configFile);
+                                        solution.SaveSecretSettingsFile(configFile);
                                     }
                                     else
                                     {

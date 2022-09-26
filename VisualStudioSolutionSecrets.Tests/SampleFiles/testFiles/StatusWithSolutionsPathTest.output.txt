@@ -4,3 +4,4 @@ Checking status...
 
              Ecryption key: OK
   Repository authorization: OK
+        Default repository: Repo 1 (repo name)

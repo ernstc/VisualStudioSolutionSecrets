@@ -56,9 +56,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         {
             if (!await Context.Repository.IsReady())
             {
-                string? user_code = await Context.Repository.StartAuthorizationFlowAsync();
-                Console.WriteLine($"\nAuthenticate on GitHub with Device code = {user_code}\n");
-                await Context.Repository.CompleteAuthorizationFlowAsync();
+                await Context.Repository.AuthorizeAsync();
             }
         }
 
