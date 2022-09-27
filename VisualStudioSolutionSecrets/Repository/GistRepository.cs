@@ -52,6 +52,7 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
+        #region GitHub Gists data model
 
         class DeviceFlowResponse
         {
@@ -98,6 +99,8 @@ namespace VisualStudioSolutionSecrets.Repository
         {
             public string? access_token { get; set; }
         }
+
+        #endregion
 
 
 
@@ -166,98 +169,6 @@ namespace VisualStudioSolutionSecrets.Repository
                     await Task.Delay(1000 * _deviceFlowResponse.interval);
                 }
             }
-        }
-
-
-        private async Task<Gist?> GetGistAsync()
-        {
-            if (_gist == null && _repositoryName != null)
-            {
-                for (int page = 1; page < GIST_PAGES_LIMIT; page++)
-                {
-                    var gists = await SendRequest<List<Gist>>(HttpMethod.Get, $"https://api.github.com/gists?per_page={GIST_PER_PAGE}&page={page}");
-                    if (gists == null || gists.Count == 0)
-                    {
-                        break;
-                    }
-                    for (int i = 0; i < gists.Count; i++)
-                    {
-                        var gist = gists[i];
-                        if (gist.description == _repositoryName)
-                        {
-                            return _gist = gist;
-                        }
-                    }
-                    if (gists.Count < GIST_PER_PAGE)
-                    {
-                        break;
-                    }
-                }
-            }
-            return _gist;
-        }
-
-
-        private async Task<HeaderFile?> GetHeaderFile(Gist gist)
-        {
-            if (gist.files != null)
-            {
-                foreach (var file in gist.files)
-                {
-                    if (file.Key == "secrets")
-                    {
-                        string content;
-                        HttpClient httpClient = new HttpClient();
-                        try
-                        {
-                            content = await httpClient.GetStringAsync(file.Value.raw_url);
-                        }
-                        catch
-                        {
-                            break;
-                        }
-
-                        if (content != null)
-                        {
-                            try
-                            {
-                                return JsonSerializer.Deserialize<HeaderFile>(content);
-                            }
-                            catch
-                            { }
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-
-
-        public async Task<ICollection<(string name, string? content)>> PullFilesAsync()
-        {
-            var files = new List<(string name, string? content)>();
-            var gist = await GetGistAsync();
-            if (gist?.files != null)
-            {
-                foreach (var file in gist.files)
-                {
-                    string? content = file.Value.content;
-                    if (content == null && file.Value.raw_url != null)
-                    {
-                        HttpClient httpClient = new HttpClient();
-                        try
-                        {
-                            content = await httpClient.GetStringAsync(file.Value.raw_url);
-                        }
-                        catch
-                        {
-                            continue;
-                        }
-                    }
-                    files.Add((file.Key, content));
-                }
-            }
-            return files;
         }
 
 
@@ -342,6 +253,34 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
+        public async Task<ICollection<(string name, string? content)>> PullFilesAsync()
+        {
+            var files = new List<(string name, string? content)>();
+            var gist = await GetGistAsync();
+            if (gist?.files != null)
+            {
+                foreach (var file in gist.files)
+                {
+                    string? content = file.Value.content;
+                    if (content == null && file.Value.raw_url != null)
+                    {
+                        HttpClient httpClient = new HttpClient();
+                        try
+                        {
+                            content = await httpClient.GetStringAsync(file.Value.raw_url);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+                    }
+                    files.Add((file.Key, content));
+                }
+            }
+            return files;
+        }
+
+
         public async Task<bool> PushFilesAsync(ICollection<(string name, string? content)> files)
         {
             var gist = await GetGistAsync();
@@ -389,13 +328,77 @@ namespace VisualStudioSolutionSecrets.Repository
                 request.Content = new StringContent(payloadJson, Encoding.UTF8, "application/json");
 
                 var response = await client.SendAsync(request);
-                var responseJson = await response.Content.ReadAsStringAsync();
                 return response.IsSuccessStatusCode;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"ERR: {ex.Message}");
                 return false;
             }
+        }
+
+
+        private async Task<Gist?> GetGistAsync()
+        {
+            if (_gist == null && _repositoryName != null)
+            {
+                for (int page = 1; page < GIST_PAGES_LIMIT; page++)
+                {
+                    var gists = await SendRequest<List<Gist>>(HttpMethod.Get, $"https://api.github.com/gists?per_page={GIST_PER_PAGE}&page={page}");
+                    if (gists == null || gists.Count == 0)
+                    {
+                        break;
+                    }
+                    for (int i = 0; i < gists.Count; i++)
+                    {
+                        var gist = gists[i];
+                        if (gist.description == _repositoryName)
+                        {
+                            return _gist = gist;
+                        }
+                    }
+                    if (gists.Count < GIST_PER_PAGE)
+                    {
+                        break;
+                    }
+                }
+            }
+            return _gist;
+        }
+
+
+        private async Task<HeaderFile?> GetHeaderFile(Gist gist)
+        {
+            if (gist.files != null)
+            {
+                foreach (var file in gist.files)
+                {
+                    if (file.Key == "secrets")
+                    {
+                        string content;
+                        HttpClient httpClient = new HttpClient();
+                        try
+                        {
+                            content = await httpClient.GetStringAsync(file.Value.raw_url);
+                        }
+                        catch
+                        {
+                            break;
+                        }
+
+                        if (content != null)
+                        {
+                            try
+                            {
+                                return JsonSerializer.Deserialize<HeaderFile>(content);
+                            }
+                            catch
+                            { }
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
 

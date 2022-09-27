@@ -16,10 +16,10 @@ namespace VisualStudioSolutionSecrets
         {
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-#if NETCOREAPP3_1
-                    IgnoreNullValues = true
-#else
+#if NET5_0_OR_GREATER
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+#else
+            IgnoreNullValues = true
 #endif
         };
 
