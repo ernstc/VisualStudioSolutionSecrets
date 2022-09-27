@@ -23,6 +23,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
         public void Dispose()
         {
+            string configurationFilePath = Path.Combine(Constants.ConfigFilesPath, "configuration.json");
+            if (File.Exists(configurationFilePath))
+            {
+                File.Delete(configurationFilePath);
+            }
         }
 
 
