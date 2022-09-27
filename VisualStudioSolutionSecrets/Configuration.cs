@@ -32,11 +32,11 @@ namespace VisualStudioSolutionSecrets
 
 
         [JsonIgnore]
-        public SolutionSynchronizationSettings Default
+        public static SolutionSynchronizationSettings Default
         {
             get
             {
-                if (TryGetValue("default", out var settings))
+                if (Current.TryGetValue("default", out var settings))
                 {
                     return settings;
                 }
@@ -49,18 +49,18 @@ namespace VisualStudioSolutionSecrets
             {
                 if (value != null)
                 {
-                    this["default"] = value;
+                    Current["default"] = value;
                 }
             }
         }
 
 
-        public SolutionSynchronizationSettings GetSynchronizationSettings(Guid solutionGuid)
+        public static SolutionSynchronizationSettings GetSynchronizationSettings(Guid solutionGuid)
         {
             string key = solutionGuid.ToString();
-            if (ContainsKey(key))
+            if (Current.ContainsKey(key))
             {
-                return this[key];
+                return Current[key];
             }
             else
             {
@@ -69,24 +69,35 @@ namespace VisualStudioSolutionSecrets
         }
 
 
+        public static void SetSynchronizationSettings(Guid solutionGuid, SolutionSynchronizationSettings settings)
+        {
+            string key = solutionGuid.ToString();
+            Current[key] = settings;
+        }
+
+
         private static Configuration? _current;
 
-        public static Configuration Current
+        private static Configuration Current
         {
             get
             {
                 if (_current == null)
                 {
+                    _current = new Configuration();
+
                     var loadedConfiguration = AppData.LoadData<Dictionary<string, SolutionSynchronizationSettings>>("configuration.json");
                     if (loadedConfiguration == null)
                     {
-                        _current = new Configuration();
-                        _current.Default = Configuration.DefaultSettings;
+                        Default = Configuration.DefaultSettings;
                         AppData.SaveData<Dictionary<string, SolutionSynchronizationSettings>>("configuration.json", _current);
                     }
                     else
                     {
-                        _current = (Configuration)loadedConfiguration;
+                        foreach (var item in loadedConfiguration)
+                        {
+                            _current.Add(item.Key, item.Value);
+                        }
                     }
                 }
                 return _current;
@@ -97,6 +108,12 @@ namespace VisualStudioSolutionSecrets
         public static void Refresh()
         {
             _current = null;
+        }
+
+
+        public static void Save()
+        {
+            AppData.SaveData<Dictionary<string, SolutionSynchronizationSettings>>("configuration.json", Current);
         }
 
     }

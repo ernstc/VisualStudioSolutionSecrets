@@ -23,6 +23,7 @@ namespace VisualStudioSolutionSecrets
         private ICipher? _cipher;
 
         public string Name => _name;
+        public Guid SolutionGuid => _solutionGuid;
 
 
 
@@ -62,7 +63,7 @@ namespace VisualStudioSolutionSecrets
         {
             get
             {
-                return Configuration.Current.GetSynchronizationSettings(_solutionGuid);
+                return Configuration.GetSynchronizationSettings(_solutionGuid);
             }
         }
 

@@ -38,8 +38,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             Configuration.Refresh();
 
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
-            Assert.Equal(RepositoryTypesEnum.GitHub, Configuration.Current.Default.Repository);
-            Assert.Null(Configuration.Current.Default.AzureKeyVaultName);
+            Assert.Equal(RepositoryTypesEnum.GitHub, Configuration.Default.Repository);
+            Assert.Null(Configuration.Default.AzureKeyVaultName);
         }
 
 
@@ -56,8 +56,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             Configuration.Refresh();
 
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
-            Assert.Equal(RepositoryTypesEnum.AzureKV, Configuration.Current.Default.Repository);
-            Assert.Equal(KEY_VAULT_NAME, Configuration.Current.Default.AzureKeyVaultName);
+            Assert.Equal(RepositoryTypesEnum.AzureKV, Configuration.Default.Repository);
+            Assert.Equal(KEY_VAULT_NAME, Configuration.Default.AzureKeyVaultName);
         }
 
 
@@ -73,7 +73,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
 
-            var settings = Configuration.Current.GetSynchronizationSettings(new Guid(SOLUTION_GUID));
+            var settings = Configuration.GetSynchronizationSettings(new Guid(SOLUTION_GUID));
             Assert.Equal(RepositoryTypesEnum.GitHub, settings.Repository);
             Assert.Null(settings.AzureKeyVaultName);
         }
@@ -92,8 +92,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
 
-            var settings = Configuration.Current.GetSynchronizationSettings(new Guid(SOLUTION_GUID));
-            Assert.Equal(RepositoryTypesEnum.GitHub, settings.Repository);
+            var settings = Configuration.GetSynchronizationSettings(new Guid(SOLUTION_GUID));
+            Assert.Equal(RepositoryTypesEnum.AzureKV, settings.Repository);
             Assert.Equal(KEY_VAULT_NAME, settings.AzureKeyVaultName);
         }
 
