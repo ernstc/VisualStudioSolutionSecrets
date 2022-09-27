@@ -2,8 +2,8 @@
   "profiles": {
     "Visual Studio Solution Secrets": {
       "commandName": "Project",
-      "commandLineArgs": "status --all",
-      "workingDirectory": "C:\\Projects"
+      "commandLineArgs": "configure --default --repo azurekv --name secrets-kv-001",
+      "workingDirectory": "C:\\Projects\\VisualStudioSolutionSecrets-Sample"
     }
   }
 }

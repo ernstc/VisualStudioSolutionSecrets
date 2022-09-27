@@ -12,6 +12,13 @@ namespace VisualStudioSolutionSecrets.Tests.Helpers
     internal static class CallCommand
     {
 
+        public static async Task Configure(ConfigureOptions options)
+        {
+            var command = new ConfigureCommand();
+            await command.Execute(Context.Current, options);
+        }
+
+
         public static async Task Init(InitOptions options)
         {
             var command = new InitCommand();

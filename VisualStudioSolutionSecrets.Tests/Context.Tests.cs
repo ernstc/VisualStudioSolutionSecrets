@@ -65,14 +65,14 @@ namespace VisualStudioSolutionSecrets.Tests
         [Fact]
         public void VersionStringTest()
         {
-            Assert.False(String.IsNullOrWhiteSpace(Context.Current.VersionString));
+            Assert.False(String.IsNullOrWhiteSpace(Versions.VersionString));
         }
 
 
         [Fact]
         public void CurrentVersionTest()
         {
-            Assert.NotNull(Context.Current.CurrentVersion);
+            Assert.NotNull(Versions.CurrentVersion);
         }
 
     }

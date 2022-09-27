@@ -21,6 +21,10 @@ namespace VisualStudioSolutionSecrets
     public class Configuration : Dictionary<string, SolutionSynchronizationSettings>
     {
 
+        private Configuration() { }
+
+
+
         public static SolutionSynchronizationSettings DefaultSettings = new SolutionSynchronizationSettings
         {
             Repository = RepositoryTypesEnum.GitHub
@@ -51,28 +55,6 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        private static Configuration _current = null!;
-
-        public static Configuration Current
-        {
-            get
-            {
-                if (_current == null)
-                {
-                    var configuration = AppData.LoadData<Configuration>("configuration.json");
-                    if (configuration == null)
-                    {
-                        configuration = new Configuration();
-                        configuration.Default = Configuration.DefaultSettings;
-                        AppData.SaveData("configuration.json", configuration);
-                    }
-                    _current = configuration;
-                }
-                return _current;
-            }
-        }
-
-
         public SolutionSynchronizationSettings GetSynchronizationSettings(Guid solutionGuid)
         {
             string key = solutionGuid.ToString();
@@ -84,6 +66,37 @@ namespace VisualStudioSolutionSecrets
             {
                 return Default;
             }
+        }
+
+
+        private static Configuration? _current;
+
+        public static Configuration Current
+        {
+            get
+            {
+                if (_current == null)
+                {
+                    var loadedConfiguration = AppData.LoadData<Dictionary<string, SolutionSynchronizationSettings>>("configuration.json");
+                    if (loadedConfiguration == null)
+                    {
+                        _current = new Configuration();
+                        _current.Default = Configuration.DefaultSettings;
+                        AppData.SaveData<Dictionary<string, SolutionSynchronizationSettings>>("configuration.json", _current);
+                    }
+                    else
+                    {
+                        _current = (Configuration)loadedConfiguration;
+                    }
+                }
+                return _current;
+            }
+        }
+
+
+        public static void Refresh()
+        {
+            _current = null;
         }
 
     }
