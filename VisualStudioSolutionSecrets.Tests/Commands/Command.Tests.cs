@@ -34,12 +34,9 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             IRepository repository = MockRepository();
 
             // Configure mocked dependencies
-            Context.Configure(context =>
-            {
-                context.IO = fileSystem;
-                context.Repository = repository;
-                context.Cipher = new Cipher();
-            });
+            Context.Current.AddService<IFileSystem>(fileSystem);
+            Context.Current.AddService<IRepository>(repository);
+            Context.Current.AddService<ICipher>(new Cipher());
         }
 
 

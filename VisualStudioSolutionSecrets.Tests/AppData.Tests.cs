@@ -61,10 +61,7 @@ namespace VisualStudioSolutionSecrets.Tests
                 .Setup(o => o.GetApplicationDataFolderPath())
                 .Returns(Constants.ConfigFilesPath);
 
-            Context.Configure(context =>
-            {
-                context.IO = fileSystemMock.Object;
-            });
+            Context.Current.AddService<IFileSystem>(fileSystemMock.Object);
         }
 
 

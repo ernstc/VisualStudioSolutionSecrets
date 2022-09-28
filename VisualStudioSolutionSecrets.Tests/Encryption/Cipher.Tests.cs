@@ -31,10 +31,7 @@ namespace VisualStudioSolutionSecrets.Tests.Encryption
                 .Returns(Constants.SolutionFilesPath);
 
             // Configure mocked dependencies
-            Context.Configure(context =>
-            {
-                context.IO = fileSystemMock.Object;
-            });
+            Context.Current.AddService<IFileSystem>(fileSystemMock.Object);
         }
 
 

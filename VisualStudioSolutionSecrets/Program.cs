@@ -55,12 +55,17 @@ namespace VisualStudioSolutionSecrets
         private static int Execute<TOptions>(Command<TOptions> command, TOptions options)
         {
             CheckForUpdates().Wait();
-            Context.Configure(context =>
-            {
-                context.Cipher = new Cipher();
-                context.Repository = new GistRepository();
-            });
-            Context.Current.Cipher.RefreshStatus().Wait();
+
+            var cipher = new Cipher();
+            cipher.RefreshStatus().Wait();
+            Context.Current.AddService<ICipher>(cipher);
+
+            var defaultRepository = new GistRepository();
+            Context.Current.AddService<IRepository>(defaultRepository);
+            Context.Current.AddService<IRepository>(defaultRepository, nameof(RepositoryTypesEnum.GitHub));
+
+            Context.Current.AddService<IRepository>(new AzureKeyVaultRepository(), nameof(RepositoryTypesEnum.AzureKV));
+
             command.Execute(Context.Current, options).Wait();
             return 0;
         }
