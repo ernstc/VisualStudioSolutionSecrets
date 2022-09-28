@@ -4,7 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
-
+using VisualStudioSolutionSecrets.Repository;
 
 namespace VisualStudioSolutionSecrets.Commands
 {
@@ -12,7 +12,7 @@ namespace VisualStudioSolutionSecrets.Commands
 	internal class PushSecretsCommand : Command<PushSecretsOptions>
 	{
 
-        protected override async Task Execute(PushSecretsOptions options)
+        public override async Task Execute(PushSecretsOptions options)
         {
             if (!await CanSync())
             {
@@ -32,7 +32,15 @@ namespace VisualStudioSolutionSecrets.Commands
 
             foreach (var solutionFile in solutionFiles)
             {
-                SolutionFile solution = new SolutionFile(solutionFile, Context.Cipher);
+                SolutionFile solution = new SolutionFile(solutionFile, Context.Current.Cipher);
+
+                var synchronizationSettings = solution.SynchronizationSettings;
+                IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
+                if (repository == null)
+                {
+                    Console.Write($"Skipping solution \"{solution.Name}\". Wrong repository.");
+                    continue;
+                }
 
                 var headerFile = new HeaderFile
                 {
@@ -52,7 +60,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     continue;
                 }
 
-                Context.Repository.SolutionName = solution.Name;
+                repository.SolutionName = solution.Name;
 
                 Console.Write($"Pushing secrets for solution: {solution.Name}... ");
 
@@ -65,7 +73,14 @@ namespace VisualStudioSolutionSecrets.Commands
                     if (configFile.Content != null)
                     {
                         isEmpty = false;
-                        if (configFile.Encrypt())
+                        bool isFileOk = true;
+
+                        if (repository.EncryptOnClient)
+                        {
+                            isFileOk = configFile.Encrypt();
+                        }
+
+                        if (isFileOk)
                         {
                             if (!secrets.ContainsKey(configFile.GroupName))
                             {
@@ -89,7 +104,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 if (!isEmpty && !failed)
                 {
-                    if (!await Context.Repository.PushFilesAsync(files))
+                    if (!await repository.PushFilesAsync(files))
                     {
                         failed = true;
                     }

@@ -13,6 +13,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
         private const string SECRET_PREFIX = "vs-secrets--";
 
+        public bool EncryptOnClient => false;
         public string RepositoryType => "AzureKV";
         public string? RepositoryName { get; }
         public string? SolutionName { get; set; }

@@ -9,6 +9,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
     public interface IRepository : IService
     {
+        bool EncryptOnClient { get; }
         string RepositoryType { get; }
         string? RepositoryName { get; }
         string? SolutionName { get; set; }

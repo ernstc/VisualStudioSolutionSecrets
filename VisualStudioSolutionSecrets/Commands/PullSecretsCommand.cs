@@ -12,7 +12,7 @@ namespace VisualStudioSolutionSecrets.Commands
     internal class PullSecretsCommand : Command<PullSecretsOptions>
     {
 
-        protected override async Task Execute(PullSecretsOptions options)
+        public override async Task Execute(PullSecretsOptions options)
         {
             if (!await CanSync())
             {
@@ -32,10 +32,10 @@ namespace VisualStudioSolutionSecrets.Commands
 
             foreach (var solutionFile in solutionFiles)
             {
-                SolutionFile solution = new SolutionFile(solutionFile, Context.Cipher);
+                SolutionFile solution = new SolutionFile(solutionFile, Context.Current.Cipher);
 
                 var synchronizationSettings = solution.SynchronizationSettings;
-                IRepository? repository = Context.GetRepository(synchronizationSettings);
+                IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
                 if (repository == null)
                 {
                     Console.Write($"Skipping solution \"{solution.Name}\". Wrong repository.");
@@ -93,6 +93,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         }
 
                         Dictionary<string, string>? secretFiles = null;
+                        
                         try
                         {
                             secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(repositoryFile.content);
@@ -124,7 +125,14 @@ namespace VisualStudioSolutionSecrets.Commands
                                     && configFile.FileName == configFileName)
                                 {
                                     configFile.Content = secret.Value;
-                                    if (configFile.Decrypt())
+
+                                    bool isFileOk = true;
+                                    if (repository.EncryptOnClient)
+                                    {
+                                        isFileOk = configFile.Decrypt();
+                                    }
+
+                                    if (isFileOk)
                                     {
                                         solution.SaveSecretSettingsFile(configFile);
                                     }
