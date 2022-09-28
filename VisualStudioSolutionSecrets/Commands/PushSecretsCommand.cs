@@ -14,6 +14,8 @@ namespace VisualStudioSolutionSecrets.Commands
 
         public override async Task Execute(PushSecretsOptions options)
         {
+            Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
+
             if (!await CanSync())
             {
                 return;

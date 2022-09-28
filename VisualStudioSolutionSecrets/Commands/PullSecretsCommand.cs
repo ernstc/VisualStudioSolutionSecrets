@@ -14,6 +14,8 @@ namespace VisualStudioSolutionSecrets.Commands
 
         public override async Task Execute(PullSecretsOptions options)
         {
+            Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
+
             if (!await CanSync())
             {
                 return;
@@ -27,7 +29,6 @@ namespace VisualStudioSolutionSecrets.Commands
                 Console.WriteLine("Solution files not found.\n");
                 return;
             }
-
 
             foreach (var solutionFile in solutionFiles)
             {

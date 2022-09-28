@@ -13,7 +13,9 @@ namespace VisualStudioSolutionSecrets.Commands
 
         public override async Task Execute(InitOptions options)
 		{
-			string? keyFile = EnsureFullyQualifiedPath(options.KeyFile);
+            Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
+            
+            string? keyFile = EnsureFullyQualifiedPath(options.KeyFile);
 
 			if (AreEncryptionKeyParametersValid(options.Passphrase, keyFile))
 			{

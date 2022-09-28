@@ -12,6 +12,8 @@ namespace VisualStudioSolutionSecrets.Commands
 
         public override Task Execute(SearchSecretsOptions options)
         {
+            Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
+
             string? path = EnsureFullyQualifiedPath(options.Path);
 
             string[] solutionFiles = GetSolutionFiles(path, options.All);

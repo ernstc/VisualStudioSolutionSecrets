@@ -16,6 +16,8 @@ namespace VisualStudioSolutionSecrets.Commands
 
         public override async Task Execute(ChangeKeyOptions options)
         {
+            Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
+
             if (!await CanSync())
             {
                 return;
