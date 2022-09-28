@@ -15,7 +15,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public bool EncryptOnClient => false;
         public string RepositoryType => "AzureKV";
-        public string? RepositoryName { get; }
+        public string? RepositoryName { get; set; }
         public string? SolutionName { get; set; }
 
 
@@ -55,7 +55,7 @@ namespace VisualStudioSolutionSecrets.Repository
             var asyncPagedResults = _client.GetPropertiesOfSecretsAsync();
 
             string solutionName = SolutionName.Substring(0, SolutionName.IndexOf('.'));
-            string prefix = $"{SECRET_PREFIX}{solutionName}";
+            string prefix = $"{SECRET_PREFIX}{solutionName}--";
 
             List<string> solutionSecretsName = new List<string>();
 
@@ -79,7 +79,10 @@ namespace VisualStudioSolutionSecrets.Repository
                 string[] nameParts = secretName.Split("--");
                 if (nameParts.Length == 3)
                 {
-                    string fileName = $"secrets\\{nameParts[2]}.json";
+                    string fileNamePart = nameParts[2];
+                    string fileName = fileNamePart == "secrets" ?
+                            "secrets" :
+                            $"secrets\\{fileNamePart}.json";
                     files.Add((name: fileName, content: secret.Value));
                 }
             }
@@ -101,7 +104,7 @@ namespace VisualStudioSolutionSecrets.Repository
                 string fileName = item.name;
                 if (fileName.Contains('\\'))
                 {
-                    fileName = fileName.Substring(fileName.IndexOf('\\'));
+                    fileName = fileName.Substring(fileName.IndexOf('\\') + 1);
                     fileName = fileName.Substring(0, fileName.IndexOf('.'));
                 }    
                 string secretName = $"{SECRET_PREFIX}{solutionName}--{fileName}";

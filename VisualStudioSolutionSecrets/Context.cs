@@ -83,7 +83,12 @@ namespace VisualStudioSolutionSecrets
         {
             if (settings != null)
             {
-                return GetService<IRepository>(settings.Repository.ToString());
+                var repository = GetService<IRepository>(settings.Repository.ToString());
+                if (repository != null && settings.Repository == RepositoryTypesEnum.AzureKV)
+                {
+                    repository.RepositoryName = settings.AzureKeyVaultName;
+                }
+                return repository;
             }
             return null;
         }

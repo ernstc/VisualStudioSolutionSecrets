@@ -36,7 +36,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public bool EncryptOnClient => true;
         public string RepositoryType => "GitHub";
-        public string? RepositoryName { get; }
+        public string? RepositoryName { get; set; }
 
 
         public string? SolutionName
