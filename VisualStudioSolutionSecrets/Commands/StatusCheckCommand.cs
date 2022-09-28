@@ -17,6 +17,7 @@ namespace VisualStudioSolutionSecrets.Commands
         public override async Task Execute(StatusCheckOptions options)
         {
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
+
             Console.WriteLine("Checking status...\n");
 
             bool isCipherReady = await Context.Current.Cipher.IsReady();
@@ -117,6 +118,12 @@ namespace VisualStudioSolutionSecrets.Commands
                     isSynchronized = true;
 
                     repository.SolutionName = solution.Name;
+
+                    // Ensure authorization on the selected repository
+                    if (!await repository.IsReady())
+                    {
+                        await repository.AuthorizeAsync();
+                    }
 
                     var remoteFiles = await repository.PullFilesAsync();
                     hasRemoteSecrets = remoteFiles.Count > 0;
