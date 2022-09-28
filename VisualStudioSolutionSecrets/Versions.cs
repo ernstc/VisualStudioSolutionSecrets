@@ -13,7 +13,8 @@ namespace VisualStudioSolutionSecrets
 	public static class Versions
 	{
 
-		public const string MinimumFileFormatSupported = "1.0.0";
+		public const string MinFileFormatSupported = "1.0.0";
+        public const string MaxFileFormatSupported = "2.0.0";
 
 
         public static string? VersionString { get; }

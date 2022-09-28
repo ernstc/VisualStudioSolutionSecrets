@@ -16,8 +16,10 @@ namespace VisualStudioSolutionSecrets
             try
             {
                 Version headerVersion = new Version(visualStudioSolutionSecretsVersion);
-                Version minVersion = new Version(Versions.MinimumFileFormatSupported);
-                return headerVersion.Major <= minVersion.Major;
+                Version minVersion = new Version(Versions.MinFileFormatSupported);
+                Version maxVersion = new Version(Versions.MaxFileFormatSupported);
+
+                return minVersion.Major <= headerVersion.Major && headerVersion.Major <= maxVersion.Major;
             }
             catch
             {
