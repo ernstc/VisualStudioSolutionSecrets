@@ -25,7 +25,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     Configuration.Default.AzureKeyVaultName = null;
                     Configuration.Save();
 
-                    Console.WriteLine("Configured GitHub Gist as the default repository.");
+                    Console.WriteLine("Configured GitHub Gist as the default repository.\n");
                 }
                 else if (String.Equals(nameof(RepositoryTypesEnum.AzureKV), options.RepositoryType, StringComparison.OrdinalIgnoreCase))
                 {
@@ -33,7 +33,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     Configuration.Default.AzureKeyVaultName = options.RepositoryName;
                     Configuration.Save();
 
-                    Console.WriteLine($"Configured Azure Key Vault (https://{options.RepositoryName}.vault.azure.net) as the default repository.");
+                    Console.WriteLine($"Configured Azure Key Vault (https://{options.RepositoryName}.vault.azure.net) as the default repository.\n");
                 }
             }
             else
@@ -55,7 +55,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     Configuration.SetCustomSynchronizationSettings(solution.SolutionGuid, null);
                     Configuration.Save();
 
-                    Console.WriteLine($"Removed custom configuration for the solution \"{solution.Name}\" ({solution.SolutionGuid}).");
+                    Console.WriteLine($"Removed custom configuration for the solution \"{solution.Name}\" ({solution.SolutionGuid}).\n");
                 }
                 else
                 {
@@ -68,7 +68,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         Configuration.SetCustomSynchronizationSettings(solution.SolutionGuid, settings);
                         Configuration.Save();
 
-                        Console.WriteLine($"Configured GitHub Gist as the repository for the solution \"{solution.Name}\" ({solution.SolutionGuid}).");
+                        Console.WriteLine($"Configured GitHub Gist as the repository for the solution \"{solution.Name}\" ({solution.SolutionGuid}).\n");
                     }
                     else if (String.Equals(nameof(RepositoryTypesEnum.AzureKV), options.RepositoryType, StringComparison.OrdinalIgnoreCase))
                     {
@@ -77,7 +77,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         Configuration.SetCustomSynchronizationSettings(solution.SolutionGuid, settings);
                         Configuration.Save();
 
-                        Console.WriteLine($"Configured Azure Key Vault (https://{options.RepositoryName}.vault.azure.net) as the repository for the solution \"{solution.Name}\" ({solution.SolutionGuid}).");
+                        Console.WriteLine($"Configured Azure Key Vault (https://{options.RepositoryName}.vault.azure.net) as the repository for the solution \"{solution.Name}\" ({solution.SolutionGuid}).\n");
                     }
                 }
             }
