@@ -1,15 +1,15 @@
-vs-secrets 1.2.0
+vs-secrets 2.0.0
 
 Checking status...
 
              Ecryption key: OK
   Repository authorization: OK
-        Default repository: Repo 1 (repo name)
+        Default repository: Mock (Name)
 
 
 Checking solutions synchronization status...
 
 Solution                                          |  Version  |  Last Update          |  Repo     |  Status
 ----------------------------------------------------------------------------------------------------------------------
-ReallySuperVeryVeryVeryLongNameForSolutionFil...  |           |                       |  Repo 1   |  No secrests found
-SolutionSample.sln                                |  #.#.#    |  ####-##-## ##:##:##  |  Repo 2   |  OK
+ReallySuperVeryVeryVeryLongNameForSolutionFil...  |           |                       |  Mock     |  No secrests found
+SolutionSample.sln                                |  #.#.#    |  ####-##-## ##:##:##  |  Mock     |  OK
