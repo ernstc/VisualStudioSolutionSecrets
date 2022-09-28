@@ -80,26 +80,30 @@ namespace VisualStudioSolutionSecrets
     [Verb("configure", HelpText = "Configure the repository to use by default or for the solution in the current directory.")]
     internal class ConfigureOptions
     {
-        [Option("default", HelpText = "Changes the default configuration.", Default = false)]
+        [Option("default", SetName = "set", HelpText = "Changes the default configuration.")]
         public bool Default { get; set; }
 
-        [Option('r', "repo", Required = true, HelpText = "Repository type to use for the solution: \"github\" or \"azurekv\"")]
-        public RepositoryTypesEnum RepositoryType { get; set; }
+        [Option('r', "repo", SetName = "set", HelpText = "Repository type to use for the solution: \"github\" or \"azurekv\"")]
+        public string? RepositoryType { get; set; }
 
-        [Option('n', "name", HelpText = "Repository name to use for the solution. This setting applies only for Azure Key Vault.")]
+        [Option('n', "name", SetName = "set", HelpText = "Repository name to use for the solution. This setting applies only for Azure Key Vault.")]
         public string? RepositoryName { get; set; }
 
-        //[Usage]
-        //public static IEnumerable<Example> UsageExamples
-        //{
-        //    get
-        //    {
-        //        return new List<Example>() {
-        //            new Example("Configure the solution to use GitHub", new ConfigureOptions { RepositoryType = RepositoryTypesEnum.GitHub }),
-        //            new Example("Configure the solution to use Azure Key Vault", new ConfigureOptions { RepositoryType = RepositoryTypesEnum.AzureKV, RepositoryName = "my-keyvault" }),
-        //            new Example("Set GitHub as the default repository", new ConfigureOptions { RepositoryType = RepositoryTypesEnum.GitHub, Default = true }),
-        //        };
-        //    }
-        //}
+        [Option("reset", SetName = "reset", HelpText = "Reset the configuration of the solution.")]
+        public bool Reset { get; set; }
+
+        [Usage]
+        public static IEnumerable<Example> UsageExamples
+        {
+            get
+            {
+                return new List<Example>() {
+                    new Example("Configure the solution to use GitHub", new ConfigureOptions { RepositoryType = RepositoryTypesEnum.GitHub.ToString() }),
+                    new Example("Configure the solution to use Azure Key Vault", new ConfigureOptions { RepositoryType = RepositoryTypesEnum.AzureKV.ToString(), RepositoryName = "my-keyvault" }),
+                    new Example("Set GitHub as the default repository", new ConfigureOptions { RepositoryType = RepositoryTypesEnum.GitHub.ToString(), Default = true }),
+                    new Example("Reset the solution configuration", new ConfigureOptions { Reset = true }),
+                };
+            }
+        }
     }
 }

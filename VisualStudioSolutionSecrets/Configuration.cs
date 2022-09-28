@@ -69,10 +69,17 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public static void SetCustomSynchronizationSettings(Guid solutionGuid, SolutionSynchronizationSettings settings)
+        public static void SetCustomSynchronizationSettings(Guid solutionGuid, SolutionSynchronizationSettings? settings)
         {
             string key = solutionGuid.ToString();
-            Current[key] = settings;
+            if (settings != null)
+            {
+                Current[key] = settings;
+            }
+            else if (Current.ContainsKey(key))
+            {
+                Current.Remove(key);
+            }
         }
 
 
