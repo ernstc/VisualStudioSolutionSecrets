@@ -11,14 +11,6 @@ using VisualStudioSolutionSecrets.Repository;
 namespace VisualStudioSolutionSecrets
 {
 
-    public class ContextConfiguration
-    {
-        public IFileSystem? IO;
-        public ICipher? Cipher;
-        public IRepository? Repository;
-    }
-
-
     public class Context
 	{
         public IFileSystem IO => GetService<IFileSystem>()!;
