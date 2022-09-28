@@ -28,23 +28,27 @@ namespace VisualStudioSolutionSecrets.Commands
                 return;
             }
 
-            await AuthenticateRepositoryAsync();
 
             foreach (var solutionFile in solutionFiles)
             {
                 SolutionFile solution = new SolutionFile(solutionFile, Context.Current.Cipher);
 
-                var synchronizationSettings = solution.SynchronizationSettings;
-                IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
-                if (repository == null)
+                var configFiles = solution.GetProjectsSecretSettingsFiles();
+                if (configFiles.Count == 0)
                 {
-                    Console.Write($"Skipping solution \"{solution.Name}\". Wrong repository.");
                     continue;
                 }
 
-                var configFiles = solution.GetProjectsSecretSettingsFiles();
-                if (configFiles.Count == 0)
-                    continue;
+                var synchronizationSettings = solution.CustomSynchronizationSettings;
+
+                // Select the repository for the curront solution
+                IRepository repository = Context.Current.GetRepository(synchronizationSettings) ?? Context.Current.Repository;
+
+                // Ensure authorization on the selected repository
+                if (!await repository.IsReady())
+                {
+                    await repository.AuthorizeAsync();
+                }
 
                 repository.SolutionName = solution.Name;
 

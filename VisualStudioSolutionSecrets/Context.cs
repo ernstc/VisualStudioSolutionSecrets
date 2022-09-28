@@ -79,17 +79,13 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        internal IRepository? GetRepository(SolutionSynchronizationSettings settings)
+        internal IRepository? GetRepository(SolutionSynchronizationSettings? settings)
         {
-            switch (settings.Repository)
+            if (settings != null)
             {
-                case RepositoryTypesEnum.GitHub:
-                case RepositoryTypesEnum.AzureKV:
-                    return GetService<IRepository>(settings.Repository.ToString());
-               
-                default:
-                    return GetService<IRepository>();
+                return GetService<IRepository>(settings.Repository.ToString());
             }
+            return null;
         }
 
     }

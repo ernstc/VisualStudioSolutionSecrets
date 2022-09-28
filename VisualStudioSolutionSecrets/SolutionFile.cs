@@ -59,11 +59,11 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public SolutionSynchronizationSettings SynchronizationSettings
+        public SolutionSynchronizationSettings? CustomSynchronizationSettings
         {
             get
             {
-                return Configuration.GetSynchronizationSettings(_solutionGuid);
+                return Configuration.GetCustomSynchronizationSettings(_solutionGuid);
             }
         }
 

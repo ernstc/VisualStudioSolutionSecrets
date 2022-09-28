@@ -87,137 +87,142 @@ namespace VisualStudioSolutionSecrets.Commands
             string solutionName = solution.Name;
             if (solutionName.Length > 48) solutionName = solutionName[..45] + "...";
 
-            var synchronizationSettings = solution.SynchronizationSettings;
+            var synchronizationSettings = solution.CustomSynchronizationSettings;
+
             IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
-            
+
             if (repository == null)
             {
-                repoName = "none";
+                repoName = "";
+                repository = Context.Current.Repository;
             }
             else
             {
                 repoName = repository.RepositoryType;
+            }
 
-                try
+            try
+            {
+                var configFiles = solution.GetProjectsSecretSettingsFiles();
+                if (configFiles.Count == 0)
                 {
-                    var configFiles = solution.GetProjectsSecretSettingsFiles();
-                    if (configFiles.Count == 0)
+                    // This solution has not projects with secrets.
+                    status = "No secrests found";
+                    statusColor = ConsoleColor.DarkGray;
+                    solutionColor = ConsoleColor.DarkGray;
+                }
+                else
+                {
+                    hasLocalSecrets = configFiles.Any(c => !String.IsNullOrWhiteSpace(c.Content));
+                    isSynchronized = true;
+
+                    repository.SolutionName = solution.Name;
+
+                    var remoteFiles = await repository.PullFilesAsync();
+                    hasRemoteSecrets = remoteFiles.Count > 0;
+
+                    if (!hasRemoteSecrets)
                     {
-                        // This solution has not projects with secrets.
-                        status = "No secrests found";
-                        statusColor = ConsoleColor.DarkGray;
-                        solutionColor = ConsoleColor.DarkGray;
-                    }
-                    else
-                    {
-                        hasLocalSecrets = configFiles.Any(c => !String.IsNullOrWhiteSpace(c.Content));
-                        isSynchronized = true;
-
-                        solutionColor = ConsoleColor.White;
-
-                        repository.SolutionName = solution.Name;
-
-                        var remoteFiles = await repository.PullFilesAsync();
-                        hasRemoteSecrets = remoteFiles.Count > 0;
-
-                        if (!hasRemoteSecrets)
+                        if (hasLocalSecrets.Value)
                         {
-                            if (hasLocalSecrets.Value)
-                            {
-                                status = "Local only";
-                                statusColor = ConsoleColor.DarkYellow;
-                            }
-                            else
-                            {
-                                status = "No secrests found";
-                                statusColor = ConsoleColor.DarkGray;
-                            }
+                            status = "Local only";
+                            statusColor = ConsoleColor.DarkYellow;
+                            solutionColor = ConsoleColor.White;
                         }
                         else
                         {
-                            status = "OK";
-                            statusColor = ConsoleColor.Cyan;
+                            status = "No secrests found";
+                            statusColor = ConsoleColor.DarkGray;
+                            solutionColor = ConsoleColor.DarkGray;
+                        }
+                    }
+                    else
+                    {
+                        repoName = repository.RepositoryType;
 
-                            HeaderFile? header = null;
+                        status = "OK";
+                        statusColor = ConsoleColor.Cyan;
+                        solutionColor = ConsoleColor.White;
 
-                            foreach (var remoteFile in remoteFiles)
+                        HeaderFile? header = null;
+
+                        foreach (var remoteFile in remoteFiles)
+                        {
+                            if (remoteFile.name == "secrets" && remoteFile.content != null)
                             {
-                                if (remoteFile.name == "secrets" && remoteFile.content != null)
-                                {
-                                    header = JsonSerializer.Deserialize<HeaderFile>(remoteFile.content);
-                                    continue;
-                                }
+                                header = JsonSerializer.Deserialize<HeaderFile>(remoteFile.content);
+                                continue;
+                            }
 
-                                if (remoteFile.content == null)
-                                {
-                                    status = "ERROR";
-                                    statusColor = ConsoleColor.Red;
-                                    break;
-                                }
+                            if (remoteFile.content == null)
+                            {
+                                status = "ERROR";
+                                statusColor = ConsoleColor.Red;
+                                break;
+                            }
 
-                                bool isFileOk = true;
-                                var contents = JsonSerializer.Deserialize<Dictionary<string, string>>(remoteFile.content);
-                                if (contents == null)
+                            bool isFileOk = true;
+                            var contents = JsonSerializer.Deserialize<Dictionary<string, string>>(remoteFile.content);
+                            if (contents == null)
+                            {
+                                isFileOk = false;
+                            }
+                            else
+                            {
+                                foreach (var item in contents)
                                 {
-                                    isFileOk = false;
-                                }
-                                else
-                                {
-                                    foreach (var item in contents)
+                                    string? content = item.Value;
+
+                                    if (repository?.EncryptOnClient == true)
                                     {
-                                        string? content = item.Value;
+                                        content = Context.Current.Cipher.Decrypt(content);
+                                    }
 
-                                        if (repository?.EncryptOnClient == true)
+                                    if (content == null)
+                                    {
+                                        isFileOk = false;
+                                        break;
+                                    }
+                                    else if (hasLocalSecrets.Value)
+                                    {
+                                        var localFile = configFiles.FirstOrDefault(c => c.GroupName == remoteFile.name && c.FileName == item.Key);
+                                        if (localFile != null)
                                         {
-                                            content = Context.Current.Cipher.Decrypt(content);
-                                        }
-
-                                        if (content == null)
-                                        {
-                                            isFileOk = false;
-                                            break;
-                                        }
-                                        else if (hasLocalSecrets.Value)
-                                        {
-                                            var localFile = configFiles.FirstOrDefault(c => c.GroupName == remoteFile.name && c.FileName == item.Key);
-                                            if (localFile != null)
+                                            if (!File.Exists(localFile.FilePath))
                                             {
-                                                if (!File.Exists(localFile.FilePath))
+                                                isSynchronized = false;
+                                            }
+                                            else
+                                            {
+                                                string localContent = File.ReadAllText(localFile.FilePath);
+                                                if (localContent != content)
                                                 {
                                                     isSynchronized = false;
-                                                }
-                                                else
-                                                {
-                                                    string localContent = File.ReadAllText(localFile.FilePath);
-                                                    if (localContent != content)
-                                                    {
-                                                        isSynchronized = false;
-                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-
-                                if (!isFileOk)
-                                {
-                                    status = "INVALID KEY!";
-                                    statusColor = ConsoleColor.Red;
-
-                                    break;
-                                }
                             }
 
-                            version = header?.visualStudioSolutionSecretsVersion ?? String.Empty;
-                            lastUpdate = header?.lastUpload.ToString("yyyy-MM-dd HH:mm:ss") ?? String.Empty;
+                            if (!isFileOk)
+                            {
+                                status = "INVALID KEY!";
+                                statusColor = ConsoleColor.Red;
+
+                                break;
+                            }
                         }
+
+                        version = header?.visualStudioSolutionSecretsVersion ?? String.Empty;
+                        lastUpdate = header?.lastUpload.ToString("yyyy-MM-dd HH:mm:ss") ?? String.Empty;
                     }
                 }
-                catch
-                {
-                    status = "ERROR loading status";
-                    statusColor = ConsoleColor.Red;
-                }
+            }
+            catch
+            {
+                status = "ERROR loading status";
+                statusColor = ConsoleColor.Red;
             }
 
             Console.ForegroundColor = solutionColor;

@@ -28,7 +28,11 @@ namespace VisualStudioSolutionSecrets.Commands
                 return;
             }
 
-            await AuthenticateRepositoryAsync();
+            // Ensure authorization on the default repository
+            if (!await Context.Current.Repository.IsReady())
+            {
+                await Context.Current.Repository.AuthorizeAsync();
+            }
 
             Console.Write("Loading existing secrets... ");
             var allSecrets = await Context.Current.Repository.PullAllSecretsAsync();

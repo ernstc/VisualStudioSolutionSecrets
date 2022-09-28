@@ -42,15 +42,6 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         }
 
 
-        protected async Task AuthenticateRepositoryAsync()
-        {
-            if (!await Context.Current.Repository.IsReady())
-            {
-                await Context.Current.Repository.AuthorizeAsync();
-            }
-        }
-
-
         protected string[] GetSolutionFiles(string? path, bool all)
         {
             var directory = path ?? Context.Current.IO.GetCurrentDirectory();

@@ -55,7 +55,7 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public static SolutionSynchronizationSettings GetSynchronizationSettings(Guid solutionGuid)
+        public static SolutionSynchronizationSettings? GetCustomSynchronizationSettings(Guid solutionGuid)
         {
             string key = solutionGuid.ToString();
             if (Current.ContainsKey(key))
@@ -64,12 +64,12 @@ namespace VisualStudioSolutionSecrets
             }
             else
             {
-                return Default;
+                return null;
             }
         }
 
 
-        public static void SetSynchronizationSettings(Guid solutionGuid, SolutionSynchronizationSettings settings)
+        public static void SetCustomSynchronizationSettings(Guid solutionGuid, SolutionSynchronizationSettings settings)
         {
             string key = solutionGuid.ToString();
             Current[key] = settings;

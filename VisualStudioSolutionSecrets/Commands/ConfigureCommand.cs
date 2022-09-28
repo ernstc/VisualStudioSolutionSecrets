@@ -69,7 +69,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 }
 
                 SolutionFile solution = new SolutionFile(solutionFiles[0]);
-                Configuration.SetSynchronizationSettings(solution.SolutionGuid, settings);
+                Configuration.SetCustomSynchronizationSettings(solution.SolutionGuid, settings);
                 Configuration.Save();
             }
 

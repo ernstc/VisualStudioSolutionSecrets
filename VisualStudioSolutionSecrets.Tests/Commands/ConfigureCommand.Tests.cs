@@ -78,7 +78,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
 
-            var settings = Configuration.GetSynchronizationSettings(new Guid(SOLUTION_GUID));
+            var settings = Configuration.GetCustomSynchronizationSettings(new Guid(SOLUTION_GUID));
             Assert.Equal(RepositoryTypesEnum.GitHub, settings.Repository);
             Assert.Null(settings.AzureKeyVaultName);
         }
@@ -97,7 +97,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
 
-            var settings = Configuration.GetSynchronizationSettings(new Guid(SOLUTION_GUID));
+            var settings = Configuration.GetCustomSynchronizationSettings(new Guid(SOLUTION_GUID));
             Assert.Equal(RepositoryTypesEnum.AzureKV, settings.Repository);
             Assert.Equal(KEY_VAULT_NAME, settings.AzureKeyVaultName);
         }
