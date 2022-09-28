@@ -10,7 +10,7 @@ namespace VisualStudioSolutionSecrets.Commands
     internal class SearchSecretsCommand : Command<SearchSecretsOptions>
     {
 
-        protected override Task Execute(SearchSecretsOptions options)
+        public override Task Execute(SearchSecretsOptions options)
         {
             string? path = EnsureFullyQualifiedPath(options.Path);
 

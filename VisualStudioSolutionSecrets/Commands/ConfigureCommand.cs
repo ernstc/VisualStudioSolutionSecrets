@@ -11,7 +11,7 @@ namespace VisualStudioSolutionSecrets.Commands
     internal class ConfigureCommand : Command<ConfigureOptions>
     {
 
-        protected override Task Execute(ConfigureOptions options)
+        public override Task Execute(ConfigureOptions options)
         {
             if (options.Default)
             {
@@ -35,7 +35,7 @@ namespace VisualStudioSolutionSecrets.Commands
             }
             else
             {
-                string path = Context.IO.GetCurrentDirectory();
+                string path = Context.Current.IO.GetCurrentDirectory();
 
                 string[] solutionFiles = GetSolutionFiles(path, false);
                 if (solutionFiles.Length == 0)

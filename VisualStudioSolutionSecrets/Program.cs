@@ -66,7 +66,7 @@ namespace VisualStudioSolutionSecrets
 
             Context.Current.AddService<IRepository>(new AzureKeyVaultRepository(), nameof(RepositoryTypesEnum.AzureKV));
 
-            command.Execute(Context.Current, options).Wait();
+            command.Execute(options).Wait();
             return 0;
         }
 

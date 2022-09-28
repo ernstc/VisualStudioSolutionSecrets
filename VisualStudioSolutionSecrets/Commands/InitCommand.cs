@@ -10,7 +10,7 @@ namespace VisualStudioSolutionSecrets.Commands
 	internal class InitCommand : EncryptionKeyCommand<InitOptions>
 	{
 
-        protected override async Task Execute(InitOptions options)
+        public override async Task Execute(InitOptions options)
 		{
 			string? keyFile = EnsureFullyQualifiedPath(options.KeyFile);
 

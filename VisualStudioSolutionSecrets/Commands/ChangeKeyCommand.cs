@@ -14,7 +14,7 @@ namespace VisualStudioSolutionSecrets.Commands
 	internal class ChangeKeyCommand : EncryptionKeyCommand<ChangeKeyOptions>
 	{
 
-        protected override async Task Execute(ChangeKeyOptions options)
+        public override async Task Execute(ChangeKeyOptions options)
         {
             if (!await CanSync())
             {
@@ -31,7 +31,8 @@ namespace VisualStudioSolutionSecrets.Commands
             await AuthenticateRepositoryAsync();
 
             Console.Write("Loading existing secrets... ");
-            var allSecrets = await Context.Repository.PullAllSecretsAsync();
+            var allSecrets = await Context.Current.Repository.PullAllSecretsAsync();
+
             Console.WriteLine("Done");
 
             if (allSecrets.Count == 0)
@@ -79,7 +80,7 @@ namespace VisualStudioSolutionSecrets.Commands
                             configFileName = "secrets.json";
                         }
 
-                        string? decryptedContent = Context.Cipher.Decrypt(secret.Value);
+                        var decryptedContent = Context.Current.Cipher.Decrypt(secret.Value);
                         if (decryptedContent == null)
                         {
                             decryptionSucceded = false;
@@ -148,7 +149,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     var encryptedFiles = new Dictionary<string, string>();
                     foreach (var secret in secretFiles)
                     {
-                        string? encryptedContent = Context.Cipher.Encrypt(secret.Value);
+                        string? encryptedContent = Context.Current.Cipher.Encrypt(secret.Value);
                         if (encryptedContent == null)
                         {
                             failed = true;
@@ -175,8 +176,8 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 if (!failed)
                 {
-                    Context.Repository.SolutionName = solutionSecrets.SolutionName;
-                    if (!await Context.Repository.PushFilesAsync(files))
+                    Context.Current.Repository.SolutionName = solutionSecrets.SolutionName;
+                    if (!await Context.Current.Repository.PushFilesAsync(files))
                     {
                         failed = true;
                     }

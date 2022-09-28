@@ -74,12 +74,12 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             Console.Write("\nGenerating encryption key... ");
             if (!string.IsNullOrEmpty(passphrase))
             {
-                Context.Cipher.Init(passphrase);
+                Context.Current.Cipher.Init(passphrase);
             }
             else if (!string.IsNullOrEmpty(keyFile))
             {
                 using var file = File.OpenRead(keyFile);
-                Context.Cipher.Init(file);
+                Context.Current.Cipher.Init(file);
                 file.Close();
             }
             Console.WriteLine("Done\n");

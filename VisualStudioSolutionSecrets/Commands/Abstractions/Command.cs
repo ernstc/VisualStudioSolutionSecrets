@@ -8,17 +8,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 	public abstract class Command<TOptions>
 	{
 
-        protected Context Context = null!;
-
-
-		public Task Execute(Context context, TOptions options)
-        {
-            Context = context;
-            return Execute(options);
-        }
-
-
-        protected abstract Task Execute(TOptions options);
+        public abstract Task Execute(TOptions options);
 
 
         protected string? EnsureFullyQualifiedPath(string? path)
@@ -26,7 +16,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             string? fullyQualifiedPath = path;
             if (fullyQualifiedPath != null && !Path.IsPathFullyQualified(fullyQualifiedPath))
             {
-                fullyQualifiedPath = Path.Combine(Context.IO.GetCurrentDirectory(), fullyQualifiedPath);
+                fullyQualifiedPath = Path.Combine(Context.Current.IO.GetCurrentDirectory(), fullyQualifiedPath);
             }
 
             return fullyQualifiedPath;
@@ -54,9 +44,9 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
         protected async Task AuthenticateRepositoryAsync()
         {
-            if (!await Context.Repository.IsReady())
+            if (!await Context.Current.Repository.IsReady())
             {
-                await Context.Repository.AuthorizeAsync();
+                await Context.Current.Repository.AuthorizeAsync();
             }
         }
 
@@ -78,7 +68,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
         protected async Task<bool> CanSync()
         {
-            if (!await Context.Cipher.IsReady())
+            if (!await Context.Current.Cipher.IsReady())
             {
                 Console.WriteLine("You need to create the encryption key before syncing secrets.");
                 Console.WriteLine("For generating the encryption key, use the command below:\n\n    vs-secrets init\n");

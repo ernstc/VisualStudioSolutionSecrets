@@ -15,14 +15,14 @@ namespace VisualStudioSolutionSecrets.Tests.Helpers
         public static async Task Configure(ConfigureOptions options)
         {
             var command = new ConfigureCommand();
-            await command.Execute(Context.Current, options);
+            await command.Execute(options);
         }
 
 
         public static async Task Init(InitOptions options)
         {
             var command = new InitCommand();
-            await command.Execute(Context.Current, options);
+            await command.Execute(options);
             await Context.Current.Cipher.RefreshStatus();
         }
 
@@ -30,21 +30,21 @@ namespace VisualStudioSolutionSecrets.Tests.Helpers
         public static async Task Push(PushSecretsOptions options)
         {
             var command = new PushSecretsCommand();
-            await command.Execute(Context.Current, options);
+            await command.Execute(options);
         }
 
 
         public static async Task Pull(PullSecretsOptions options)
         {
             var command = new PullSecretsCommand();
-            await command.Execute(Context.Current, options);
+            await command.Execute(options);
         }
 
 
         public static async Task ChangeKey(ChangeKeyOptions options)
         {
             var command = new ChangeKeyCommand();
-            await command.Execute(Context.Current, options);
+            await command.Execute(options);
             await Context.Current.Cipher.RefreshStatus();
         }
 
@@ -52,14 +52,14 @@ namespace VisualStudioSolutionSecrets.Tests.Helpers
         public static async Task Search(SearchSecretsOptions options)
         {
             var command = new SearchSecretsCommand();
-            await command.Execute(Context.Current, options);
+            await command.Execute(options);
         }
 
 
         public static async Task Status(StatusCheckOptions options)
         {
             var command = new StatusCheckCommand();
-            await command.Execute(Context.Current, options);
+            await command.Execute(options);
         }
 
     }
