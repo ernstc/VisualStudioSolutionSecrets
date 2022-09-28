@@ -36,6 +36,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             // Configure mocked dependencies
             Context.Current.AddService<IFileSystem>(fileSystem);
             Context.Current.AddService<IRepository>(repository);
+            Context.Current.AddService<IRepository>(repository, nameof(RepositoryTypesEnum.AzureKV));
+            Context.Current.AddService<IRepository>(repository, nameof(RepositoryTypesEnum.GitHub));
             Context.Current.AddService<ICipher>(new Cipher());
         }
 
@@ -73,6 +75,18 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         private static IRepository MockRepository()
         {
             var repository = new Mock<IRepository>();
+
+            repository
+                .Setup(o => o.EncryptOnClient)
+                .Returns(true);
+
+            repository
+                .Setup(o => o.RepositoryType)
+                .Returns("Mock");
+
+            repository
+               .Setup(o => o.RepositoryName)
+               .Returns("Name");
 
             repository
                 .Setup(o => o.IsReady())
