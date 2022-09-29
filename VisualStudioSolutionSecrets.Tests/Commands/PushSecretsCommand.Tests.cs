@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Moq;
+using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.Tests.Helpers;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
@@ -63,15 +64,17 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async Task PushPathTest()
         {
-            await CallCommand.Init(new InitOptions
+            await new InitCommand
             {
                 Passphrase = Constants.PASSPHRASE
-            });
+            }
+            .OnExecute();
 
-            await CallCommand.Push(new PushSecretsOptions
+            await new PushCommand
             {
                 Path = Constants.SolutionFilesPath
-            });
+            }
+            .OnExecute();
 
             VerifyTestResults();
         }
@@ -80,15 +83,17 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async Task PushRelativePathTest()
         {
-            await CallCommand.Init(new InitOptions
+            await new InitCommand
             {
                 Passphrase = Constants.PASSPHRASE
-            });
+            }
+            .OnExecute();
 
-            await CallCommand.Push(new PushSecretsOptions
+            await new PushCommand
             {
                 Path = "."
-            });
+            }
+            .OnExecute();
 
             VerifyTestResults();
         }
@@ -97,15 +102,17 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async Task PushPathWithoutSolutionTest()
         {
-            await CallCommand.Init(new InitOptions
+            await new InitCommand
             {
                 Passphrase = Constants.PASSPHRASE
-            });
+            }
+            .OnExecute();
 
-            await CallCommand.Push(new PushSecretsOptions
+            await new PushCommand
             {
                 Path = "unknown"
-            });
+            }
+            .OnExecute();
 
             string headerPath = Path.Combine(Constants.RepositoryFilesPath, "secrets.json");
           
@@ -116,16 +123,18 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async Task PushAllWithinPathTest()
         {
-            await CallCommand.Init(new InitOptions
+            await new InitCommand
             {
                 Passphrase = Constants.PASSPHRASE
-            });
+            }
+            .OnExecute();
 
-            await CallCommand.Push(new PushSecretsOptions
+            await new PushCommand
             {
                 Path = Constants.SampleFilesPath,
                 All = true
-            });
+            }
+            .OnExecute();
 
             VerifyTestResults();
         }

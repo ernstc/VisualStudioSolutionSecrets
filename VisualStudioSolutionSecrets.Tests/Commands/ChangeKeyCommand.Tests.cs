@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
+using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.IO;
-using VisualStudioSolutionSecrets.Tests.Helpers;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
@@ -78,30 +78,33 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
         private static async Task PrepareTest()
         {
-            await CallCommand.Init(new InitOptions
+            await new InitCommand
             {
                 Passphrase = Constants.PASSPHRASE
-            });
+            }
+            .OnExecute();
 
-            await CallCommand.Push(new PushSecretsOptions
+            await new PushCommand
             {
                 Path = Constants.SolutionFilesPath
-            });
+            }
+            .OnExecute();
         }
 
 
         [Fact]
         public async Task ChangeKeyWithoutParameters()
         {
-            await CallCommand.Init(new InitOptions
+            await new InitCommand
             {
                 Passphrase = Constants.PASSPHRASE
-            });
+            }
+            .OnExecute();
 
             string encryptionKeyFilePath = Path.Combine(Constants.ConfigFilesPath, "cipher.json");
             string encryptionKey = File.ReadAllText(encryptionKeyFilePath);
 
-            await CallCommand.ChangeKey(new ChangeKeyOptions());
+            await new ChangeKeyCommand().OnExecute();
 
             Assert.Equal(encryptionKey, File.ReadAllText(encryptionKeyFilePath));
         }
@@ -112,17 +115,19 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             await PrepareTest();
 
-            await CallCommand.ChangeKey(new ChangeKeyOptions
+            await new ChangeKeyCommand
             {
                 Passphrase = NEW_PASSPHRASE
-            });
+            }
+            .OnExecute();
 
             ChangeSecretsFilesPath();
 
-            await CallCommand.Pull(new PullSecretsOptions
+            await new PullCommand
             {
                 Path = Constants.SolutionFilesPath
-            });
+            }
+            .OnExecute();
 
             VerifyTestResults();
         }
@@ -133,17 +138,19 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             await PrepareTest();
 
-            await CallCommand.ChangeKey(new ChangeKeyOptions
+            await new ChangeKeyCommand
             {
                 KeyFile = Path.Combine(Constants.TestFilesPath, "initFile2.key")
-            });
+            }
+            .OnExecute();
 
             ChangeSecretsFilesPath();
 
-            await CallCommand.Pull(new PullSecretsOptions
+            await new PullCommand
             {
                 Path = Constants.SolutionFilesPath
-            });
+            }
+            .OnExecute();
 
             VerifyTestResults();
         }
@@ -154,17 +161,19 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             await PrepareTest();
 
-            await CallCommand.ChangeKey(new ChangeKeyOptions
+            await new ChangeKeyCommand
             {
                 KeyFile = "initFile2.key"
-            });
+            }
+            .OnExecute();
 
             ChangeSecretsFilesPath();
 
-            await CallCommand.Pull(new PullSecretsOptions
+            await new PullCommand
             {
                 Path = Constants.SolutionFilesPath
-            });
+            }
+            .OnExecute();
 
             VerifyTestResults();
         }

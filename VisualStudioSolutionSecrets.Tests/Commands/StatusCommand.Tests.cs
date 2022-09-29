@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.Tests.Helpers;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
@@ -34,19 +35,21 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async Task StatusTest()
         {
-            await CallCommand.Init(new InitOptions
+            await new InitCommand
             {
                 Passphrase = Constants.PASSPHRASE
-            });
+            }
+            .OnExecute();
 
-            await CallCommand.Push(new PushSecretsOptions
+            await new PushCommand
             {
                 Path = Constants.SolutionFilesPath
-            });
+            }
+            .OnExecute();
 
             ClearOutput();
 
-            await CallCommand.Status(new StatusCheckOptions());
+            await new StatusCommand().OnExecute();
 
             VerifyOutput();
         }
@@ -55,22 +58,25 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async Task StatusWithSolutionsPathTest()
         {
-            await CallCommand.Init(new InitOptions
+            await new InitCommand
             {
                 Passphrase = Constants.PASSPHRASE
-            });
+            }
+            .OnExecute();
 
-            await CallCommand.Push(new PushSecretsOptions
+            await new PushCommand
             {
                 Path = Constants.SolutionFilesPath
-            });
+            }
+            .OnExecute();
 
             ClearOutput();
 
-            await CallCommand.Status(new StatusCheckOptions
+            await new StatusCommand
             {
                 Path = Constants.SampleFilesPath
-            });
+            }
+            .OnExecute();
 
             VerifyOutput();
         }
@@ -79,22 +85,25 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async Task StatusWithSolutionsFilePathTest()
         {
-            await CallCommand.Init(new InitOptions
+            await new InitCommand
             {
                 Passphrase = Constants.PASSPHRASE
-            });
+            }
+            .OnExecute();
 
-            await CallCommand.Push(new PushSecretsOptions
+            await new PushCommand
             {
                 Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            });
+            }
+            .OnExecute();
 
             ClearOutput();
 
-            await CallCommand.Status(new StatusCheckOptions
+            await new StatusCommand
             {
                 Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            });
+            }
+            .OnExecute();
 
             VerifyOutput();
         }
@@ -103,23 +112,26 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async Task StatusWithSolutionsPathAllTest()
         {
-            await CallCommand.Init(new InitOptions
+            await new InitCommand
             {
                 Passphrase = Constants.PASSPHRASE
-            });
+            }
+            .OnExecute();
 
-            await CallCommand.Push(new PushSecretsOptions
+            await new PushCommand
             {
                 Path = Constants.SolutionFilesPath
-            });
+            }
+            .OnExecute();
 
             ClearOutput();
 
-            await CallCommand.Status(new StatusCheckOptions
+            await new StatusCommand
             {
                 Path = Constants.SampleFilesPath,
                 All = true
-            });
+            }
+            .OnExecute();
 
             VerifyOutput();
         }
@@ -128,23 +140,26 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public async Task StatusWithSolutionsRelativePathTest()
         {
-            await CallCommand.Init(new InitOptions
+            await new InitCommand
             {
                 Passphrase = Constants.PASSPHRASE
-            });
+            }
+            .OnExecute();
 
-            await CallCommand.Push(new PushSecretsOptions
+            await new PushCommand
             {
                 Path = Constants.SolutionFilesPath
-            });
+            }
+            .OnExecute();
 
             ClearOutput();
 
-            await CallCommand.Status(new StatusCheckOptions
+            await new StatusCommand
             {
                 Path = ".",
                 All = false
-            });
+            }
+            .OnExecute();
 
             VerifyOutput();
         }

@@ -210,6 +210,9 @@ namespace VisualStudioSolutionSecrets.Commands
             }
 
             Console.WriteLine("\nFinished.\n");
+
+            await Context.Current.Cipher.RefreshStatus();
+
             return 0;
         }
 

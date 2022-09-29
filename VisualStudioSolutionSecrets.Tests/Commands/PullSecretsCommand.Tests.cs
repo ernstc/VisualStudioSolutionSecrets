@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
+using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.IO;
-using VisualStudioSolutionSecrets.Tests.Helpers;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
@@ -77,15 +77,17 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
         private async Task PrepareTest()
         {
-            await CallCommand.Init(new InitOptions
+            await new InitCommand
             {
                 Passphrase = Constants.PASSPHRASE
-            });
+            }
+            .OnExecute();
 
-            await CallCommand.Push(new PushSecretsOptions
+            await new PushCommand
             {
                 Path = Constants.SolutionFilesPath
-            });
+            }
+            .OnExecute();
 
             ChangeSecretsFilesPath();
         }
@@ -96,10 +98,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             await PrepareTest();
 
-            await CallCommand.Pull(new PullSecretsOptions
+            await new PullCommand
             {
                 Path = Constants.SolutionFilesPath
-            });
+            }
+            .OnExecute();
 
             VerifyTestResults();
         }
@@ -110,10 +113,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             await PrepareTest();
 
-            await CallCommand.Pull(new PullSecretsOptions
+            await new PullCommand
             {
                 Path = "."
-            });
+            }
+            .OnExecute();
 
             VerifyTestResults();
         }
@@ -124,10 +128,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             await PrepareTest();
 
-            await CallCommand.Pull(new PullSecretsOptions
+            await new PullCommand
             {
                 Path = "unknown"
-            });
+            }
+            .OnExecute();
 
             string pulledFilePath1 = Path.Combine(PulledSecretsFilesPath, "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99", "secrets.json");
             string pulledFilePath2 = Path.Combine(PulledSecretsFilesPath, "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99", "secrets.xml");
@@ -142,11 +147,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             await PrepareTest();
 
-            await CallCommand.Pull(new PullSecretsOptions
+            await new PullCommand
             {
                 Path = Constants.SampleFilesPath,
                 All = true
-            });
+            }
+            .OnExecute();
 
             VerifyTestResults();
         }

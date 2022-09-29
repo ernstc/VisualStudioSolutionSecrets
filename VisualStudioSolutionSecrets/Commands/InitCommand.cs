@@ -44,6 +44,8 @@ namespace VisualStudioSolutionSecrets.Commands
                 }
             }
 
+            await Context.Current.Cipher.RefreshStatus();
+
             return 0;
         }
 

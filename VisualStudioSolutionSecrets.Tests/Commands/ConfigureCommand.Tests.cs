@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.Repository;
-using VisualStudioSolutionSecrets.Tests.Helpers;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
@@ -32,13 +32,14 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task ConfigureGitHubByDefaultTest()
+        public void ConfigureGitHubByDefaultTest()
         {
-            await CallCommand.Configure(new ConfigureOptions
+            new ConfigureCommand
             {
                 Default = true,
                 RepositoryType = nameof(RepositoryTypesEnum.GitHub)
-            });
+            }
+            .OnExecute();
 
             Configuration.Refresh();
 
@@ -49,14 +50,15 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task ConfigureAzureKVByDefaultTest()
+        public void ConfigureAzureKVByDefaultTest()
         {
-            await CallCommand.Configure(new ConfigureOptions
+            new ConfigureCommand
             {
                 Default = true,
                 RepositoryType = nameof(RepositoryTypesEnum.AzureKV),
                 RepositoryName = KEY_VAULT_NAME
-            });
+            }
+            .OnExecute();
 
             Configuration.Refresh();
 
@@ -67,12 +69,13 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task ConfigureGitHubForProject()
+        public void ConfigureGitHubForProject()
         {
-            await CallCommand.Configure(new ConfigureOptions
+            new ConfigureCommand
             {
                 RepositoryType = nameof(RepositoryTypesEnum.GitHub)
-            });
+            }
+            .OnExecute();
 
             Configuration.Refresh();
 
@@ -87,13 +90,14 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task ConfigureAzureKVForProject()
+        public void ConfigureAzureKVForProject()
         {
-            await CallCommand.Configure(new ConfigureOptions
+            new ConfigureCommand
             {
                 RepositoryType = nameof(RepositoryTypesEnum.AzureKV),
                 RepositoryName = KEY_VAULT_NAME
-            });
+            }
+            .OnExecute();
 
             Configuration.Refresh();
 

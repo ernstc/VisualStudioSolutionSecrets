@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.Tests.Helpers;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
@@ -17,38 +18,41 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task SearchTest()
+        public void SearchTest()
         {
-            await CallCommand.Search(new SearchSecretsOptions
+            new SearchCommand
             {
                 Path = Constants.SolutionFilesPath
-            });
+            }
+            .OnExecute();
 
             VerifyOutput();
         }
 
 
         [Fact]
-        public async Task SearchWithNoResultsTest()
+        public void SearchWithNoResultsTest()
         {
-            await CallCommand.Search(new SearchSecretsOptions
+            new SearchCommand
             {
                 Path = Constants.SampleFilesPath,
                 All = false
-            });
+            }
+            .OnExecute();
 
             VerifyOutput();
         }
 
 
         [Fact]
-        public async Task SearchAllTest()
+        public void SearchAllTest()
         {
-            await CallCommand.Search(new SearchSecretsOptions
+            new SearchCommand
             {
                 Path = Constants.SampleFilesPath,
                 All = true
-            });
+            }
+            .OnExecute();
 
             VerifyOutput();
         }
