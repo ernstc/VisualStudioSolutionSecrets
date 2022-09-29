@@ -1,4 +1,6 @@
-﻿Solution: SolutionSample.sln
+﻿vs-secrets 2.0.0
+
+Solution: SolutionSample.sln
     Path: *\solutionFiles\SolutionSample.sln
 
 Projects that use secrets:

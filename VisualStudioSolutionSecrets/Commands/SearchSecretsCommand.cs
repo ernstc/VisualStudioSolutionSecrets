@@ -34,9 +34,9 @@ namespace VisualStudioSolutionSecrets.Commands
                     solutionIndex++;
                     if (solutionIndex > 1)
                     {
-                        Console.WriteLine("\n----------------------------------------");
+                        Console.WriteLine("\n----------------------------------------\n");
                     }
-                    Console.WriteLine($"\nSolution: {solution.Name}");
+                    Console.WriteLine($"Solution: {solution.Name}");
                     Console.WriteLine($"    Path: {solutionFile}\n");
 
                     Console.WriteLine("Projects that use secrets:");
