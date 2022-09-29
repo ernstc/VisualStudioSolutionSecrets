@@ -3,31 +3,48 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Repository;
-using static System.Net.WebRequestMethods;
-
 
 namespace VisualStudioSolutionSecrets.Commands
 {
 
-	internal class ChangeKeyCommand : EncryptionKeyCommand<ChangeKeyOptions>
+    [Command(Description = "Change the encryption key and encrypts all existing secrets with the new key.")]
+    [EncryptionKeyParametersValidation]
+    internal class ChangeKeyCommand : EncryptionKeyCommand
 	{
+        [Option("-p|--passphrase", Description = "Passphare for creating the encryption key.")]
+        public string? Passphrase { get; set; }
 
-        public override async Task Execute(ChangeKeyOptions options)
+        [Option("-f|--keyfile <path>", Description = "Key file path to use for creating the encryption key.")]
+        [FileExists]
+        public string? KeyFile { get; set; }
+
+
+        public async Task<int> OnExecute(CommandLineApplication? app = null)
         {
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
 
-            if (!await CanSync())
+            if (
+                Passphrase == null
+                && KeyFile == null
+                )
             {
-                return;
+                app?.ShowHelp();
+                return 1;
             }
 
-            string? keyFile = EnsureFullyQualifiedPath(options.KeyFile);
-
-            if (!AreEncryptionKeyParametersValid(options.Passphrase, keyFile))
+            if (!await CanSync())
             {
-                return;
+                return 1;
+            }
+
+            string? keyFile = EnsureFullyQualifiedPath(KeyFile);
+
+            if (!AreEncryptionKeyParametersValid(Passphrase, keyFile))
+            {
+                return 1;
             }
 
             // Ensure authorization on the default repository
@@ -115,11 +132,11 @@ namespace VisualStudioSolutionSecrets.Commands
                 Console.WriteLine("    Only some solutions will be re-encrypted with the new key.\n");
                 if (!Confirm())
                 {
-                    return;
+                    return 1;
                 }
             }
 
-            GenerateEncryptionKey(options.Passphrase, keyFile);
+            GenerateEncryptionKey(Passphrase, keyFile);
 
             Console.WriteLine("Saving secrets with the new key...\n");
 
@@ -193,6 +210,7 @@ namespace VisualStudioSolutionSecrets.Commands
             }
 
             Console.WriteLine("\nFinished.\n");
+            return 0;
         }
 
     }

@@ -1,25 +1,41 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
-using NuGet.Protocol.Core.Types;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
-
 
 namespace VisualStudioSolutionSecrets.Commands
 {
 
-	internal class InitCommand : EncryptionKeyCommand<InitOptions>
+    [Command(Description = "Create the encryption key.")]
+    [EncryptionKeyParametersValidation]
+    internal class InitCommand : EncryptionKeyCommand
 	{
+        [Option("-p|--passphrase", Description = "Passphare for creating the encryption key.")]
+        public string? Passphrase { get; set; }
 
-        public override async Task Execute(InitOptions options)
-		{
+        [Option("-f|--keyfile <path>", Description = "Key file path to use for creating the encryption key.")]
+        [FileExists]
+        public string? KeyFile { get; set; }
+
+
+        public async Task<int> OnExecute(CommandLineApplication? app = null)
+        {
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
-            
-            string? keyFile = EnsureFullyQualifiedPath(options.KeyFile);
 
-			if (AreEncryptionKeyParametersValid(options.Passphrase, keyFile))
+            if (
+                Passphrase == null
+                && KeyFile == null
+                )
+            {
+                app?.ShowHelp();
+                return 1;
+            }
+
+            string? keyFile = EnsureFullyQualifiedPath(KeyFile);
+
+			if (AreEncryptionKeyParametersValid(Passphrase, keyFile))
 			{
-				GenerateEncryptionKey(options.Passphrase, keyFile);
+				GenerateEncryptionKey(Passphrase, keyFile);
 
                 // Ensure authorization on the default repository
                 if (!await Context.Current.Repository.IsReady())
@@ -27,8 +43,9 @@ namespace VisualStudioSolutionSecrets.Commands
                     await Context.Current.Repository.AuthorizeAsync();
                 }
             }
+
+            return 0;
         }
 
 	}
 }
-

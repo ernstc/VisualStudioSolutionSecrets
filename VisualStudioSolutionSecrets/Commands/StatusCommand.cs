@@ -2,19 +2,27 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Repository;
 
 namespace VisualStudioSolutionSecrets.Commands
 {
 
-	internal class StatusCheckCommand : Command<StatusCheckOptions>
+    [Command(Description = "Shows the status for the tool and the solutions.")]
+    internal class StatusCommand : CommandBase
 	{
 
-        public override async Task Execute(StatusCheckOptions options)
+        [Option("--path", Description = "Path for searching solutions or single solution file path.")]
+        public string? Path { get; set; }
+
+        [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
+        public bool All { get; set; }
+
+
+        public async Task<int> OnExecute()
         {
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
 
@@ -47,8 +55,8 @@ namespace VisualStudioSolutionSecrets.Commands
 
             if (isCipherReady && isRepositoryReady)
             {
-                string? path = options.Path != null ? EnsureFullyQualifiedPath(options.Path) : Context.Current.IO.GetCurrentDirectory();
-                string[] solutionFiles = GetSolutionFiles(path, options.All);
+                string path = EnsureFullyQualifiedPath(Path) ?? Context.Current.IO.GetCurrentDirectory();
+                string[] solutionFiles = GetSolutionFiles(path, All);
                 if (solutionFiles.Length > 0)
                 {
                     Console.WriteLine("Checking solutions synchronization status...\n");
@@ -64,6 +72,8 @@ namespace VisualStudioSolutionSecrets.Commands
                     Console.WriteLine();
                 }
             }
+
+            return 0;
         }
 
 

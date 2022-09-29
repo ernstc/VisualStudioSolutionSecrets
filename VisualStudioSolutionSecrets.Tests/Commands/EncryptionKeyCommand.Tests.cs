@@ -11,17 +11,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
     public class EncryptionKeyCommandTests
     {
 
-        public class Options
-        {
-        }
-
-
-        private EncryptionKeyCommand<Options> _command;
+        private EncryptionKeyCommand _command;
 
 
         public EncryptionKeyCommandTests()
         {
-            _command = new Mock<EncryptionKeyCommand<Options>>().Object;
+            _command = new Mock<EncryptionKeyCommand>().Object;
         }
 
 

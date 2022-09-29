@@ -4,43 +4,23 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-//using CommandLine;
-//using CommandLine.Text;
 using VisualStudioSolutionSecrets.Repository;
 
 namespace VisualStudioSolutionSecrets
 {
 
-    //[Verb("init", HelpText = "Create the encryption key.")]
     internal class InitOptions
     {
-        //[Option('p', "passphrase", Group = "Key", HelpText = "Passphare for creating the encryption key.")]
         public string? Passphrase { get; set; }
 
-        //[Option('f', "keyfile", Group = "Key", HelpText = "Key file path to use for creating the encryption key.")]
         public string? KeyFile { get; set; }
-
-        //[Usage]
-        //public static IEnumerable<Example> UsageExamples
-        //{
-        //    get
-        //    {
-        //        return new List<Example>() {
-        //            new Example("Create encryption key with a passphrase", new InitOptions { Passphrase = "my passphrase" }),
-        //            new Example("Create encryption key from a file", new InitOptions { KeyFile = Path.Combine(".", "key-file.txt") }),
-        //        };
-        //    }
-        //}
     }
 
 
-    //[Verb("changekey", HelpText = "Change the encryption key and encrypts all existing secrets with the new key.")]
     internal class ChangeKeyOptions
     {
-        //[Option('p', "passphrase", Group = "Key", HelpText = "Passphare for creating the encryption key.")]
         public string? Passphrase { get; set; }
 
-        //[Option('f', "keyfile", Group = "Key", HelpText = "Key file path to use for creating the encryption key.")]
         public string? KeyFile { get; set; }
 
         //[Usage]

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -6,7 +7,32 @@ using System.Text.RegularExpressions;
 namespace VisualStudioSolutionSecrets.Commands.Abstractions
 {
 
-	internal abstract class EncryptionKeyCommand<TOptions> : Command<TOptions>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class EncryptionKeyParametersValidationAttribute : ValidationAttribute
+    {
+        protected override ValidationResult? IsValid(object? value, ValidationContext context)
+        {
+            if (value is InitCommand initCommand)
+            {
+                if (!String.IsNullOrEmpty(initCommand.Passphrase) && !String.IsNullOrEmpty(initCommand.KeyFile))
+                {
+                    return new ValidationResult("\nSpecify -p|--passphrase or -f|--key-file, not both.\n");
+                }
+            }
+            else if (value is ChangeKeyCommand changeKeyCommand)
+            {
+                if (!String.IsNullOrEmpty(changeKeyCommand.Passphrase) && !String.IsNullOrEmpty(changeKeyCommand.KeyFile))
+                {
+                    return new ValidationResult("\nSpecify -p|--passphrase or -f|--key-file, not both.\n");
+                }
+            }
+            return ValidationResult.Success;
+        }
+    }
+
+
+
+    internal abstract class EncryptionKeyCommand : CommandBase
 	{
 
         internal bool ValidatePassphrase(string passphrase)

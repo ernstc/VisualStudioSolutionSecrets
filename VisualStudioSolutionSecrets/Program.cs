@@ -1,55 +1,30 @@
 ﻿using System;
+using System.Reflection;
 using System.Threading.Tasks;
-//using CommandLine;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands;
-using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Encryption;
-using VisualStudioSolutionSecrets.IO;
 using VisualStudioSolutionSecrets.Repository;
 
 
 namespace VisualStudioSolutionSecrets
 {
 
-    static class Program
+    [Command("vs-secrets")]
+    [VersionOptionFromMember("--version", MemberName = nameof(GetVersion))]
+    [Subcommand(
+       typeof(InitCommand),
+       typeof(ChangeKeyCommand),
+       typeof(PushCommand),
+       typeof(PullCommand),
+       typeof(SearchCommand),
+       typeof(StatusCommand),
+       typeof(ConfigureCommand)
+    )]
+    internal class Program
     {
 
-        //static void Main(string[] args)
-        //{
-        //    if (args.Length == 0)
-        //    {
-        //        ShowLogo();
-        //    }
-        //
-        //    CommandLine.Parser.Default.ParseArguments<
-        //        InitOptions,
-        //        ChangeKeyOptions,
-        //        ConfigureOptions,
-        //        PushSecretsOptions,
-        //        PullSecretsOptions,
-        //        SearchSecretsOptions,
-        //        StatusCheckOptions
-        //        >(args)
-        //
-        //    .WithNotParsed(_ =>
-        //    {
-        //        CheckForUpdates().Wait();
-        //    })
-        //
-        //    .MapResult(
-        //        (InitOptions options) => Execute(new InitCommand(), options),
-        //        (ChangeKeyOptions options) => Execute(new ChangeKeyCommand(), options),
-        //        (ConfigureOptions options) => Execute(new ConfigureCommand(), options),
-        //        (PushSecretsOptions options) => Execute(new PushSecretsCommand(), options),
-        //        (PullSecretsOptions options) => Execute(new PullSecretsCommand(), options),
-        //        (SearchSecretsOptions options) => Execute(new SearchSecretsCommand(), options),
-        //        (StatusCheckOptions options) => Execute(new StatusCheckCommand(), options),
-        //        _ => 1
-        //        );
-        //}
-
-
-        private static int Execute<TOptions>(Command<TOptions> command, TOptions options)
+        static void Main(string[] args)
         {
             CheckForUpdates().Wait();
 
@@ -63,9 +38,20 @@ namespace VisualStudioSolutionSecrets
 
             Context.Current.AddService<IRepository>(new AzureKeyVaultRepository(), nameof(RepositoryTypesEnum.AzureKV));
 
-            command.Execute(options).Wait();
+            CommandLineApplication.Execute<Program>(args);
+        }
+
+
+        protected int OnExecute(CommandLineApplication app)
+        {
+            ShowLogo();
+            app.ShowHelp();
             return 0;
         }
+
+
+        private string? GetVersion()
+            => $"vs-secrets {typeof(Program).Assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion}";
 
 
         private static bool _showedLogo = false;
@@ -89,7 +75,7 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        static async Task CheckForUpdates()
+        private static async Task CheckForUpdates()
         {
             if (Versions.CurrentVersion != null)
             {

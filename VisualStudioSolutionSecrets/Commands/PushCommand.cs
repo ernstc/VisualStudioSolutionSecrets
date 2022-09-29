@@ -3,31 +3,40 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Repository;
 
 namespace VisualStudioSolutionSecrets.Commands
 {
 
-	internal class PushSecretsCommand : Command<PushSecretsOptions>
+    [Command(Description = "Push encrypted solution secrets.")]
+    internal class PushCommand : CommandBase
 	{
 
-        public override async Task Execute(PushSecretsOptions options)
+        [Option("--path", Description = "Path for searching solutions or single solution file path.")]
+        public string? Path { get; set; }
+
+        [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
+        public bool All { get; set; }
+
+
+        public async Task<int> OnExecute()
         {
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
 
             if (!await CanSync())
             {
-                return;
+                return 1;
             }
 
-            string? path = EnsureFullyQualifiedPath(options.Path);
+            string? path = EnsureFullyQualifiedPath(Path) ?? Context.Current.IO.GetCurrentDirectory();
 
-            string[] solutionFiles = GetSolutionFiles(path, options.All);
+            string[] solutionFiles = GetSolutionFiles(path, All);
             if (solutionFiles.Length == 0)
             {
                 Console.WriteLine("Solution files not found.\n");
-                return;
+                return 1;
             }
 
             foreach (var solutionFile in solutionFiles)
@@ -117,6 +126,7 @@ namespace VisualStudioSolutionSecrets.Commands
             }
 
             Console.WriteLine("\nFinished.\n");
+            return 0;
         }
 
     }

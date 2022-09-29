@@ -5,11 +5,8 @@ using System.Threading.Tasks;
 namespace VisualStudioSolutionSecrets.Commands.Abstractions
 {
 
-	public abstract class Command<TOptions>
+	public abstract class CommandBase
 	{
-
-        public abstract Task Execute(TOptions options);
-
 
         protected string? EnsureFullyQualifiedPath(string? path)
         {

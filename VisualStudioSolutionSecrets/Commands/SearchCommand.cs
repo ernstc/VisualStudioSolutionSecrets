@@ -1,26 +1,33 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
-
 
 namespace VisualStudioSolutionSecrets.Commands
 {
 
-    internal class SearchSecretsCommand : Command<SearchSecretsOptions>
+    [Command(Description = "Search for solution secrets.")]
+    internal class SearchCommand : CommandBase
     {
 
-        public override Task Execute(SearchSecretsOptions options)
+        [Option("--path", Description = "Path for searching solutions or single solution file path.")]
+        public string? Path { get; set; }
+
+        [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
+        public bool All { get; set; }
+
+
+        public int OnExecute()
         {
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
 
-            string? path = EnsureFullyQualifiedPath(options.Path);
+            string path = EnsureFullyQualifiedPath(Path) ?? Context.Current.IO.GetCurrentDirectory();
 
-            string[] solutionFiles = GetSolutionFiles(path, options.All);
+            string[] solutionFiles = GetSolutionFiles(path, All);
             if (solutionFiles.Length == 0)
             {
                 Console.WriteLine("Solution files not found.\n");
-                return Task.CompletedTask;
+                return 1;
             }
 
             int solutionIndex = 0;
@@ -49,9 +56,8 @@ namespace VisualStudioSolutionSecrets.Commands
                 }
             }
             Console.WriteLine();
-            return Task.CompletedTask;
+            return 0;
         }
 
     }
 }
-
