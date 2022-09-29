@@ -31,23 +31,20 @@ namespace VisualStudioSolutionSecrets
                 StatusCheckOptions
                 >(args)
 
-            .WithNotParsed(err =>
+            .WithNotParsed(_ =>
             {
                 CheckForUpdates().Wait();
-                Console.WriteLine("\nUsage:");
-                Console.WriteLine("     vs-secrets push --all");
-                Console.WriteLine("     vs-secrets pull --all\n");
             })
 
             .MapResult(
-                (InitOptions options) => { return Execute(new InitCommand(), options); },
-                (ChangeKeyOptions options) => { return Execute(new ChangeKeyCommand(), options); },
-                (ConfigureOptions options) => { return Execute(new ConfigureCommand(), options); },
-                (PushSecretsOptions options) => { return Execute(new PushSecretsCommand(), options); },
-                (PullSecretsOptions options) => { return Execute(new PullSecretsCommand(), options); },
-                (SearchSecretsOptions options) => { return Execute(new SearchSecretsCommand(), options); },
-                (StatusCheckOptions options) => { return Execute(new StatusCheckCommand(), options); },
-                err => 1
+                (InitOptions options) => Execute(new InitCommand(), options),
+                (ChangeKeyOptions options) => Execute(new ChangeKeyCommand(), options),
+                (ConfigureOptions options) => Execute(new ConfigureCommand(), options),
+                (PushSecretsOptions options) => Execute(new PushSecretsCommand(), options),
+                (PullSecretsOptions options) => Execute(new PullSecretsCommand(), options),
+                (SearchSecretsOptions options) => Execute(new SearchSecretsCommand(), options),
+                (StatusCheckOptions options) => Execute(new StatusCheckCommand(), options),
+                _ => 1
                 );
         }
 

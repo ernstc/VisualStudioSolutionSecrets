@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +19,18 @@ namespace VisualStudioSolutionSecrets
 
         [Option('f', "keyfile", Group = "Key", HelpText = "Key file path to use for creating the encryption key.")]
         public string? KeyFile { get; set; }
+
+        [Usage]
+        public static IEnumerable<Example> UsageExamples
+        {
+            get
+            {
+                return new List<Example>() {
+                    new Example("Create encryption key with a passphrase", new InitOptions { Passphrase = "my passphrase" }),
+                    new Example("Create encryption key from a file", new InitOptions { KeyFile = Path.Combine(".", "key-file.txt") }),
+                };
+            }
+        }
     }
 
 
@@ -29,27 +42,53 @@ namespace VisualStudioSolutionSecrets
 
         [Option('f', "keyfile", Group = "Key", HelpText = "Key file path to use for creating the encryption key.")]
         public string? KeyFile { get; set; }
+
+        [Usage]
+        public static IEnumerable<Example> UsageExamples
+        {
+            get
+            {
+                return new List<Example>() {
+                    new Example("Change the encryption key with a passphrase", new ChangeKeyOptions { Passphrase = "my passphrase" }),
+                    new Example("Change the encryption key from a file", new ChangeKeyOptions { KeyFile = Path.Combine(".", "key-file.txt") }),
+                };
+            }
+        }
     }
 
 
     [Verb("push", HelpText = "Push encrypted solution secrets.")]
     internal class PushSecretsOptions
     {
-        [Option("path")]
+        [Option("path", HelpText = "Path for searching solutions or single solution file path.")]
         public string? Path { get; set; }
 
-        [Option("all", HelpText = "When true, search in the specified path and its sub-tree.", Default = false)]
+        [Option("all", HelpText = "When true, search in the specified path and its sub-tree.")]
         public bool All { get; set; }
+
+        [Usage]
+        public static IEnumerable<Example> UsageExamples
+        {
+            get
+            {
+                return new List<Example>() {
+                    new Example("Push secrets for all solutions found in the current folder", new PushSecretsOptions()),
+                    new Example("Push secrets for all solutions found in the specified folder", new PushSecretsOptions { Path = System.IO.Path.Combine(".", "MySolution") }),
+                    new Example("Push secrets for all solutions found in the specified folder tree", new PushSecretsOptions { Path = System.IO.Path.Combine(".", "MySolution"), All = true }),
+                    new Example("Push secrets for the specified solution file", new PushSecretsOptions { Path = System.IO.Path.Combine(".", "MySolution", "MySolution.sln") }),
+                };
+            }
+        }
     }
 
 
     [Verb("pull", HelpText = "Pull solution secrets and decrypt them.")]
     internal class PullSecretsOptions
     {
-        [Option("path", HelpText = "Path for searching solutions.")]
+        [Option("path", HelpText = "Path for searching solutions or single solution file path.")]
         public string? Path { get; set; }
 
-        [Option("all", HelpText = "When true, search in the specified path and its sub-tree.", Default = false)]
+        [Option("all", HelpText = "When true, search in the specified path and its sub-tree.")]
         public bool All { get; set; }
     }
 
@@ -58,10 +97,10 @@ namespace VisualStudioSolutionSecrets
     [Verb("search", HelpText = "Search for solution secrets.")]
     internal class SearchSecretsOptions
     {
-        [Option("path", HelpText = "Path for searching solutions.")]
+        [Option("path", HelpText = "Path for searching solutions or single solution file path.")]
         public string? Path { get; set; }
 
-        [Option("all", HelpText = "When true, search in the specified path and its sub-tree.", Default = false)]
+        [Option("all", HelpText = "When true, search in the specified path and its sub-tree.")]
         public bool All { get; set; }
     }
 
@@ -69,10 +108,10 @@ namespace VisualStudioSolutionSecrets
     [Verb("status", HelpText = "Shows the status for the tool and the solutions.")]
     internal class StatusCheckOptions
     {
-        [Option("path", HelpText = "Path for searching solutions. The status for the found solutions will be shown.")]
+        [Option("path", HelpText = "Path for searching solutions or single solution file path.")]
         public string? Path { get; set; }
 
-        [Option("all", HelpText = "When true, search in the specified path and its sub-tree.", Default = false)]
+        [Option("all", HelpText = "When true, search in the specified path and its sub-tree.")]
         public bool All { get; set; }
     }
 
@@ -92,15 +131,18 @@ namespace VisualStudioSolutionSecrets
         [Option("reset", SetName = "reset", HelpText = "Reset the configuration of the solution.")]
         public bool Reset { get; set; }
 
+        [Option("path", HelpText = "Path for searching solutions or single solution file path.")]
+        public string? Path { get; set; }
+
         [Usage]
         public static IEnumerable<Example> UsageExamples
         {
             get
             {
                 return new List<Example>() {
-                    new Example("Configure the solution to use GitHub", new ConfigureOptions { RepositoryType = RepositoryTypesEnum.GitHub.ToString() }),
-                    new Example("Configure the solution to use Azure Key Vault", new ConfigureOptions { RepositoryType = RepositoryTypesEnum.AzureKV.ToString(), RepositoryName = "my-keyvault" }),
-                    new Example("Set GitHub as the default repository", new ConfigureOptions { RepositoryType = RepositoryTypesEnum.GitHub.ToString(), Default = true }),
+                    new Example("Configure the solution to use GitHub", new ConfigureOptions { RepositoryType = nameof(RepositoryTypesEnum.GitHub) }),
+                    new Example("Configure the solution to use Azure Key Vault", new ConfigureOptions { RepositoryType = nameof(RepositoryTypesEnum.AzureKV), RepositoryName = "my-keyvault" }),
+                    new Example("Set GitHub as the default repository", new ConfigureOptions { RepositoryType = nameof(RepositoryTypesEnum.GitHub), Default = true }),
                     new Example("Reset the solution configuration", new ConfigureOptions { Reset = true }),
                 };
             }
