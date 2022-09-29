@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CommandLine;
+//using CommandLine;
 using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Encryption;
@@ -14,39 +14,39 @@ namespace VisualStudioSolutionSecrets
     static class Program
     {
 
-        static void Main(string[] args)
-        {
-            if (args.Length == 0)
-            {
-                ShowLogo();
-            }
-
-            CommandLine.Parser.Default.ParseArguments<
-                InitOptions,
-                ChangeKeyOptions,
-                ConfigureOptions,
-                PushSecretsOptions,
-                PullSecretsOptions,
-                SearchSecretsOptions,
-                StatusCheckOptions
-                >(args)
-
-            .WithNotParsed(_ =>
-            {
-                CheckForUpdates().Wait();
-            })
-
-            .MapResult(
-                (InitOptions options) => Execute(new InitCommand(), options),
-                (ChangeKeyOptions options) => Execute(new ChangeKeyCommand(), options),
-                (ConfigureOptions options) => Execute(new ConfigureCommand(), options),
-                (PushSecretsOptions options) => Execute(new PushSecretsCommand(), options),
-                (PullSecretsOptions options) => Execute(new PullSecretsCommand(), options),
-                (SearchSecretsOptions options) => Execute(new SearchSecretsCommand(), options),
-                (StatusCheckOptions options) => Execute(new StatusCheckCommand(), options),
-                _ => 1
-                );
-        }
+        //static void Main(string[] args)
+        //{
+        //    if (args.Length == 0)
+        //    {
+        //        ShowLogo();
+        //    }
+        //
+        //    CommandLine.Parser.Default.ParseArguments<
+        //        InitOptions,
+        //        ChangeKeyOptions,
+        //        ConfigureOptions,
+        //        PushSecretsOptions,
+        //        PullSecretsOptions,
+        //        SearchSecretsOptions,
+        //        StatusCheckOptions
+        //        >(args)
+        //
+        //    .WithNotParsed(_ =>
+        //    {
+        //        CheckForUpdates().Wait();
+        //    })
+        //
+        //    .MapResult(
+        //        (InitOptions options) => Execute(new InitCommand(), options),
+        //        (ChangeKeyOptions options) => Execute(new ChangeKeyCommand(), options),
+        //        (ConfigureOptions options) => Execute(new ConfigureCommand(), options),
+        //        (PushSecretsOptions options) => Execute(new PushSecretsCommand(), options),
+        //        (PullSecretsOptions options) => Execute(new PullSecretsCommand(), options),
+        //        (SearchSecretsOptions options) => Execute(new SearchSecretsCommand(), options),
+        //        (StatusCheckOptions options) => Execute(new StatusCheckCommand(), options),
+        //        _ => 1
+        //        );
+        //}
 
 
         private static int Execute<TOptions>(Command<TOptions> command, TOptions options)
