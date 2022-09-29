@@ -18,7 +18,6 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             {
                 fullyQualifiedPath = Path.Combine(Context.Current.IO.GetCurrentDirectory(), fullyQualifiedPath);
             }
-
             return fullyQualifiedPath;
         }
 
@@ -44,6 +43,12 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
         protected string[] GetSolutionFiles(string? path, bool all)
         {
+            if (path == null)
+                throw new ArgumentNullException(nameof(path));
+
+            if (path.EndsWith(".sln", StringComparison.OrdinalIgnoreCase) && File.Exists(path))
+                return new string[] { path };
+
             var directory = path ?? Context.Current.IO.GetCurrentDirectory();
             try
             {

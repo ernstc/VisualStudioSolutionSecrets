@@ -1,0 +1,14 @@
+vs-secrets 2.0.0
+
+Checking status...
+
+             Ecryption key: OK
+  Repository authorization: OK
+        Default repository: Mock (Name)
+
+
+Checking solutions synchronization status...
+
+Solution                                          |  Version  |  Last Update          |  Repo     |  Status
+----------------------------------------------------------------------------------------------------------------------
+SolutionSample.sln                                |  #.#.#    |  ####-##-## ##:##:##  |  Mock     |  OK

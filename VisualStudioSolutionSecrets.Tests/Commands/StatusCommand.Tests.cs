@@ -77,6 +77,30 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
+        public async Task StatusWithSolutionsFilePathTest()
+        {
+            await CallCommand.Init(new InitOptions
+            {
+                Passphrase = Constants.PASSPHRASE
+            });
+
+            await CallCommand.Push(new PushSecretsOptions
+            {
+                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+            });
+
+            ClearOutput();
+
+            await CallCommand.Status(new StatusCheckOptions
+            {
+                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+            });
+
+            VerifyOutput();
+        }
+
+
+        [Fact]
         public async Task StatusWithSolutionsPathAllTest()
         {
             await CallCommand.Init(new InitOptions

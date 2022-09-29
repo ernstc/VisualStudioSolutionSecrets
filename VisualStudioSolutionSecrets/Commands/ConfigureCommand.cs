@@ -43,7 +43,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 string[] solutionFiles = GetSolutionFiles(path, false);
                 if (solutionFiles.Length == 0)
                 {
-                    Console.WriteLine("Solution files not found.\n");
+                    Console.WriteLine("Solution file not found.\n");
                     return Task.CompletedTask;
                 }
 
