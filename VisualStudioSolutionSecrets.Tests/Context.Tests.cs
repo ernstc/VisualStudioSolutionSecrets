@@ -11,7 +11,7 @@ using VisualStudioSolutionSecrets.Repository;
 
 namespace VisualStudioSolutionSecrets.Tests
 {
-    public class ContextTests : IDisposable
+    public sealed class ContextTests : IDisposable
     {
 
         public ContextTests()
@@ -80,7 +80,7 @@ namespace VisualStudioSolutionSecrets.Tests
         public void AddServiceWithNullTest()
         {
             // Check that null assignment throws an exception
-            Assert.Throws<ArgumentNullException>(() => Context.Current.AddService<IFileSystem>(null));
+            Assert.Throws<ArgumentNullException>(() => Context.Current.AddService<IFileSystem>(null!));
         }
 
 

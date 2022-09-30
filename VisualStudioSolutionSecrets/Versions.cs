@@ -27,8 +27,8 @@ namespace VisualStudioSolutionSecrets
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion;
 
-            VersionString = version?.Split('-')[0];
-            CurrentVersion = string.IsNullOrEmpty(VersionString) ? new Version() : new Version(VersionString);
+            VersionString = version ?? "unknown";
+            CurrentVersion = String.IsNullOrEmpty(version) ? new Version() : new Version(version.Split('-')[0]);
         }
 
 

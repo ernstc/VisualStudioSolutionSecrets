@@ -50,8 +50,13 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        private string? GetVersion()
-            => $"vs-secrets {typeof(Program).Assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion}";
+        private string GetVersion()
+        {
+            var assembly = typeof(Versions).Assembly; 
+            var version = assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            var copyright = assembly?.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
+            return $"vs-secrets {version}\n{copyright}";
+        }
 
 
         private static bool _showedLogo = false;
