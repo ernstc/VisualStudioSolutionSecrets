@@ -45,6 +45,9 @@ namespace VisualStudioSolutionSecrets.Commands
 
     [Command(Description = "Configure the repository to use by default or for the solution in the current directory.")]
     [ConfigureCommandValidation]
+    [Subcommand(
+       typeof(ConfigureListCommand)
+    )]
     internal class ConfigureCommand : CommandBase
     {
         [Option("--default", Description = "Changes the default configuration.")]

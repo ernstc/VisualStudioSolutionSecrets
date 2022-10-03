@@ -36,6 +36,8 @@ namespace VisualStudioSolutionSecrets.Repository
         public string RepositoryType => "GitHub";
         public string? RepositoryName { get; set; }
 
+        public string? GetFriendlyName() => RepositoryName;
+
 
 
         #region GitHub Gists data model

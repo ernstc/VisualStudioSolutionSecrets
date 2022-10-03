@@ -39,6 +39,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             Context.Current.AddService<IRepository>(repository, nameof(RepositoryTypesEnum.AzureKV));
             Context.Current.AddService<IRepository>(repository, nameof(RepositoryTypesEnum.GitHub));
             Context.Current.AddService<ICipher>(new Cipher());
+
+            Configuration.Refresh();
         }
 
 
