@@ -13,13 +13,14 @@ namespace VisualStudioSolutionSecrets
     [Command("vs-secrets")]
     [VersionOptionFromMember("--version", MemberName = nameof(GetVersion))]
     [Subcommand(
-       typeof(InitCommand),
-       typeof(ChangeKeyCommand),
-       typeof(PushCommand),
-       typeof(PullCommand),
-       typeof(SearchCommand),
-       typeof(StatusCommand),
-       typeof(ConfigureCommand)
+        typeof(InitCommand),
+        typeof(ChangeKeyCommand),
+        typeof(PushCommand),
+        typeof(PullCommand),
+        typeof(SearchCommand),
+        typeof(StatusCommand),
+        typeof(ConfigureCommand),
+        typeof(ClearCommand)
     )]
     internal class Program
     {
