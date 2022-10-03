@@ -99,7 +99,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     Configuration.Default.AzureKeyVaultName = RepositoryName;
                     Configuration.Save();
 
-                    Console.WriteLine($"Configured Azure Key Vault (https://{RepositoryName}.vault.azure.net) as the default repository.\n");
+                    Console.WriteLine($"Configured Azure Key Vault ({RepositoryName}) as the default repository.\n");
                 }
             }
             else
@@ -143,7 +143,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         Configuration.SetCustomSynchronizationSettings(solution.SolutionGuid, settings);
                         Configuration.Save();
 
-                        Console.WriteLine($"Configured Azure Key Vault (https://{RepositoryName}.vault.azure.net) as the repository for the solution \"{solution.Name}\" ({solution.SolutionGuid}).\n");
+                        Console.WriteLine($"Configured Azure Key Vault ({RepositoryName}) as the repository for the solution \"{solution.Name}\" ({solution.SolutionGuid}).\n");
                     }
                 }
             }
