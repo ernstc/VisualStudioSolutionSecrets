@@ -124,7 +124,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 }
                 else
                 {
-                    hasLocalSecrets = configFiles.Any(c => !String.IsNullOrWhiteSpace(c.Content));
+                    hasLocalSecrets = configFiles.Any(c => c.Content != null);
                     isSynchronized = true;
 
                     repository.SolutionName = solution.Name;
@@ -205,14 +205,13 @@ namespace VisualStudioSolutionSecrets.Commands
                                         var localFile = configFiles.FirstOrDefault(c => c.GroupName == remoteFile.name && c.FileName == item.Key);
                                         if (localFile != null)
                                         {
-                                            if (!File.Exists(localFile.FilePath))
+                                            if (localFile.Content == null)
                                             {
                                                 isSynchronized = false;
                                             }
                                             else
                                             {
-                                                string localContent = File.ReadAllText(localFile.FilePath);
-                                                if (localContent != content)
+                                                if (localFile.Content != content)
                                                 {
                                                     isSynchronized = false;
                                                 }

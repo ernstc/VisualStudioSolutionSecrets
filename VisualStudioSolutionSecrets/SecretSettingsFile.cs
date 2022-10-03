@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using VisualStudioSolutionSecrets.Encryption;
 
 
@@ -12,7 +14,7 @@ namespace VisualStudioSolutionSecrets
 {
 
     [DebuggerDisplay("Secret = {GroupName}")]
-    public class SecretsSettingsFile
+    public class SecretSettingsFile
     {
 
         private readonly string _fileName = null!;
@@ -29,7 +31,7 @@ namespace VisualStudioSolutionSecrets
 
 
 
-        public SecretsSettingsFile(string configFilePath, string uniqueFileName, ICipher? cipher)
+        public SecretSettingsFile(string configFilePath, string uniqueFileName, ICipher? cipher)
         {
             FileInfo fileInfo = new FileInfo(configFilePath);
 
@@ -40,7 +42,40 @@ namespace VisualStudioSolutionSecrets
 
             if (fileInfo.Exists)
             {
-                Content = File.ReadAllText(_configFilePath);
+                string content = File.ReadAllText(_configFilePath);
+                if (String.Equals(".json", fileInfo.Extension, StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        // Check if the file does not contains an empty JSON object.
+                        var contentTest = JsonSerializer.Deserialize<Dictionary<string, object>>(content);
+                        if (contentTest.Count > 0)
+                        {
+                            Content = content;
+                        }
+                    }
+                    catch
+                    { }
+                }
+                else if (String.Equals(".xml", fileInfo.Extension, StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        // Check if the XML file contains some secrets or not.
+                        XDocument xdoc = XDocument.Parse(content);
+                        XElement xmlSecrets = xdoc.Descendants("secrets").First();
+                        if (xmlSecrets.Descendants("secret").Any())
+                        {
+                            Content = content;
+                        }
+                    }
+                    catch
+                    { }
+                }
+                else
+                {
+                    Content = content;
+                }
             }
         }
 

@@ -68,9 +68,9 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public ICollection<SecretsSettingsFile> GetProjectsSecretSettingsFiles()
+        public ICollection<SecretSettingsFile> GetProjectsSecretSettingsFiles()
         {
-            Dictionary<string, SecretsSettingsFile> configFiles = new Dictionary<string, SecretsSettingsFile>();
+            Dictionary<string, SecretSettingsFile> configFiles = new Dictionary<string, SecretSettingsFile>();
 
             string[] lines = File.ReadAllLines(_filePath);
             foreach (string line in lines)
@@ -113,7 +113,7 @@ namespace VisualStudioSolutionSecrets
                                     string groupName = $"secrets\\{secrects.SecretsId}.json";
                                     if (!configFiles.ContainsKey(secrects.FilePath))
                                     {
-                                        var configFile = new SecretsSettingsFile(secrects.FilePath, groupName, _cipher);
+                                        var configFile = new SecretSettingsFile(secrects.FilePath, groupName, _cipher);
                                         configFile.ProjectFileName = projectFileRelativePath;
                                         configFiles.Add(secrects.FilePath, configFile);
                                     }
@@ -203,7 +203,7 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public void SaveSecretSettingsFile(SecretsSettingsFile configFile)
+        public void SaveSecretSettingsFile(SecretSettingsFile configFile)
         {
             string secretsId = configFile.GroupName.Substring(8, 36);
             string filePath = GetSecretsFilePath(secretsId, configFile.FileName);
