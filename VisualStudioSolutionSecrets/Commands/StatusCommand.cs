@@ -62,7 +62,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     Console.WriteLine("Checking solutions synchronization status...\n");
 
                     Console.WriteLine("Solution                                          |  Version  |  Last Update          |  Repo     |  Status");
-                    Console.WriteLine("----------------------------------------------------------------------------------------------------------------------");
+                    Console.WriteLine("--------------------------------------------------------------------------------------------------------------------------");
 
                     foreach (string solutionFile in solutionFiles)
                     {
