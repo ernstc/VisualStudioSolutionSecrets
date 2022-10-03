@@ -30,27 +30,12 @@ namespace VisualStudioSolutionSecrets.Repository
         private DeviceFlowResponse? _deviceFlowResponse;
 
         private string? _oauthAccessToken;
-        private string? _repositoryName;
-        private Gist? _gist;
 
 
         public bool EncryptOnClient => true;
         public string RepositoryType => "GitHub";
         public string? RepositoryName { get; set; }
 
-
-        public string? SolutionName
-        {
-            get
-            {
-                return _repositoryName;
-            }
-            set
-            {
-                _repositoryName = value;
-                _gist = null;
-            }
-        }
 
 
         #region GitHub Gists data model
@@ -254,10 +239,10 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        public async Task<ICollection<(string name, string? content)>> PullFilesAsync()
+        public async Task<ICollection<(string name, string? content)>> PullFilesAsync(string solutionName)
         {
             var files = new List<(string name, string? content)>();
-            var gist = await GetGistAsync();
+            var gist = await GetGistAsync(solutionName);
             if (gist?.files != null)
             {
                 foreach (var file in gist.files)
@@ -282,9 +267,9 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        public async Task<bool> PushFilesAsync(ICollection<(string name, string? content)> files)
+        public async Task<bool> PushFilesAsync(string solutionName, ICollection<(string name, string? content)> files)
         {
-            var gist = await GetGistAsync();
+            var gist = await GetGistAsync(solutionName);
             if (gist != null)
             {
                 await DeleteGist(gist);
@@ -306,7 +291,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
             var payload = new Gist
             {
-                description = _repositoryName,
+                description = solutionName,
                 @public = false,
                 files = new Dictionary<string, GistFile>()
             };
@@ -339,9 +324,9 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        private async Task<Gist?> GetGistAsync()
+        private async Task<Gist?> GetGistAsync(string solutionName)
         {
-            if (_gist == null && _repositoryName != null)
+            if (solutionName != null)
             {
                 for (int page = 1; page < GIST_PAGES_LIMIT; page++)
                 {
@@ -353,9 +338,9 @@ namespace VisualStudioSolutionSecrets.Repository
                     for (int i = 0; i < gists.Count; i++)
                     {
                         var gist = gists[i];
-                        if (gist.description == _repositoryName)
+                        if (gist.description == solutionName)
                         {
-                            return _gist = gist;
+                            return gist;
                         }
                     }
                     if (gists.Count < GIST_PER_PAGE)
@@ -364,7 +349,7 @@ namespace VisualStudioSolutionSecrets.Repository
                     }
                 }
             }
-            return _gist;
+            return null;
         }
 
 

@@ -12,10 +12,9 @@ namespace VisualStudioSolutionSecrets.Repository
         bool EncryptOnClient { get; }
         string RepositoryType { get; }
         string? RepositoryName { get; set; }
-        string? SolutionName { get; set; }
         Task AuthorizeAsync();
-        Task<bool> PushFilesAsync(ICollection<(string name, string? content)> files);
-        Task<ICollection<(string name, string? content)>> PullFilesAsync();
+        Task<bool> PushFilesAsync(string solutionName, ICollection<(string name, string? content)> files);
+        Task<ICollection<(string name, string? content)>> PullFilesAsync(string solutionName);
         Task<ICollection<SolutionSettings>> PullAllSecretsAsync();
     }
 }

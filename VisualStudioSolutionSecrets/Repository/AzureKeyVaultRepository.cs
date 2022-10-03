@@ -16,7 +16,6 @@ namespace VisualStudioSolutionSecrets.Repository
         public bool EncryptOnClient => false;
         public string RepositoryType => "AzureKV";
         public string? RepositoryName { get; set; }
-        public string? SolutionName { get; set; }
 
 
         private SecretClient? _client;
@@ -25,7 +24,7 @@ namespace VisualStudioSolutionSecrets.Repository
         public Task AuthorizeAsync()
         {
             var kvUri = "https://" + RepositoryName + ".vault.azure.net";
-            var credential = new InteractiveBrowserCredential();
+            var credential = new ChainedTokenCredential(new DefaultAzureCredential(), new InteractiveBrowserCredential());
             _client = new SecretClient(new Uri(kvUri), credential);
             return Task.CompletedTask;
         }
@@ -43,18 +42,18 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        public async Task<ICollection<(string name, string? content)>> PullFilesAsync()
+        public async Task<ICollection<(string name, string? content)>> PullFilesAsync(string solutionName)
         {
             var files = new List<(string name, string? content)>();
 
-            if (_client == null || SolutionName == null)
+            if (_client == null)
             {
                 return files;
             }
 
             var asyncPagedResults = _client.GetPropertiesOfSecretsAsync();
 
-            string solutionName = SolutionName.Substring(0, SolutionName.IndexOf('.'));
+            solutionName = solutionName.Substring(0, solutionName.IndexOf('.'));
             string prefix = $"{SECRET_PREFIX}{solutionName}--";
 
             List<string> solutionSecretsName = new List<string>();
@@ -91,14 +90,14 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        public async Task<bool> PushFilesAsync(ICollection<(string name, string? content)> files)
+        public async Task<bool> PushFilesAsync(string solutionName, ICollection<(string name, string? content)> files)
         {
-            if (_client == null || SolutionName == null)
+            if (_client == null)
             {
                 return false;
             }
 
-            string solutionName = SolutionName.Substring(0, SolutionName.IndexOf('.'));
+            solutionName = solutionName.Substring(0, solutionName.IndexOf('.'));
             foreach (var item in files)
             {
                 string fileName = item.name;

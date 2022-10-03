@@ -127,15 +127,13 @@ namespace VisualStudioSolutionSecrets.Commands
                     hasLocalSecrets = configFiles.Any(c => c.Content != null);
                     isSynchronized = true;
 
-                    repository.SolutionName = solution.Name;
-
                     // Ensure authorization on the selected repository
                     if (!await repository.IsReady())
                     {
                         await repository.AuthorizeAsync();
                     }
 
-                    var remoteFiles = await repository.PullFilesAsync();
+                    var remoteFiles = await repository.PullFilesAsync(solution.Name);
                     hasRemoteSecrets = remoteFiles.Count > 0;
 
                     if (!hasRemoteSecrets)

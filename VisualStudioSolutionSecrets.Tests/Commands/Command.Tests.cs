@@ -92,8 +92,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 .ReturnsAsync(true);
 
             repository
-                .Setup(o => o.PushFilesAsync(It.IsAny<ICollection<(string name, string? content)>>()))
-                .ReturnsAsync((ICollection<(string name, string? content)> collection) =>
+                .Setup(o => o.PushFilesAsync(It.IsAny<string>(), It.IsAny<ICollection<(string name, string? content)>>()))
+                .ReturnsAsync((string solutionName, ICollection<(string name, string? content)> collection) =>
                 {
                     foreach (var item in collection)
                     {
@@ -108,8 +108,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 });
 
             repository
-                .Setup(o => o.PullFilesAsync())
-                .ReturnsAsync(() =>
+                .Setup(o => o.PullFilesAsync(It.IsAny<string>()))
+                .ReturnsAsync((string solutionName) =>
                 {
                     List<(string name, string? content)> files = new();
                     string[] filesPath = Directory.GetFiles(Constants.RepositoryFilesPath, "*.json", SearchOption.AllDirectories);

@@ -72,8 +72,6 @@ namespace VisualStudioSolutionSecrets.Commands
                     continue;
                 }
 
-                repository.SolutionName = solution.Name;
-
                 Console.Write($"Pushing secrets for solution: {solution.Name}... ");
 
                 Dictionary<string, Dictionary<string, string>> secrets = new Dictionary<string, Dictionary<string, string>>();
@@ -116,7 +114,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 if (!isEmpty && !failed)
                 {
-                    if (!await repository.PushFilesAsync(files))
+                    if (!await repository.PushFilesAsync(solution.Name, files))
                     {
                         failed = true;
                     }

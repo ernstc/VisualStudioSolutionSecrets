@@ -199,8 +199,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 if (!failed)
                 {
-                    Context.Current.Repository.SolutionName = solutionSecrets.SolutionName;
-                    if (!await Context.Current.Repository.PushFilesAsync(files))
+                    if (!await Context.Current.Repository.PushFilesAsync(solutionSecrets.SolutionName, files))
                     {
                         failed = true;
                     }

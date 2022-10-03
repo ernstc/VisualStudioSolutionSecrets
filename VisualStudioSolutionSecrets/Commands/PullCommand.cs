@@ -60,11 +60,9 @@ namespace VisualStudioSolutionSecrets.Commands
                     await repository.AuthorizeAsync();
                 }
 
-                repository.SolutionName = solution.Name;
-
                 Console.Write($"Pulling secrets for solution: {solution.Name}... ");
 
-                var repositoryFiles = await repository.PullFilesAsync();
+                var repositoryFiles = await repository.PullFilesAsync(solution.Name);
                 if (repositoryFiles.Count == 0)
                 {
                     Console.WriteLine("Failed, secrets not found");
