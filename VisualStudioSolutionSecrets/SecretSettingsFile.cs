@@ -48,8 +48,13 @@ namespace VisualStudioSolutionSecrets
                     try
                     {
                         // Check if the file does not contains an empty JSON object.
-                        var contentTest = JsonSerializer.Deserialize<Dictionary<string, object>>(content);
-                        if (contentTest.Count > 0)
+                        var contentTest = JsonSerializer.Deserialize<Dictionary<string, object?>>(content, new JsonSerializerOptions
+                        {
+                            AllowTrailingCommas = true,
+                            ReadCommentHandling = JsonCommentHandling.Skip
+                        });
+
+                        if (contentTest?.Count > 0)
                         {
                             Content = content;
                         }
