@@ -1,5 +1,14 @@
 ﻿vs-secrets 2.0.0
 
+Solution: SolutionSample-WithEmptySecrets.sln
+    Path: *\solutionFiles\SolutionSample-WithEmptySecrets.sln
+
+Projects that use secrets:
+     1) NetCore-Sample-WithEmptySecrets\NetCore-Sample-WithEmptySecrets.csproj
+     2) NetFramework-Sample-WithEmptySecrets\NetFramework-Sample-WithEmptySecrets.csproj
+
+----------------------------------------
+
 Solution: SolutionSample.sln
     Path: *\solutionFiles\SolutionSample.sln
 

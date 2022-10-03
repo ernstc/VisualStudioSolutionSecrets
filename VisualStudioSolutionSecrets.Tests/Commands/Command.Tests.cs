@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Moq;
 using VisualStudioSolutionSecrets.Encryption;
@@ -116,13 +117,24 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                     foreach (var filePath in filesPath)
                     {
                         string fileName = new FileInfo(filePath).Name;
+                        string fileContent = File.ReadAllText(filePath);
 
                         if (fileName == "secrets.json")
+                        {
                             fileName = "secrets";
+                            var header = JsonSerializer.Deserialize<HeaderFile>(fileContent);
+                            if (header != null && header.solutionFile != solutionName)
+                            {
+                                files.Clear();
+                                break;
+                            }
+                        }
                         else if (!fileName.StartsWith("secrets"))
+                        {
                             fileName = "secrets\\" + fileName;
+                        }
 
-                        files.Add((fileName, File.ReadAllText(filePath)));
+                        files.Add((fileName, fileContent));
                     }
                     return files;
                 });
