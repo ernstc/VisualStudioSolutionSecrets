@@ -17,9 +17,10 @@ namespace VisualStudioSolutionSecrets
         private readonly Regex _projRegex = new Regex(".*proj$");
 
         private string _name;
+        private Guid _uid;
         private string _filePath;
         private string _solutionFolderPath;
-        private Guid _uid;
+
 
         public string Name => _name;
         public Guid Uid => _uid;
@@ -111,7 +112,7 @@ namespace VisualStudioSolutionSecrets
                                     string groupName = $"secrets\\{secrects.SecretsId}.json";
                                     if (!configFiles.ContainsKey(secrects.FilePath))
                                     {
-                                        var configFile = new SecretSettingsFile(secrects.FilePath, groupName, Context.Current.Cipher);
+                                        var configFile = new SecretSettingsFile(secrects.FilePath, groupName);
                                         configFile.ProjectFileName = projectFileRelativePath;
                                         configFiles.Add(secrects.FilePath, configFile);
                                     }
@@ -203,7 +204,7 @@ namespace VisualStudioSolutionSecrets
 
         public void SaveSecretSettingsFile(SecretSettingsFile configFile)
         {
-            string secretsId = configFile.GroupName.Substring(8, 36);
+            string secretsId = configFile.ContainerName.Substring(8, 36);
             string filePath = GetSecretsFilePath(secretsId, configFile.FileName);
 
             FileInfo fileInfo = new FileInfo(filePath);

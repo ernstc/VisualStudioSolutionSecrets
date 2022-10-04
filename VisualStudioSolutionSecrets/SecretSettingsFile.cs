@@ -18,31 +18,30 @@ namespace VisualStudioSolutionSecrets
     {
 
         private readonly string _fileName = null!;
-        private readonly string _configFilePath = null!;
-        private readonly string _uniqueFileName = null!;
-        private readonly ICipher? _cipher;
+        private readonly string _filePath = null!;
+        private readonly string _containerName = null!;
 
 
-        public string GroupName => _uniqueFileName;
         public string FileName => _fileName;
-        public string FilePath => _configFilePath;
+        public string FilePath => _filePath;
+        public string ContainerName => _containerName;
+
         public string? Content { get; set; }
         public string? ProjectFileName { get; set; }
 
 
 
-        public SecretSettingsFile(string configFilePath, string uniqueFileName, ICipher? cipher)
+        public SecretSettingsFile(string filePath, string containerName)
         {
-            FileInfo fileInfo = new FileInfo(configFilePath);
+            FileInfo fileInfo = new FileInfo(filePath);
 
             _fileName = fileInfo.Name;
-            _configFilePath = configFilePath;
-            _uniqueFileName = uniqueFileName;
-            _cipher = cipher;
+            _filePath = filePath;
+            _containerName = containerName;
 
             if (fileInfo.Exists)
             {
-                string content = File.ReadAllText(_configFilePath);
+                string content = File.ReadAllText(_filePath);
                 if (String.Equals(".json", fileInfo.Extension, StringComparison.OrdinalIgnoreCase))
                 {
                     try
@@ -87,9 +86,10 @@ namespace VisualStudioSolutionSecrets
 
         public bool Encrypt()
         {
-            if (_cipher != null && Content != null)
+            var cipher = Context.Current.Cipher;
+            if (cipher != null && Content != null)
             {
-                var encryptedContent = _cipher.Encrypt(Content);
+                var encryptedContent = cipher.Encrypt(Content);
                 if (encryptedContent != null)
                 {
                     Content = encryptedContent;
@@ -102,9 +102,10 @@ namespace VisualStudioSolutionSecrets
 
         public bool Decrypt()
         {
-            if (_cipher != null && Content != null)
+            var cipher = Context.Current.Cipher;
+            if (cipher != null && Content != null)
             {
-                var decryptedContent = _cipher.Decrypt(Content);
+                var decryptedContent = cipher.Decrypt(Content);
                 if (decryptedContent != null)
                 {
                     Content = decryptedContent;
