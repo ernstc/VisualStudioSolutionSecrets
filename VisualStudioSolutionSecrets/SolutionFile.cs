@@ -19,11 +19,10 @@ namespace VisualStudioSolutionSecrets
         private string _name;
         private string _filePath;
         private string _solutionFolderPath;
-        private Guid _solutionGuid;
-        private ICipher? _cipher;
+        private Guid _uid;
 
         public string Name => _name;
-        public Guid SolutionGuid => _solutionGuid;
+        public Guid Uid => _uid;
 
 
 
@@ -35,12 +34,11 @@ namespace VisualStudioSolutionSecrets
 
 
 
-        public SolutionFile(string filePath, ICipher? cipher = null)
+        public SolutionFile(string filePath)
         {
             FileInfo fileInfo = new FileInfo(filePath);
             _filePath = filePath;
             _solutionFolderPath = fileInfo.Directory?.FullName ?? String.Empty;
-            _cipher = cipher;
             _name = fileInfo.Name;
 
             if (fileInfo.Exists)
@@ -51,7 +49,7 @@ namespace VisualStudioSolutionSecrets
                     if (line.Contains("SolutionGuid") && line.Contains('='))
                     {
                         string guid = line.Substring(line.IndexOf('=') + 1);
-                        _solutionGuid = Guid.Parse(guid.Trim());
+                        _uid = Guid.Parse(guid.Trim());
                         break;
                     }
                 }
@@ -63,7 +61,7 @@ namespace VisualStudioSolutionSecrets
         {
             get
             {
-                return Configuration.GetCustomSynchronizationSettings(_solutionGuid);
+                return Configuration.GetCustomSynchronizationSettings(_uid);
             }
         }
 
@@ -113,7 +111,7 @@ namespace VisualStudioSolutionSecrets
                                     string groupName = $"secrets\\{secrects.SecretsId}.json";
                                     if (!configFiles.ContainsKey(secrects.FilePath))
                                     {
-                                        var configFile = new SecretSettingsFile(secrects.FilePath, groupName, _cipher);
+                                        var configFile = new SecretSettingsFile(secrects.FilePath, groupName, Context.Current.Cipher);
                                         configFile.ProjectFileName = projectFileRelativePath;
                                         configFiles.Add(secrects.FilePath, configFile);
                                     }
