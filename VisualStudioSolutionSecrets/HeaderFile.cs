@@ -9,6 +9,7 @@ namespace VisualStudioSolutionSecrets
         public string visualStudioSolutionSecretsVersion { get; set; } = null!;
         public DateTime lastUpload { get; set; }
         public string solutionFile { get; set; } = null!;
+        public Guid? solutionGuid { get; set; }
 
 
         public bool IsVersionSupported()
