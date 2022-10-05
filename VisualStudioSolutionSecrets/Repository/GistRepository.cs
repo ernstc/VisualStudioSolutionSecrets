@@ -223,7 +223,7 @@ namespace VisualStudioSolutionSecrets.Repository
                         {
                             var solutionSettings = new SolutionSettings
                             {
-                                SolutionName = header.solutionFile,
+                                Name = header.solutionFile,
                                 Settings = files
                             };
 
@@ -241,10 +241,10 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        public async Task<ICollection<(string name, string? content)>> PullFilesAsync(string solutionName)
+        public async Task<ICollection<(string name, string? content)>> PullFilesAsync(ISolution solution)
         {
             var files = new List<(string name, string? content)>();
-            var gist = await GetGistAsync(solutionName);
+            var gist = await GetGistAsync(solution);
             if (gist?.files != null)
             {
                 foreach (var file in gist.files)
@@ -269,9 +269,9 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        public async Task<bool> PushFilesAsync(string solutionName, ICollection<(string name, string? content)> files)
+        public async Task<bool> PushFilesAsync(ISolution solution, ICollection<(string name, string? content)> files)
         {
-            var gist = await GetGistAsync(solutionName);
+            var gist = await GetGistAsync(solution);
             if (gist != null)
             {
                 await DeleteGist(gist);
@@ -293,7 +293,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
             var payload = new Gist
             {
-                description = solutionName,
+                description = $"{solution.Name} ({solution.Uid})",
                 @public = false,
                 files = new Dictionary<string, GistFile>()
             };
@@ -326,29 +326,31 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        private async Task<Gist?> GetGistAsync(string solutionName)
+        private async Task<Gist?> GetGistAsync(ISolution solution)
         {
-            if (solutionName != null)
+            string gistDescription = $"{solution.Name} ({solution.Uid})";
+
+            for (int page = 1; page < GIST_PAGES_LIMIT; page++)
             {
-                for (int page = 1; page < GIST_PAGES_LIMIT; page++)
+                var gists = await SendRequest<List<Gist>>(HttpMethod.Get, $"https://api.github.com/gists?per_page={GIST_PER_PAGE}&page={page}");
+                if (gists == null || gists.Count == 0)
                 {
-                    var gists = await SendRequest<List<Gist>>(HttpMethod.Get, $"https://api.github.com/gists?per_page={GIST_PER_PAGE}&page={page}");
-                    if (gists == null || gists.Count == 0)
+                    break;
+                }
+                for (int i = 0; i < gists.Count; i++)
+                {
+                    var gist = gists[i];
+                    if (
+                        gist.description == gistDescription
+                        || gist.description == solution.Name     // For compatibility with version 1.x.x format
+                        )
                     {
-                        break;
+                        return gist;
                     }
-                    for (int i = 0; i < gists.Count; i++)
-                    {
-                        var gist = gists[i];
-                        if (gist.description == solutionName)
-                        {
-                            return gist;
-                        }
-                    }
-                    if (gists.Count < GIST_PER_PAGE)
-                    {
-                        break;
-                    }
+                }
+                if (gists.Count < GIST_PER_PAGE)
+                {
+                    break;
                 }
             }
             return null;

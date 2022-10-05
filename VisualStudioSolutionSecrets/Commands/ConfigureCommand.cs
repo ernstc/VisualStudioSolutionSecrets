@@ -118,10 +118,10 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 if (Reset)
                 {
-                    Configuration.SetCustomSynchronizationSettings(solution.SolutionGuid, null);
+                    Configuration.SetCustomSynchronizationSettings(solution.Uid, null);
                     Configuration.Save();
 
-                    Console.WriteLine($"Removed custom configuration for the solution \"{solution.Name}\" ({solution.SolutionGuid}).\n");
+                    Console.WriteLine($"Removed custom configuration for the solution \"{solution.Name}\" ({solution.Uid}).\n");
                 }
                 else
                 {
@@ -131,19 +131,19 @@ namespace VisualStudioSolutionSecrets.Commands
                     {
                         settings.Repository = RepositoryTypesEnum.GitHub;
                         settings.AzureKeyVaultName = null;
-                        Configuration.SetCustomSynchronizationSettings(solution.SolutionGuid, settings);
+                        Configuration.SetCustomSynchronizationSettings(solution.Uid, settings);
                         Configuration.Save();
 
-                        Console.WriteLine($"Configured GitHub Gist as the repository for the solution \"{solution.Name}\" ({solution.SolutionGuid}).\n");
+                        Console.WriteLine($"Configured GitHub Gist as the repository for the solution \"{solution.Name}\" ({solution.Uid}).\n");
                     }
                     else if (String.Equals(nameof(RepositoryTypesEnum.AzureKV), RepositoryType, StringComparison.OrdinalIgnoreCase))
                     {
                         settings.Repository = RepositoryTypesEnum.AzureKV;
                         settings.AzureKeyVaultName = RepositoryName;
-                        Configuration.SetCustomSynchronizationSettings(solution.SolutionGuid, settings);
+                        Configuration.SetCustomSynchronizationSettings(solution.Uid, settings);
                         Configuration.Save();
 
-                        Console.WriteLine($"Configured Azure Key Vault ({RepositoryName}) as the repository for the solution \"{solution.Name}\" ({solution.SolutionGuid}).\n");
+                        Console.WriteLine($"Configured Azure Key Vault ({RepositoryName}) as the repository for the solution \"{solution.Name}\" ({solution.Uid}).\n");
                     }
                 }
             }

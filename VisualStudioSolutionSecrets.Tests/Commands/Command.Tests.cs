@@ -95,13 +95,13 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 .ReturnsAsync(true);
 
             repository
-                .Setup(o => o.PushFilesAsync(It.IsAny<string>(), It.IsAny<ICollection<(string name, string? content)>>()))
-                .ReturnsAsync((string solutionName, ICollection<(string name, string? content)> collection) =>
+                .Setup(o => o.PushFilesAsync(It.IsAny<ISolution>(), It.IsAny<ICollection<(string name, string? content)>>()))
+                .ReturnsAsync((ISolution _, ICollection<(string name, string? content)> collection) =>
                 {
                     foreach (var item in collection)
                     {
                         string fileName = item.name;
-                        if (!fileName.EndsWith(".json")) fileName = fileName + ".json";
+                        if (!fileName.EndsWith(".json")) fileName += ".json";
                         string filePath = Path.Combine(Constants.RepositoryFilesPath, fileName.Replace('\\', Path.DirectorySeparatorChar));
                         var fileInfo = new FileInfo(filePath);
                         Directory.CreateDirectory(fileInfo.DirectoryName!);
@@ -111,8 +111,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 });
 
             repository
-                .Setup(o => o.PullFilesAsync(It.IsAny<string>()))
-                .ReturnsAsync((string solutionName) =>
+                .Setup(o => o.PullFilesAsync(It.IsAny<ISolution>()))
+                .ReturnsAsync((ISolution solution) =>
                 {
                     List<(string name, string? content)> files = new();
                     string[] filesPath = Directory.GetFiles(Constants.RepositoryFilesPath, "*.json", SearchOption.AllDirectories);
@@ -125,7 +125,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                         {
                             fileName = "secrets";
                             var header = JsonSerializer.Deserialize<HeaderFile>(fileContent);
-                            if (header != null && header.solutionFile != solutionName)
+                            if (header != null && header.solutionFile != solution.Name)
                             {
                                 files.Clear();
                                 break;
@@ -162,7 +162,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                     {
                         new SolutionSettings
                         {
-                            SolutionName = "SolutionSample.sln",
+                            Name = "SolutionSample.sln",
                             Settings = files
                         }
                     };

@@ -93,7 +93,7 @@ namespace VisualStudioSolutionSecrets.Commands
             bool? hasLocalSecrets = null;
             bool? isSynchronized = null;
 
-            SolutionFile solution = new SolutionFile(solutionFile, Context.Current.Cipher);
+            SolutionFile solution = new SolutionFile(solutionFile);
 
             string solutionName = solution.Name;
             if (solutionName.Length > 48) solutionName = solutionName[..45] + "...";
@@ -114,7 +114,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
             try
             {
-                var configFiles = solution.GetProjectsSecretSettingsFiles();
+                var configFiles = solution.GetProjectsSecretFiles();
                 if (configFiles.Count == 0)
                 {
                     // This solution has not projects with secrets.
@@ -133,7 +133,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         await repository.AuthorizeAsync();
                     }
 
-                    var remoteFiles = await repository.PullFilesAsync(solution.Name);
+                    var remoteFiles = await repository.PullFilesAsync(solution);
                     hasRemoteSecrets = remoteFiles.Count > 0;
 
                     if (!hasRemoteSecrets)
@@ -200,7 +200,7 @@ namespace VisualStudioSolutionSecrets.Commands
                                     }
                                     else if (hasLocalSecrets.Value)
                                     {
-                                        var localFile = configFiles.FirstOrDefault(c => c.GroupName == remoteFile.name && c.FileName == item.Key);
+                                        var localFile = configFiles.FirstOrDefault(c => c.ContainerName == remoteFile.name && c.Name == item.Key);
                                         if (localFile != null)
                                         {
                                             if (localFile.Content == null)

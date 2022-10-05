@@ -33,9 +33,9 @@ namespace VisualStudioSolutionSecrets.Commands
             int solutionIndex = 0;
             foreach (var solutionFile in solutionFiles)
             {
-                SolutionFile solution = new SolutionFile(solutionFile, null);
+                SolutionFile solution = new SolutionFile(solutionFile);
 
-                var configFiles = solution.GetProjectsSecretSettingsFiles();
+                var configFiles = solution.GetProjectsSecretFiles();
                 if (configFiles.Count > 0)
                 {
                     solutionIndex++;

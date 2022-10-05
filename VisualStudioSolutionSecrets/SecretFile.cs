@@ -13,17 +13,17 @@ using VisualStudioSolutionSecrets.Encryption;
 namespace VisualStudioSolutionSecrets
 {
 
-    [DebuggerDisplay("Secret = {GroupName}")]
-    public class SecretSettingsFile
+    [DebuggerDisplay("Container = {ContainerName}")]
+    public class SecretFile
     {
 
-        private readonly string _fileName = null!;
-        private readonly string _filePath = null!;
+        private readonly string _name = null!;
+        private readonly string _path = null!;
         private readonly string _containerName = null!;
 
 
-        public string FileName => _fileName;
-        public string FilePath => _filePath;
+        public string Name => _name;
+        public string Path => _path;
         public string ContainerName => _containerName;
 
         public string? Content { get; set; }
@@ -31,17 +31,17 @@ namespace VisualStudioSolutionSecrets
 
 
 
-        public SecretSettingsFile(string filePath, string containerName)
+        public SecretFile(string filePath, string containerName)
         {
             FileInfo fileInfo = new FileInfo(filePath);
 
-            _fileName = fileInfo.Name;
-            _filePath = filePath;
+            _name = fileInfo.Name;
+            _path = filePath;
             _containerName = containerName;
 
             if (fileInfo.Exists)
             {
-                string content = File.ReadAllText(_filePath);
+                string content = File.ReadAllText(_path);
                 if (String.Equals(".json", fileInfo.Extension, StringComparison.OrdinalIgnoreCase))
                 {
                     try

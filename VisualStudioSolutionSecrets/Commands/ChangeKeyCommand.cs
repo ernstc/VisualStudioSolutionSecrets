@@ -54,7 +54,7 @@ namespace VisualStudioSolutionSecrets.Commands
             }
 
             Console.Write("Loading existing secrets... ");
-            var allSecrets = await Context.Current.Repository.PullAllSecretsAsync();
+            ICollection<SolutionSettings> allSecrets = await Context.Current.Repository.PullAllSecretsAsync();
 
             Console.WriteLine("Done");
 
@@ -119,7 +119,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 {
                     successfulSolutionSecrets.Add(new SolutionSettings
                     {
-                        SolutionName = solutionSecrets.SolutionName,
+                        Name = solutionSecrets.Name,
                         Settings = decryptedSettings
                     });
                 }
@@ -142,13 +142,13 @@ namespace VisualStudioSolutionSecrets.Commands
 
             foreach (var solutionSecrets in successfulSolutionSecrets)
             {
-                Console.Write($"- {solutionSecrets.SolutionName}... ");
+                Console.Write($"- {solutionSecrets.Name}... ");
                 
                 var headerFile = new HeaderFile
                 {
                     visualStudioSolutionSecretsVersion = Versions.VersionString!,
                     lastUpload = DateTime.UtcNow,
-                    solutionFile = solutionSecrets.SolutionName
+                    solutionFile = solutionSecrets.Name
                 };
 
                 var files = new List<(string fileName, string? content)>
@@ -199,7 +199,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 if (!failed)
                 {
-                    if (!await Context.Current.Repository.PushFilesAsync(solutionSecrets.SolutionName, files))
+                    if (!await Context.Current.Repository.PushFilesAsync(solutionSecrets, files))
                     {
                         failed = true;
                     }

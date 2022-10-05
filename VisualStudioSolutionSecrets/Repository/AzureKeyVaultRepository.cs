@@ -137,11 +137,12 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public Task<ICollection<SolutionSettings>> PullAllSecretsAsync()
         {
+            // No needs to implement this method.
             return Task.FromResult<ICollection<SolutionSettings>>(new List<SolutionSettings>());
         }
 
 
-        public async Task<ICollection<(string name, string? content)>> PullFilesAsync(string solutionName)
+        public async Task<ICollection<(string name, string? content)>> PullFilesAsync(ISolution solution)
         {
             var files = new List<(string name, string? content)>();
 
@@ -152,8 +153,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
             var asyncPagedResults = _client.GetPropertiesOfSecretsAsync();
 
-            solutionName = solutionName.Substring(0, solutionName.IndexOf('.'));
-            string prefix = $"{SECRET_PREFIX}{solutionName}--";
+            string prefix = $"{SECRET_PREFIX}{solution.Uid}--";
 
             List<string> solutionSecretsName = new List<string>();
 
@@ -189,26 +189,25 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        public async Task<bool> PushFilesAsync(string solutionName, ICollection<(string name, string? content)> files)
+        public async Task<bool> PushFilesAsync(ISolution solution, ICollection<(string name, string? content)> files)
         {
             if (_client == null)
             {
                 return false;
             }
 
-            solutionName = solutionName.Substring(0, solutionName.IndexOf('.'));
-            foreach (var item in files)
+            foreach (var (name, content) in files)
             {
-                string fileName = item.name;
+                string fileName = name;
                 if (fileName.Contains('\\'))
                 {
-                    fileName = fileName.Substring(fileName.IndexOf('\\') + 1);
-                    fileName = fileName.Substring(0, fileName.IndexOf('.'));
+                    fileName = fileName[(fileName.IndexOf('\\') + 1)..];
+                    fileName = fileName[..fileName.IndexOf('.')];
                 }
-                string secretName = $"{SECRET_PREFIX}{solutionName}--{fileName}";
+                string secretName = $"{SECRET_PREFIX}{solution.Uid}--{fileName}";
                 try
                 {
-                    await _client.SetSecretAsync(secretName, item.content);
+                    await _client.SetSecretAsync(secretName, content);
                 }
                 catch (Exception ex)
                 {

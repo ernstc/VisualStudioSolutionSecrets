@@ -10,10 +10,10 @@ using VisualStudioSolutionSecrets.Repository;
 
 namespace VisualStudioSolutionSecrets.Tests
 {
-    public class SecretsSettingsFileTests
+    public class SecretsFileTests
     {
 
-        public SecretsSettingsFileTests()
+        public SecretsFileTests()
         {
             // Mock dependencies
             var repositoryMock = new Mock<IRepository>();
@@ -34,7 +34,7 @@ namespace VisualStudioSolutionSecrets.Tests
 
 
         [Fact]
-        public void SecretSettingsFile_Encryption_Test()
+        public void SecretsFile_Encryption_Test()
         {
             var cipherMock = new Mock<ICipher>();
             cipherMock.Setup(o => o.Encrypt(It.IsAny<string>())).Returns("encrypted");
@@ -43,7 +43,7 @@ namespace VisualStudioSolutionSecrets.Tests
 
             string configFilePath = Path.Combine(Constants.ConfigFilesPath, "configFile.json");
 
-            SecretSettingsFile configFile = new SecretSettingsFile(configFilePath, "uniqueConfigFile.json", Context.Current.Cipher);
+            SecretFile configFile = new SecretFile(configFilePath, "uniqueConfigFile.json");
             bool succes = configFile.Encrypt();
             Assert.True(succes);
             Assert.Equal("encrypted", configFile.Content);
@@ -51,7 +51,7 @@ namespace VisualStudioSolutionSecrets.Tests
 
 
         [Fact]
-        public void SecretSettingsFile_EncryptionFailed_Test()
+        public void SecretsFile_EncryptionFailed_Test()
         {
             var cipherMock = new Mock<ICipher>();
             cipherMock.Setup(o => o.Encrypt(It.IsAny<string>())).Returns((string?)null);
@@ -60,7 +60,7 @@ namespace VisualStudioSolutionSecrets.Tests
 
             string configFilePath = Path.Combine(Constants.ConfigFilesPath, "configFile.json");
 
-            SecretSettingsFile configFile = new SecretSettingsFile(configFilePath, "uniqueConfigFile.json", Context.Current.Cipher);
+            SecretFile configFile = new SecretFile(configFilePath, "uniqueConfigFile.json");
             string? content = configFile.Content;
             bool success = configFile.Encrypt();
             Assert.False(success);
@@ -69,7 +69,7 @@ namespace VisualStudioSolutionSecrets.Tests
 
 
         [Fact]
-        public void SecretSettingsFile_Decryption_Test()
+        public void SecretsFile_Decryption_Test()
         {
             var cipherMock = new Mock<ICipher>();
             cipherMock.Setup(o => o.Decrypt(It.IsAny<string>())).Returns("decrypted");
@@ -78,7 +78,7 @@ namespace VisualStudioSolutionSecrets.Tests
 
             string configFilePath = Path.Combine(Constants.ConfigFilesPath, "configFile.json");
 
-            SecretSettingsFile configFile = new SecretSettingsFile(configFilePath, "uniqueConfigFile.json", Context.Current.Cipher);
+            SecretFile configFile = new SecretFile(configFilePath, "uniqueConfigFile.json");
             bool success = configFile.Decrypt();
             Assert.True(success);
             Assert.Equal("decrypted", configFile.Content);
@@ -86,7 +86,7 @@ namespace VisualStudioSolutionSecrets.Tests
 
 
         [Fact]
-        public void SecretSettingsFile_DecryptionFailed_Test()
+        public void SecretsFile_DecryptionFailed_Test()
         {
             var cipherMock = new Mock<ICipher>();
             cipherMock.Setup(o => o.Encrypt(It.IsAny<string>())).Returns((string?)null);
@@ -95,7 +95,7 @@ namespace VisualStudioSolutionSecrets.Tests
 
             string configFilePath = Path.Combine(Constants.ConfigFilesPath, "configFile.json");
 
-            SecretSettingsFile configFile = new SecretSettingsFile(configFilePath, "uniqueConfigFile.json", Context.Current.Cipher);
+            SecretFile configFile = new SecretFile(configFilePath, "uniqueConfigFile.json");
             string? content = configFile.Content;
             bool success = configFile.Decrypt();
             Assert.False(success);
@@ -104,37 +104,37 @@ namespace VisualStudioSolutionSecrets.Tests
 
 
         [Fact]
-        public void SecretSettingsFile_JsonEmpy_Test()
+        public void SecretsFile_JsonEmpy_Test()
         {
             string filePath = Path.Combine(Constants.SecretFilesPath, "6030c231-73da-4823-adb8-5b919180a7ac", "secrets.json");
-            SecretSettingsFile configFile = new SecretSettingsFile(filePath, "uniqueConfigFile.json", Context.Current.Cipher);
+            SecretFile configFile = new SecretFile(filePath, "uniqueConfigFile.json");
             Assert.Null(configFile.Content);
         }
 
 
         [Fact]
-        public void SecretSettingsFile_XmlEmpy_Test()
+        public void SecretsFile_XmlEmpy_Test()
         {
             string filePath = Path.Combine(Constants.SecretFilesPath, "6030c231-73da-4823-adb8-5b919180a7ac", "secrets.xml");
-            SecretSettingsFile configFile = new SecretSettingsFile(filePath, "uniqueConfigFile.json", Context.Current.Cipher);
+            SecretFile configFile = new SecretFile(filePath, "uniqueConfigFile.json");
             Assert.Null(configFile.Content);
         }
 
 
         [Fact]
-        public void SecretSettingsFile_JsonNotEmpy_Test()
+        public void SecretsFile_JsonNotEmpy_Test()
         {
             string filePath = Path.Combine(Constants.SecretFilesPath, "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99", "secrets.json");
-            SecretSettingsFile configFile = new SecretSettingsFile(filePath, "uniqueConfigFile.json", Context.Current.Cipher);
+            SecretFile configFile = new SecretFile(filePath, "uniqueConfigFile.json");
             Assert.NotNull(configFile.Content);
         }
 
 
         [Fact]
-        public void SecretSettingsFile_XmlNotEmpy_Test()
+        public void SecretsFile_XmlNotEmpy_Test()
         {
             string filePath = Path.Combine(Constants.SecretFilesPath, "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99", "secrets.xml");
-            SecretSettingsFile configFile = new SecretSettingsFile(filePath, "uniqueConfigFile.json", Context.Current.Cipher);
+            SecretFile configFile = new SecretFile(filePath, "uniqueConfigFile.json");
             Assert.NotNull(configFile.Content);
         }
 

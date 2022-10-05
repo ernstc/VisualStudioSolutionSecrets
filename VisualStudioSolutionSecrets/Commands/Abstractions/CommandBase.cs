@@ -54,7 +54,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             catch (Exception ex)
             {
                 Console.WriteLine($"ERR: {ex.Message}\n");
-                return new string[0];
+                return Array.Empty<string>();
             }
         }
 
@@ -72,4 +72,3 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
     }
 }
-

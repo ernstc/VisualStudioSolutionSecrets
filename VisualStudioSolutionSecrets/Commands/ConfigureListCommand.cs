@@ -21,7 +21,7 @@ namespace VisualStudioSolutionSecrets.Commands
         public bool All { get; set; }
 
 
-        public int OnExecute(CommandLineApplication? app = null)
+        public int OnExecute()
         {
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
 
@@ -47,15 +47,11 @@ namespace VisualStudioSolutionSecrets.Commands
         }
 
 
-        private void GetSolutionConfiguration(string solutionFile)
+        private static void GetSolutionConfiguration(string solutionFile)
         {
-            string repoName = String.Empty;
-
             var color = Console.ForegroundColor;
-            ConsoleColor solutionColor = color;
 
-
-            SolutionFile solution = new SolutionFile(solutionFile, Context.Current.Cipher);
+            SolutionFile solution = new SolutionFile(solutionFile);
 
             string solutionName = solution.Name;
             if (solutionName.Length > 48) solutionName = solutionName[..45] + "...";
@@ -63,6 +59,9 @@ namespace VisualStudioSolutionSecrets.Commands
             var synchronizationSettings = solution.CustomSynchronizationSettings;
 
             IRepository? repository = synchronizationSettings != null ? Context.Current.GetRepository(synchronizationSettings) : null;
+
+            string repoName;
+            ConsoleColor solutionColor;
 
             if (repository == null)
             {
@@ -101,7 +100,7 @@ namespace VisualStudioSolutionSecrets.Commands
             Console.WriteLine();
 
             Console.ForegroundColor = color;
-
         }
+
     }
 }

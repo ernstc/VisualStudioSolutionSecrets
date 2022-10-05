@@ -10,7 +10,7 @@ using VisualStudioSolutionSecrets.Encryption;
 
 namespace VisualStudioSolutionSecrets
 {
-    public class SolutionFile
+    public class SolutionFile : ISolution
     {
         private const string ASPNET_MVC5_PROJECT_GUID = "{349c5851-65df-11da-9384-00065b846f21}";
 
@@ -67,9 +67,9 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public ICollection<SecretSettingsFile> GetProjectsSecretSettingsFiles()
+        public ICollection<SecretFile> GetProjectsSecretFiles()
         {
-            Dictionary<string, SecretSettingsFile> configFiles = new Dictionary<string, SecretSettingsFile>();
+            Dictionary<string, SecretFile> configFiles = new Dictionary<string, SecretFile>();
 
             string[] lines = File.ReadAllLines(_filePath);
             foreach (string line in lines)
@@ -112,7 +112,7 @@ namespace VisualStudioSolutionSecrets
                                     string groupName = $"secrets\\{secrects.SecretsId}.json";
                                     if (!configFiles.ContainsKey(secrects.FilePath))
                                     {
-                                        var configFile = new SecretSettingsFile(secrects.FilePath, groupName);
+                                        var configFile = new SecretFile(secrects.FilePath, groupName);
                                         configFile.ProjectFileName = projectFileRelativePath;
                                         configFiles.Add(secrects.FilePath, configFile);
                                     }
@@ -202,10 +202,10 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public void SaveSecretSettingsFile(SecretSettingsFile configFile)
+        public void SaveSecretSettingsFile(SecretFile configFile)
         {
             string secretsId = configFile.ContainerName.Substring(8, 36);
-            string filePath = GetSecretsFilePath(secretsId, configFile.FileName);
+            string filePath = GetSecretsFilePath(secretsId, configFile.Name);
 
             FileInfo fileInfo = new FileInfo(filePath);
             if (fileInfo.Directory != null && !fileInfo.Directory.Exists)

@@ -41,10 +41,10 @@ namespace VisualStudioSolutionSecrets.Commands
 
             foreach (var solutionFile in solutionFiles)
             {
-                SolutionFile solution = new SolutionFile(solutionFile, Context.Current.Cipher);
+                SolutionFile solution = new SolutionFile(solutionFile);
 
-                var configFiles = solution.GetProjectsSecretSettingsFiles();
-                if (configFiles.Count == 0)
+                ICollection<SecretFile> secretFiles = solution.GetProjectsSecretFiles();
+                if (secretFiles.Count == 0)
                 {
                     continue;
                 }
@@ -62,7 +62,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 Console.Write($"Pulling secrets for solution: {solution.Name}... ");
 
-                var repositoryFiles = await repository.PullFilesAsync(solution.Name);
+                var repositoryFiles = await repository.PullFilesAsync(solution);
                 if (repositoryFiles.Count == 0)
                 {
                     Console.WriteLine("Failed, secrets not found");
@@ -104,49 +104,49 @@ namespace VisualStudioSolutionSecrets.Commands
                             continue;
                         }
 
-                        Dictionary<string, string>? secretFiles = null;
+                        Dictionary<string, string>? remoteSecretFiles = null;
                         
                         try
                         {
-                            secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(repositoryFile.content);
+                            remoteSecretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(repositoryFile.content);
                         }
                         catch
                         {
-                            Console.Write($"\n    ERR: File content cannot be read: {repositoryFile.name}");
+                            Console.Write($"\n    ERR: Remote file content cannot be read: {repositoryFile.name}");
                         }
 
-                        if (secretFiles == null)
+                        if (remoteSecretFiles == null)
                         {
                             failed = true;
                             break;
                         }
 
-                        foreach (var secret in secretFiles)
+                        foreach (var remoteSecretFile in remoteSecretFiles)
                         {
-                            string configFileName = secret.Key;
+                            string secretFileName = remoteSecretFile.Key;
 
                             // This check is for compatibility with version 1.0.x
-                            if (configFileName == "content")
+                            if (secretFileName == "content")
                             {
-                                configFileName = "secrets.json";
+                                secretFileName = "secrets.json";
                             }
 
-                            foreach (var configFile in configFiles)
+                            foreach (var localSecretFile in secretFiles)
                             {
-                                if (configFile.GroupName == repositoryFile.name
-                                    && configFile.FileName == configFileName)
+                                if (localSecretFile.ContainerName == repositoryFile.name
+                                    && localSecretFile.Name == secretFileName)
                                 {
-                                    configFile.Content = secret.Value;
+                                    localSecretFile.Content = remoteSecretFile.Value;
 
                                     bool isFileOk = true;
                                     if (repository.EncryptOnClient)
                                     {
-                                        isFileOk = configFile.Decrypt();
+                                        isFileOk = localSecretFile.Decrypt();
                                     }
 
                                     if (isFileOk)
                                     {
-                                        solution.SaveSecretSettingsFile(configFile);
+                                        solution.SaveSecretSettingsFile(localSecretFile);
                                     }
                                     else
                                     {

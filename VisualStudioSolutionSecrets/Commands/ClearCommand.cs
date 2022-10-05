@@ -15,7 +15,7 @@ namespace VisualStudioSolutionSecrets.Commands
     public class ClearCommand : CommandBase
     {
 
-        public int OnExecute(CommandLineApplication? app = null)
+        public int OnExecute()
         {
             string path = Context.Current.IO.GetCurrentDirectory();
 
@@ -29,10 +29,10 @@ namespace VisualStudioSolutionSecrets.Commands
             int solutionIndex = 0;
             foreach (var solutionFile in solutionFiles)
             {
-                SolutionFile solution = new SolutionFile(solutionFile, null);
+                SolutionFile solution = new SolutionFile(solutionFile);
 
-                var configFiles = solution.GetProjectsSecretSettingsFiles();
-                if (configFiles.Count > 0)
+                ICollection<SecretFile> secretFiles = solution.GetProjectsSecretFiles();
+                if (secretFiles.Count > 0)
                 {
                     solutionIndex++;
                     if (solutionIndex > 1)
@@ -48,24 +48,24 @@ namespace VisualStudioSolutionSecrets.Commands
                         Console.WriteLine("\nClearing secrets for projects:");
 
                         int i = 0;
-                        foreach (var configFile in configFiles)
+                        foreach (var secretFile in secretFiles)
                         {
-                            if (File.Exists(configFile.FilePath))
+                            if (File.Exists(secretFile.Path))
                             {
-                                var fileInfo = new FileInfo(configFile.FilePath);
+                                var fileInfo = new FileInfo(secretFile.Path);
                                 if (fileInfo.Extension.Equals(".json", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    File.WriteAllText(configFile.FilePath, "{ }");
+                                    File.WriteAllText(secretFile.Path, "{ }");
                                 }
                                 else if (fileInfo.Extension.Equals(".xml", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    File.WriteAllText(configFile.FilePath, @"<?xml version=""1.0"" encoding=""utf-8""?>
+                                    File.WriteAllText(secretFile.Path, @"<?xml version=""1.0"" encoding=""utf-8""?>
 <root>
   <secrets ver=""1.0"" />
 </root>");
                                 }
                             }
-                            Console.WriteLine($"   {++i,3}) {configFile.ProjectFileName}");
+                            Console.WriteLine($"   {++i,3}) {secretFile.ProjectFileName}");
                         }
                     }
                 }

@@ -41,7 +41,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
             foreach (var solutionFile in solutionFiles)
             {
-                SolutionFile solution = new SolutionFile(solutionFile, Context.Current.Cipher);
+                SolutionFile solution = new SolutionFile(solutionFile);
 
                 var synchronizationSettings = solution.CustomSynchronizationSettings;
 
@@ -58,7 +58,8 @@ namespace VisualStudioSolutionSecrets.Commands
                 {
                     visualStudioSolutionSecretsVersion = Versions.VersionString!,
                     lastUpload = DateTime.UtcNow,
-                    solutionFile = solution.Name
+                    solutionFile = solution.Name,
+                    solutionGuid = solution.Uid
                 };
 
                 var files = new List<(string fileName, string? content)>
@@ -66,8 +67,8 @@ namespace VisualStudioSolutionSecrets.Commands
                     ("secrets", JsonSerializer.Serialize(headerFile))
                 };
 
-                var configFiles = solution.GetProjectsSecretSettingsFiles();
-                if (configFiles.Count == 0)
+                var secretFiles = solution.GetProjectsSecretFiles();
+                if (secretFiles.Count == 0)
                 {
                     continue;
                 }
@@ -78,25 +79,25 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 bool isEmpty = true;
                 bool failed = false;
-                foreach (var configFile in configFiles)
+                foreach (var secretFile in secretFiles)
                 {
-                    if (configFile.Content != null)
+                    if (secretFile.Content != null)
                     {
                         isEmpty = false;
                         bool isFileOk = true;
 
                         if (repository.EncryptOnClient)
                         {
-                            isFileOk = configFile.Encrypt();
+                            isFileOk = secretFile.Encrypt();
                         }
 
                         if (isFileOk)
                         {
-                            if (!secrets.ContainsKey(configFile.GroupName))
+                            if (!secrets.ContainsKey(secretFile.ContainerName))
                             {
-                                secrets.Add(configFile.GroupName, new Dictionary<string, string>());
+                                secrets.Add(secretFile.ContainerName, new Dictionary<string, string>());
                             }
-                            secrets[configFile.GroupName].Add(configFile.FileName, configFile.Content);
+                            secrets[secretFile.ContainerName].Add(secretFile.Name, secretFile.Content);
                         }
                         else
                         {
@@ -114,7 +115,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 if (!isEmpty && !failed)
                 {
-                    if (!await repository.PushFilesAsync(solution.Name, files))
+                    if (!await repository.PushFilesAsync(solution, files))
                     {
                         failed = true;
                     }
