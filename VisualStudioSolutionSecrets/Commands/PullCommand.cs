@@ -75,14 +75,19 @@ namespace VisualStudioSolutionSecrets.Commands
                 {
                     if (file.name == "secrets" && file.content != null)
                     {
-                        header = JsonSerializer.Deserialize<HeaderFile>(file.content);
+                        try
+                        {
+                            header = JsonSerializer.Deserialize<HeaderFile>(file.content);
+                        }
+                        catch
+                        { }
                         break;
                     }
                 }
 
                 if (header == null)
                 {
-                    Console.WriteLine("\n    ERR: Header file not found");
+                    Console.WriteLine("\n    ERR: Header file not found or not valid");
                     continue;
                 }
 

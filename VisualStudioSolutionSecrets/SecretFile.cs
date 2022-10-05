@@ -13,7 +13,7 @@ using VisualStudioSolutionSecrets.Encryption;
 namespace VisualStudioSolutionSecrets
 {
 
-    [DebuggerDisplay("Container = {ContainerName}")]
+    [DebuggerDisplay("Container = {ContainerName}; Name = {Name}")]
     public class SecretFile
     {
 

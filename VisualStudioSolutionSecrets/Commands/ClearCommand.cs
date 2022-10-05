@@ -17,6 +17,8 @@ namespace VisualStudioSolutionSecrets.Commands
 
         public int OnExecute()
         {
+            Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
+           
             string path = Context.Current.IO.GetCurrentDirectory();
 
             string[] solutionFiles = GetSolutionFiles(path, false);
