@@ -98,10 +98,18 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
+        private bool _isReadyCalled;
+        private bool _isReadyResult;
+
         public async Task<bool> IsReady()
         {
-            await CheckAccessToken();
-            return _oauthAccessToken != null;
+            if (!_isReadyCalled)
+            {
+                _isReadyCalled = true;
+                await CheckAccessToken();
+                _isReadyResult = _oauthAccessToken != null;
+            }
+            return _isReadyResult;
         }
 
 
@@ -109,6 +117,8 @@ namespace VisualStudioSolutionSecrets.Repository
         {
             var repositoryData = AppData.LoadData<RepositoryAppData>(APP_DATA_FILENAME);
             _oauthAccessToken = repositoryData?.access_token;
+            _isReadyCalled = false;
+            _isReadyResult = false;
             return Task.CompletedTask;
         }
 
