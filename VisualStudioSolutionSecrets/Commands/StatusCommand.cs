@@ -55,25 +55,121 @@ namespace VisualStudioSolutionSecrets.Commands
 
             if (isCipherReady && isRepositoryReady)
             {
+                Console.WriteLine("Checking solutions synchronization status...");
+
                 string path = EnsureFullyQualifiedPath(Path) ?? Context.Current.IO.GetCurrentDirectory();
                 string[] solutionFiles = GetSolutionFiles(path, All);
                 if (solutionFiles.Length > 0)
                 {
-                    Console.WriteLine("Checking solutions synchronization status...\n");
-
+                    Console.WriteLine();
                     Console.WriteLine("Solution                                          |  Version  |  Last Update          |  Repo     |  Status");
-                    Console.WriteLine("--------------------------------------------------------------------------------------------------------------------------");
+                    Console.WriteLine("----------------------------------------------------------------------------------------------------------------------------------");
 
                     foreach (string solutionFile in solutionFiles)
                     {
                         await GetSolutionStatus(solutionFile);
                     }
-
-                    Console.WriteLine();
                 }
+                else
+                {
+                    Console.WriteLine("... no solution found.");
+                }
+                Console.WriteLine();
             }
 
             return 0;
+        }
+
+
+        [Flags]
+        internal enum SyncStatus
+        {
+            Unknown = 0x0,
+            Synchronized = 0x1,
+            NoSecretsFound = 0x2,
+            HeaderError = 0x4,
+            ContentError = 0x8,
+            LocalOnly = 0x10,
+            CloudOnly = 0x20,
+            NotSynchronized = 0x40,
+            InvalidKey = 0x80,
+            CannotLoadStatus = 0x200,
+        }
+
+
+        /*
+       *  
+       *  Possible SyncStatus values and description:
+       *  
+       *  Synchronized                  Local and remote settings are synchronized
+       *  NoSecretsFound                No secrets found in the solution
+       *  HeaderError                   Found errors in the header file
+       *  ContentError                  Remote file is empty or it is not in the corret format.
+       *  LocalOnly                     Settings found only on the local machine.
+       *  CloudOnly                     Settings found only on the remote repository.
+       *  CloudOnly | Invalid Key       Settings found only on the remote repository, they cannot be read decrypted.
+       *  NotSynchronized               Local and remote settings are not synchronized.
+       *  InvalidKey                    Local settings cannot be compared with remote settings because they cannot be decrypted.
+       *  CannotLoadStatus              It is not possible to determine the synchronization status.
+       * 
+       */
+
+        private void WriteStatus(SyncStatus status, ConsoleColor defaultColor)
+        {
+            if ((status & SyncStatus.Synchronized) == SyncStatus.Synchronized)
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("Synchronized");
+            }
+            else if ((status & SyncStatus.NoSecretsFound) == SyncStatus.NoSecretsFound)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.Write("No secrets found");
+            }
+            else if ((status & SyncStatus.HeaderError) == SyncStatus.HeaderError)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("ERROR: Header");
+            }
+            else if ((status & SyncStatus.ContentError) == SyncStatus.ContentError)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("ERROR: Content");
+            }
+            else if ((status & SyncStatus.LocalOnly) == SyncStatus.LocalOnly)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                Console.Write("Local only");
+            }
+            else if ((status & SyncStatus.CloudOnly) == SyncStatus.CloudOnly)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                Console.Write("Cloud only");
+
+                if ((status & SyncStatus.InvalidKey) == SyncStatus.InvalidKey)
+                {
+                    Console.ForegroundColor = defaultColor;
+                    Console.Write(" / ");
+
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("Invalid key");
+                }
+            }
+            else if ((status & SyncStatus.NotSynchronized) == SyncStatus.NotSynchronized)
+            {
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.Write("Not synchronized");
+            }
+            else if ((status & SyncStatus.InvalidKey) == SyncStatus.InvalidKey)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("Invalid key");
+            }
+            else if ((status & SyncStatus.CannotLoadStatus) == SyncStatus.CannotLoadStatus)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("ERROR: Cannot load status");
+            }
         }
 
 
@@ -81,17 +177,16 @@ namespace VisualStudioSolutionSecrets.Commands
         {
             string version = String.Empty;
             string lastUpdate = String.Empty;
-            string repoName = String.Empty;
-            string status = String.Empty;
+            string repositoryType = String.Empty;
+            SyncStatus status = SyncStatus.Unknown;
+
+            bool foundContentError = false;
 
             var color = Console.ForegroundColor;
-
-            ConsoleColor statusColor = color;
             ConsoleColor solutionColor = color;
 
             bool hasRemoteSecrets = false;
             bool? hasLocalSecrets = null;
-            bool? isSynchronized = null;
 
             SolutionFile solution = new SolutionFile(solutionFile);
 
@@ -104,13 +199,15 @@ namespace VisualStudioSolutionSecrets.Commands
 
             if (repository == null)
             {
-                repoName = "";
+                repositoryType = "";
                 repository = Context.Current.Repository;
             }
             else
             {
-                repoName = repository.RepositoryType;
+                repositoryType = repository.RepositoryType;
             }
+
+            bool tryToDecrypt = repository.EncryptOnClient;
 
             try
             {
@@ -118,14 +215,12 @@ namespace VisualStudioSolutionSecrets.Commands
                 if (configFiles.Count == 0)
                 {
                     // This solution has not projects with secrets.
-                    status = "No secrests found";
-                    statusColor = ConsoleColor.DarkGray;
+                    status = SyncStatus.NoSecretsFound;
                     solutionColor = ConsoleColor.DarkGray;
                 }
                 else
                 {
                     hasLocalSecrets = configFiles.Any(c => c.Content != null);
-                    isSynchronized = true;
 
                     // Ensure authorization on the selected repository
                     if (!await repository.IsReady())
@@ -140,103 +235,139 @@ namespace VisualStudioSolutionSecrets.Commands
                     {
                         if (hasLocalSecrets.Value)
                         {
-                            status = "Local only";
-                            statusColor = ConsoleColor.DarkYellow;
+                            status = SyncStatus.LocalOnly;
                             solutionColor = ConsoleColor.White;
                         }
                         else
                         {
-                            status = "No secrests found";
-                            statusColor = ConsoleColor.DarkGray;
+                            status = SyncStatus.NoSecretsFound;
                             solutionColor = ConsoleColor.DarkGray;
                         }
                     }
                     else
                     {
-                        repoName = repository.RepositoryType;
+                        if (status == SyncStatus.Unknown && hasLocalSecrets != true)
+                        {
+                            status = SyncStatus.CloudOnly;
+                        }
 
-                        status = "OK";
-                        statusColor = ConsoleColor.Cyan;
                         solutionColor = ConsoleColor.White;
+                        repositoryType = repository.RepositoryType;
 
                         HeaderFile? header = null;
-
-                        foreach (var remoteFile in remoteFiles)
+                        try
                         {
-                            if (remoteFile.name == "secrets" && remoteFile.content != null)
+                            string? headerContent = remoteFiles.First(f => f.name == "secrets").content;
+                            if (headerContent != null)
                             {
-                                header = JsonSerializer.Deserialize<HeaderFile>(remoteFile.content);
-                                continue;
+                                header = JsonSerializer.Deserialize<HeaderFile>(headerContent);
                             }
+                        }
+                        catch
+                        { }
 
-                            if (remoteFile.content == null)
+                        if (header == null)
+                        {
+                            status = SyncStatus.HeaderError;
+                            foundContentError = true;
+                        }
+                        else
+                        {
+                            foreach (var remoteFile in remoteFiles)
                             {
-                                status = "ERROR";
-                                statusColor = ConsoleColor.Red;
-                                break;
-                            }
-
-                            bool isFileOk = true;
-                            var contents = JsonSerializer.Deserialize<Dictionary<string, string>>(remoteFile.content);
-                            if (contents == null)
-                            {
-                                isFileOk = false;
-                            }
-                            else
-                            {
-                                foreach (var item in contents)
+                                if (remoteFile.name == "secrets")
                                 {
-                                    string? content = item.Value;
+                                    continue;
+                                }
 
-                                    if (repository?.EncryptOnClient == true)
-                                    {
-                                        content = Context.Current.Cipher.Decrypt(content);
-                                    }
+                                if (remoteFile.content == null)
+                                {
+                                    status = SyncStatus.ContentError;
+                                    foundContentError = true;
+                                    break;
+                                }
 
-                                    if (content == null)
+                                Dictionary<string, string>? contents = null;
+                                try
+                                {
+                                    contents = JsonSerializer.Deserialize<Dictionary<string, string>>(remoteFile.content);
+                                }
+                                catch
+                                { }
+
+                                if (contents == null)
+                                {
+                                    status = SyncStatus.ContentError;
+                                    foundContentError = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    foreach (var item in contents)
                                     {
-                                        isFileOk = false;
-                                        break;
-                                    }
-                                    else if (hasLocalSecrets.Value)
-                                    {
-                                        var localFile = configFiles.FirstOrDefault(c => c.ContainerName == remoteFile.name && c.Name == item.Key);
-                                        if (localFile != null)
+                                        string? content = item.Value;
+
+                                        if (content == null)
                                         {
-                                            if (localFile.Content == null)
+                                            status = SyncStatus.ContentError;
+                                            foundContentError = true;
+                                            break;
+                                        }
+
+                                        if (tryToDecrypt)
+                                        {
+                                            content = Context.Current.Cipher.Decrypt(content);
+                                            if (content == null)
                                             {
-                                                isSynchronized = false;
+                                                status |= SyncStatus.InvalidKey;
+                                                foundContentError = true;
+                                                break;
                                             }
-                                            else
+                                        }
+
+                                        if (hasLocalSecrets.Value)
+                                        {
+                                            var localFile = configFiles.FirstOrDefault(c => c.ContainerName == remoteFile.name && c.Name == item.Key);
+                                            if (localFile != null)
                                             {
-                                                if (localFile.Content != content)
+                                                if (localFile.Content == null)
                                                 {
-                                                    isSynchronized = false;
+                                                    status = SyncStatus.NotSynchronized;
+                                                }
+                                                else
+                                                {
+                                                    if (localFile.Content != content)
+                                                    {
+                                                        status = SyncStatus.NotSynchronized;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
+
+                                    if (foundContentError)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
 
-                            if (!isFileOk)
-                            {
-                                status = "INVALID KEY!";
-                                statusColor = ConsoleColor.Red;
-
-                                break;
-                            }
+                            version = header.visualStudioSolutionSecretsVersion ?? String.Empty;
+                            lastUpdate = header.lastUpload.ToString("yyyy-MM-dd HH:mm:ss") ?? String.Empty;
                         }
-
-                        version = header?.visualStudioSolutionSecretsVersion ?? String.Empty;
-                        lastUpdate = header?.lastUpload.ToString("yyyy-MM-dd HH:mm:ss") ?? String.Empty;
                     }
                 }
             }
             catch
             {
-                status = "ERROR loading status";
-                statusColor = ConsoleColor.Red;
+                status = SyncStatus.CannotLoadStatus;
+                foundContentError = true;
+            }
+
+            if (status == SyncStatus.Unknown)
+            {
+                status = SyncStatus.Synchronized;
+                solutionColor = ConsoleColor.White;
             }
 
             Console.ForegroundColor = solutionColor;
@@ -258,33 +389,12 @@ namespace VisualStudioSolutionSecrets.Commands
             Console.Write("  |  ");
 
             Console.ForegroundColor = solutionColor;
-            Console.Write($"{repoName,-7}");
+            Console.Write($"{repositoryType,-7}");
 
             Console.ForegroundColor = color;
             Console.Write("  |  ");
 
-            Console.ForegroundColor = statusColor;
-            Console.Write($"{status}");
-
-            if (hasRemoteSecrets)
-            {
-                if (hasLocalSecrets == false)
-                {
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                    Console.Write(" / ");
-
-                    Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    Console.Write("Cloud only");
-                }
-                else if (isSynchronized == false)
-                {
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                    Console.Write(" / ");
-
-                    Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    Console.Write("Not synchronized");
-                }
-            }
+            WriteStatus(status, color);
 
             Console.WriteLine();
 
