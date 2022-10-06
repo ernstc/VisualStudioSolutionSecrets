@@ -11,7 +11,7 @@ using VisualStudioSolutionSecrets.Commands.Abstractions;
 namespace VisualStudioSolutionSecrets.Commands
 {
 
-    [Command(Description = "Delete all the solution secrets.")]
+    [Command(Description = "Delete all the solution secrets from the local machine.")]
     public class ClearCommand : CommandBase
     {
 

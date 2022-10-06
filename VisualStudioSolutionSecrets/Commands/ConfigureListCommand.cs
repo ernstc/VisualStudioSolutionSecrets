@@ -8,8 +8,10 @@ using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Repository;
 
+
 namespace VisualStudioSolutionSecrets.Commands
 {
+
     [Command("list", Description = "List the configuration for solutions.")]
     public class ConfigureListCommand : CommandBase
     {
