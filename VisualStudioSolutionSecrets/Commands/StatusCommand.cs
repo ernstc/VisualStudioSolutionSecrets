@@ -13,7 +13,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
     [Command(Description = "Shows the status for the tool and the solutions.")]
     internal class StatusCommand : CommandBase
-	{
+    {
 
         [Option("--path", Description = "Path for searching solutions or single solution file path.")]
         public string? Path { get; set; }
@@ -185,9 +185,6 @@ namespace VisualStudioSolutionSecrets.Commands
             var color = Console.ForegroundColor;
             ConsoleColor solutionColor = color;
 
-            bool hasRemoteSecrets = false;
-            bool? hasLocalSecrets = null;
-
             SolutionFile solution = new SolutionFile(solutionFile);
 
             string solutionName = solution.Name;
@@ -196,23 +193,24 @@ namespace VisualStudioSolutionSecrets.Commands
             var synchronizationSettings = solution.CustomSynchronizationSettings;
 
             IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
-
-            if (repository == null)
-            {
-                repositoryType = "";
-                repository = Context.Current.Repository;
-            }
-            else
-            {
-                repositoryType = repository.RepositoryType;
-            }
+            repository ??= Context.Current.Repository;
 
             bool tryToDecrypt = repository.EncryptOnClient;
 
             try
             {
-                var configFiles = solution.GetProjectsSecretFiles();
-                if (configFiles.Count == 0)
+                // Ensure authorization on the selected repository
+                if (!await repository.IsReady())
+                {
+                    await repository.AuthorizeAsync();
+                }
+
+                var remoteFiles = await repository.PullFilesAsync(solution);
+
+                bool hasRemoteSecrets = remoteFiles.Count > 0;
+
+                var configFiles = solution.GetProjectsSecretFiles().Where(c => c.Content != null).ToList();
+                if (configFiles.Count == 0 && !hasRemoteSecrets)
                 {
                     // This solution has not projects with secrets.
                     status = SyncStatus.NoSecretsFound;
@@ -220,39 +218,22 @@ namespace VisualStudioSolutionSecrets.Commands
                 }
                 else
                 {
-                    hasLocalSecrets = configFiles.Any(c => c.Content != null);
+                    solutionColor = ConsoleColor.White;
 
-                    // Ensure authorization on the selected repository
-                    if (!await repository.IsReady())
+                    if (configFiles.Count > 0 && !hasRemoteSecrets)
                     {
-                        await repository.AuthorizeAsync();
-                    }
-
-                    var remoteFiles = await repository.PullFilesAsync(solution);
-                    hasRemoteSecrets = remoteFiles.Count > 0;
-
-                    if (!hasRemoteSecrets)
-                    {
-                        if (hasLocalSecrets.Value)
-                        {
-                            status = SyncStatus.LocalOnly;
-                            solutionColor = ConsoleColor.White;
-                        }
-                        else
-                        {
-                            status = SyncStatus.NoSecretsFound;
-                            solutionColor = ConsoleColor.DarkGray;
-                        }
+                        status = SyncStatus.LocalOnly;
                     }
                     else
                     {
-                        if (status == SyncStatus.Unknown && hasLocalSecrets != true)
+                        // Here hasRemoteSecrets is true
+                        repositoryType = repository.RepositoryType;
+
+                        if (configFiles.Count == 0)
                         {
                             status = SyncStatus.CloudOnly;
+                            solutionColor = ConsoleColor.White;
                         }
-
-                        solutionColor = ConsoleColor.White;
-                        repositoryType = repository.RepositoryType;
 
                         HeaderFile? header = null;
                         try
@@ -341,7 +322,7 @@ namespace VisualStudioSolutionSecrets.Commands
                                 }
                             }
 
-                            if (!foundContentError && hasLocalSecrets.Value)
+                            if (!foundContentError && status == SyncStatus.Unknown)
                             {
                                 // Check if the local and remote settings are synchronized
                                 if (configFiles.Count != remoteSecretFiles.Count)
@@ -374,7 +355,7 @@ namespace VisualStudioSolutionSecrets.Commands
                             }
 
                             version = header.visualStudioSolutionSecretsVersion ?? String.Empty;
-                            lastUpdate = header.lastUpload.ToString("yyyy-MM-dd HH:mm:ss") ?? String.Empty;
+                            lastUpdate = header.lastUpload.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? String.Empty;
                         }
                     }
                 }
