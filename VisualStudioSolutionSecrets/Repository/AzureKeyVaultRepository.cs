@@ -28,7 +28,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public bool EncryptOnClient => false;
         public string RepositoryType => "AzureKV";
-        
+
         private string? _repositoryName;
 
         public string? RepositoryName
@@ -151,13 +151,10 @@ namespace VisualStudioSolutionSecrets.Repository
                 return files;
             }
 
-            var asyncPagedResults = _client.GetPropertiesOfSecretsAsync();
-
             string prefix = $"{SECRET_PREFIX}{solution.Uid}--";
 
             List<string> solutionSecretsName = new List<string>();
-
-            await foreach (var secretProperties in asyncPagedResults)
+            await foreach (var secretProperties in _client.GetPropertiesOfSecretsAsync())
             {
                 if (secretProperties.Enabled == true && secretProperties.Name.StartsWith(prefix))
                 {
@@ -205,14 +202,71 @@ namespace VisualStudioSolutionSecrets.Repository
                     fileName = fileName[..fileName.IndexOf('.')];
                 }
                 string secretName = $"{SECRET_PREFIX}{solution.Uid}--{fileName}";
-                try
+
+                int retry = 1;
+                bool checkSecretEquality = true;
+                while (true)
                 {
-                    await _client.SetSecretAsync(secretName, content);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"ERR: {ex.Message}");
-                    return false;
+                    if (checkSecretEquality)
+                    {
+                        try
+                        {
+                            // Read the current secret
+                            var response = await _client.GetSecretAsync(secretName);
+                            var secret = response?.Value;
+                            if (secret?.Value == content)
+                            {
+                                break;
+                            }
+                        }
+                        catch
+                        { }
+                    }
+
+                    try
+                    {
+                        await _client.SetSecretAsync(secretName, content);
+                    }
+                    catch (Azure.RequestFailedException aex)
+                    {
+                        if (aex.Status == 409)
+                        {
+                            // Try to purge eventually deleted secret
+                            try
+                            {
+                                await _client.PurgeDeletedSecretAsync(secretName);
+                            }
+                            catch (Azure.RequestFailedException aex2)
+                            {
+                                if (aex2.Status == 403)
+                                {
+                                    Console.WriteLine($"\nERR: Cannot proceed with the operation.\n     Check if there is a secret named \"{secretName}\" that is deleted, but recoverable. In that case purge the secret or recover it before pushing local secrets.");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"\nERR: Cannot proceed with the operation.\n     There is a conflict with the secret named \"{secretName}\" that cannot be resolved. Contact the administrator of the Key Vault.");
+                                }
+                                return false;
+                            }
+                            catch (Exception)
+                            {
+                                return false;
+                            }
+
+                            if (retry-- > 0)
+                            {
+                                checkSecretEquality = false;
+                                continue;
+                            }
+                        }
+                        return false;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"ERR: {ex.Message}");
+                        return false;
+                    }
+                    break;
                 }
             }
 
