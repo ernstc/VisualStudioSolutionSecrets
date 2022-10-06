@@ -157,7 +157,7 @@ namespace VisualStudioSolutionSecrets.Commands
             }
             else if ((status & SyncStatus.NotSynchronized) == SyncStatus.NotSynchronized)
             {
-                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.ForegroundColor = ConsoleColor.DarkCyan;
                 Console.Write("Not synchronized");
             }
             else if ((status & SyncStatus.InvalidKey) == SyncStatus.InvalidKey)
@@ -273,6 +273,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         }
                         else
                         {
+                            var remoteSecretFiles = new List<SecretFile>();
                             foreach (var remoteFile in remoteFiles)
                             {
                                 if (remoteFile.name == "secrets")
@@ -325,29 +326,49 @@ namespace VisualStudioSolutionSecrets.Commands
                                             }
                                         }
 
-                                        if (hasLocalSecrets.Value)
+                                        remoteSecretFiles.Add(new SecretFile
                                         {
-                                            var localFile = configFiles.FirstOrDefault(c => c.ContainerName == remoteFile.name && c.Name == item.Key);
-                                            if (localFile != null)
-                                            {
-                                                if (localFile.Content == null)
-                                                {
-                                                    status = SyncStatus.NotSynchronized;
-                                                }
-                                                else
-                                                {
-                                                    if (localFile.Content != content)
-                                                    {
-                                                        status = SyncStatus.NotSynchronized;
-                                                    }
-                                                }
-                                            }
-                                        }
+                                            Name = item.Key,
+                                            ContainerName = remoteFile.name,
+                                            Content = content
+                                        });
                                     }
 
                                     if (foundContentError)
                                     {
                                         break;
+                                    }
+                                }
+                            }
+
+                            if (!foundContentError && hasLocalSecrets.Value)
+                            {
+                                // Check if the local and remote settings are synchronized
+                                if (configFiles.Count != remoteSecretFiles.Count)
+                                {
+                                    status = SyncStatus.NotSynchronized;
+                                }
+                                else
+                                {
+                                    foreach (var remoteFile in remoteSecretFiles)
+                                    {
+                                        var localFile = configFiles.FirstOrDefault(c => c.ContainerName == remoteFile.ContainerName && c.Name == remoteFile.Name);
+                                        if (localFile != null)
+                                        {
+                                            if (localFile.Content == null)
+                                            {
+                                                status = SyncStatus.NotSynchronized;
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                if (localFile.Content != remoteFile.Content)
+                                                {
+                                                    status = SyncStatus.NotSynchronized;
+                                                    break;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }

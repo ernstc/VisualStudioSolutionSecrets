@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using VisualStudioSolutionSecrets.Encryption;
 
 
 namespace VisualStudioSolutionSecrets

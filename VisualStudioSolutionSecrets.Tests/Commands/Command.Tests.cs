@@ -33,18 +33,30 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             // Suppress output on standart out
             Console.SetOut(new StringWriter(_consoleOutput));
 
-            // Mock dependencies
-            IFileSystem fileSystem = MockFileSystem();
-            IRepository repository = MockRepository();
+            // Temp folder setup
+            var tempFolder = new DirectoryInfo(Path.Combine(Constants.TempFolderPath));
+            if (tempFolder.Exists)
+            {
+                tempFolder.Delete(true);
+            }
+            tempFolder.Create();
 
-            // Configure mocked dependencies
-            Context.Current.AddService<IFileSystem>(fileSystem);
-            Context.Current.AddService<IRepository>(repository);
-            Context.Current.AddService<IRepository>(repository, nameof(RepositoryTypesEnum.AzureKV));
-            Context.Current.AddService<IRepository>(repository, nameof(RepositoryTypesEnum.GitHub));
-            Context.Current.AddService<ICipher>(new Cipher());
+            // Mock dependencies
+            MockConsoleInput();
+            MockFileSystem();
+            MockRepository();
 
             Configuration.Refresh();
+        }
+
+
+        protected void DisposeTempFolder()
+        {
+            var tempFolder = new DirectoryInfo(Path.Combine(Constants.TempFolderPath));
+            if (tempFolder.Exists)
+            {
+                tempFolder.Delete(true);
+            }
         }
 
 
@@ -58,47 +70,65 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         }
 
 
-        private IFileSystem MockFileSystem()
+        protected void MockConsoleInput()
+        {
+            var consoleInputMock = new Mock<IConsoleInput>();
+
+            consoleInputMock
+                .Setup(o => o.ReadKey())
+                .Returns(new ConsoleKeyInfo('y', ConsoleKey.Y, false, false, false));
+
+            // Configure mocked dependencies
+            Context.Current.AddService<IConsoleInput>(consoleInputMock.Object);
+        }
+
+
+        protected void MockFileSystem(
+            string? applicationDataFolder = null,
+            string? secretsFolder = null,
+            string? solutionFilesFolder = null
+            )
         {
             var fileSystemMock = new Mock<DefaultFileSystem>();
 
             fileSystemMock
                 .Setup(o => o.GetApplicationDataFolderPath())
-                .Returns(Constants.ConfigFilesPath);
+                .Returns(applicationDataFolder ?? Constants.ConfigFilesPath);
 
             fileSystemMock
                 .Setup(o => o.GetSecretsFolderPath())
-                .Returns(Constants.SecretFilesPath);
+                .Returns(secretsFolder ?? Constants.SecretFilesPath);
 
             fileSystemMock
                 .Setup(o => o.GetCurrentDirectory())
-                .Returns(Constants.SolutionFilesPath);
+                .Returns(solutionFilesFolder ?? Constants.SolutionFilesPath);
 
-            return fileSystemMock.Object;
+            // Configure mocked dependencies
+            Context.Current.AddService<IFileSystem>(fileSystemMock.Object);
         }
 
 
-        private IRepository MockRepository()
+        private void MockRepository()
         {
-            var repository = new Mock<IRepository>();
+            var repositoryMock = new Mock<IRepository>();
 
-            repository
+            repositoryMock
                 .Setup(o => o.EncryptOnClient)
                 .Returns(() => UseRepositoryEncryption);
 
-            repository
+            repositoryMock
                 .Setup(o => o.RepositoryType)
                 .Returns("Mock");
 
-            repository
+            repositoryMock
                .Setup(o => o.RepositoryName)
                .Returns("Name");
 
-            repository
+            repositoryMock
                 .Setup(o => o.IsReady())
                 .ReturnsAsync(true);
 
-            repository
+            repositoryMock
                 .Setup(o => o.PushFilesAsync(It.IsAny<ISolution>(), It.IsAny<ICollection<(string name, string? content)>>()))
                 .ReturnsAsync((ISolution _, ICollection<(string name, string? content)> collection) =>
                 {
@@ -114,7 +144,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                     return true;
                 });
 
-            repository
+            repositoryMock
                 .Setup(o => o.PullFilesAsync(It.IsAny<ISolution>()))
                 .ReturnsAsync((ISolution solution) =>
                 {
@@ -152,7 +182,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                     return files;
                 });
 
-            repository
+            repositoryMock
                 .Setup(o => o.PullAllSecretsAsync())
                 .ReturnsAsync(() =>
                 {
@@ -169,7 +199,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                         }
                     }
 
-                    List<SolutionSettings> secrets = new List<SolutionSettings>
+                    return new List<SolutionSettings>
                     {
                         new SolutionSettings
                         {
@@ -177,11 +207,14 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                             Settings = files
                         }
                     };
-
-                    return secrets;
                 });
 
-            return repository.Object;
+            // Configure mocked dependencies
+            var repository = repositoryMock.Object;
+            Context.Current.AddService<IRepository>(repository);
+            Context.Current.AddService<IRepository>(repository, nameof(RepositoryTypesEnum.AzureKV));
+            Context.Current.AddService<IRepository>(repository, nameof(RepositoryTypesEnum.GitHub));
+            Context.Current.AddService<ICipher>(new Cipher());
         }
 
 

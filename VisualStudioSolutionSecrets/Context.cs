@@ -13,6 +13,7 @@ namespace VisualStudioSolutionSecrets
 
     public class Context
 	{
+        public IConsoleInput Input => GetService<IConsoleInput>()!;
         public IFileSystem IO => GetService<IFileSystem>()!;
         public ICipher Cipher => GetService<ICipher>()!;
         public IRepository Repository => GetService<IRepository>()!;
@@ -70,11 +71,13 @@ namespace VisualStudioSolutionSecrets
         }
 
 
+        private static IConsoleInput defaultConsoleInput = new ConsoleInput();
         private static IFileSystem defaultIO = new DefaultFileSystem();
 
         public void ResetToDefault()
         {
             _services.Clear();
+            AddService(defaultConsoleInput);
             AddService(defaultIO);
         }
 

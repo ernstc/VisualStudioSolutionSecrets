@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using VisualStudioSolutionSecrets.IO;
 
 namespace VisualStudioSolutionSecrets.Commands.Abstractions
 {
@@ -24,7 +25,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             while (true)
             {
                 Console.Write("    Do you want to continue? [Y] Yes, [N] No : ");
-                var key = Console.ReadKey();
+                var key = Context.Current.Input.ReadKey();
                 Console.WriteLine();
                 if (key.Key == ConsoleKey.Y)
                 {

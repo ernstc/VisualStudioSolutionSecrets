@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Moq;
 using VisualStudioSolutionSecrets.Commands;
@@ -22,6 +23,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
         public void Dispose()
         {
+            DisposeTempFolder();
             DisposeCipherFiles();
             foreach (var directory in Directory.GetDirectories(Constants.RepositoryFilesPath))
             {
@@ -316,17 +318,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             .OnExecute();
 
             // Fake file system for hiding local settings
-            var fileSystemMock = new Mock<DefaultFileSystem>();
-            fileSystemMock
-                .Setup(o => o.GetApplicationDataFolderPath())
-                .Returns(Constants.ConfigFilesPath);
-            fileSystemMock
-                .Setup(o => o.GetSecretsFolderPath())
-                .Returns(Constants.ConfigFilesPath);
-            fileSystemMock
-                .Setup(o => o.GetCurrentDirectory())
-                .Returns(Constants.SolutionFilesPath);
-            Context.Current.AddService<IFileSystem>(fileSystemMock.Object);
+            MockFileSystem(secretsFolder: Constants.TempFolderPath);
 
             ClearOutput();
 
@@ -356,17 +348,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             .OnExecute();
 
             // Fake file system for hiding local settings
-            var fileSystemMock = new Mock<DefaultFileSystem>();
-            fileSystemMock
-                .Setup(o => o.GetApplicationDataFolderPath())
-                .Returns(Constants.ConfigFilesPath);
-            fileSystemMock
-                .Setup(o => o.GetSecretsFolderPath())
-                .Returns(Constants.ConfigFilesPath);
-            fileSystemMock
-                .Setup(o => o.GetCurrentDirectory())
-                .Returns(Constants.SolutionFilesPath);
-            Context.Current.AddService<IFileSystem>(fileSystemMock.Object);
+            MockFileSystem(secretsFolder: Constants.TempFolderPath);
 
             // Invalidate the key
             await new InitCommand
@@ -384,40 +366,6 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             .OnExecute();
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Cloud only / Invalid key"));
-        }
-
-
-        [Fact]
-        public async Task Status_NotSynchronized_Test()
-        {
-            UseRepositoryEncryption = false;
-
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
-
-            await new PushCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
-
-            string filePath = Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json");
-            string fileContent = File.ReadAllText(filePath);
-            fileContent = fileContent.Replace("secret value", "secret value updated");
-            File.WriteAllText(filePath, fileContent);
-
-            ClearOutput();
-
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
-
-            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
         }
 
 
@@ -451,6 +399,144 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             .OnExecute();
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Invalid key"));
+        }
+
+
+        [Fact]
+        public async Task Status_NotSynchronized_1_Test()
+        {
+            UseRepositoryEncryption = false;
+
+            await new InitCommand
+            {
+                Passphrase = Constants.PASSPHRASE
+            }
+            .OnExecute();
+
+            await new PushCommand
+            {
+                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+            }
+            .OnExecute();
+
+            string filePath = Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json");
+            string fileContent = File.ReadAllText(filePath);
+            fileContent = fileContent.Replace("secret value", "secret value updated");
+            File.WriteAllText(filePath, fileContent);
+
+            ClearOutput();
+
+            await new StatusCommand
+            {
+                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+            }
+            .OnExecute();
+
+            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
+        }
+
+
+        [Fact]
+        public async Task Status_NotSynchronized_2_Test()
+        {
+            UseRepositoryEncryption = false;
+
+            await new InitCommand
+            {
+                Passphrase = Constants.PASSPHRASE
+            }
+            .OnExecute();
+
+            await new PushCommand
+            {
+                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+            }
+            .OnExecute();
+
+            string filePath = Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json");
+            string fileContent = File.ReadAllText(filePath);
+            var settings = JsonSerializer.Deserialize<Dictionary<string, string>>(fileContent);
+            settings?.Remove("secrets.xml");
+            fileContent = JsonSerializer.Serialize(settings);
+            File.WriteAllText(filePath, fileContent);
+
+            ClearOutput();
+
+            await new StatusCommand
+            {
+                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+            }
+            .OnExecute();
+
+            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
+        }
+
+
+        [Fact]
+        public async Task Status_NotSynchronized_3_Test()
+        {
+            await new InitCommand
+            {
+                Passphrase = Constants.PASSPHRASE
+            }
+            .OnExecute();
+
+            await new PushCommand
+            {
+                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+            }
+            .OnExecute();
+
+            string filePath = Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json");
+            File.Delete(filePath);
+
+            ClearOutput();
+
+            await new StatusCommand
+            {
+                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+            }
+            .OnExecute();
+
+            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
+        }
+
+
+        [Fact]
+        public async Task Status_NotSynchronized_4_Test()
+        {
+            await new InitCommand
+            {
+                Passphrase = Constants.PASSPHRASE
+            }
+            .OnExecute();
+
+            await new PushCommand
+            {
+                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+            }
+            .OnExecute();
+
+            const string secretId = "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99";
+            string filePath = Path.Combine(secretId, "secrets.json");
+            Directory.CreateDirectory(Path.Combine(Constants.TempFolderPath, secretId));
+            File.WriteAllText(
+                Path.Combine(Constants.TempFolderPath, filePath),
+                File.ReadAllText(Path.Combine(Constants.SecretFilesPath, filePath))
+                );
+
+            // Fake file system for hiding local settings
+            MockFileSystem(secretsFolder: Constants.TempFolderPath);
+
+            ClearOutput();
+
+            await new StatusCommand
+            {
+                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+            }
+            .OnExecute();
+
+            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
         }
 
     }

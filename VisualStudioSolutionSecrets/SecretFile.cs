@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using VisualStudioSolutionSecrets.Encryption;
 
 
 namespace VisualStudioSolutionSecrets
@@ -16,28 +15,28 @@ namespace VisualStudioSolutionSecrets
     [DebuggerDisplay("Container = {ContainerName}; Name = {Name}")]
     public class SecretFile
     {
-
-        private readonly string _name = null!;
         private readonly string _path = null!;
-        private readonly string _containerName = null!;
 
-
-        public string Name => _name;
         public string Path => _path;
-        public string ContainerName => _containerName;
-
+        public string Name { get; set; } = null!;
+        public string ContainerName { get; set; } = null!;
         public string? Content { get; set; }
         public string? ProjectFileName { get; set; }
 
+
+
+        public SecretFile()
+        {
+        }
 
 
         public SecretFile(string filePath, string containerName)
         {
             FileInfo fileInfo = new FileInfo(filePath);
 
-            _name = fileInfo.Name;
             _path = filePath;
-            _containerName = containerName;
+            Name = fileInfo.Name;
+            ContainerName = containerName;
 
             if (fileInfo.Exists)
             {
