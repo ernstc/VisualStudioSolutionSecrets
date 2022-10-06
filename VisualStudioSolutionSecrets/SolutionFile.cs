@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,8 +9,11 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using VisualStudioSolutionSecrets.Encryption;
 
+
 namespace VisualStudioSolutionSecrets
 {
+
+    [DebuggerDisplay("Name = {Name}")]
     public class SolutionFile : ISolution
     {
         private const string ASPNET_MVC5_PROJECT_GUID = "{349c5851-65df-11da-9384-00065b846f21}";

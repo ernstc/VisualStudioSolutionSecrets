@@ -32,8 +32,8 @@ namespace VisualStudioSolutionSecrets.Commands
             {
                 Console.WriteLine("List of solutions configuration\n");
 
-                Console.WriteLine("Solution                                          |  Repo     |  Name                                                |  Cloud");
-                Console.WriteLine("------------------------------------------------------------------------------------------------------------------------------------------------------");
+                Console.WriteLine("Solution                                          |  Uid                                   |  Repo     |  Cloud");
+                Console.WriteLine("---------------------------------------------------------------------------------------------------------------------------------------------------");
 
                 foreach (string solutionFile in solutionFiles)
                 {
@@ -83,13 +83,13 @@ namespace VisualStudioSolutionSecrets.Commands
             Console.Write("  |  ");
 
             Console.ForegroundColor = solutionColor;
-            Console.Write($"{repository?.RepositoryType ?? String.Empty,-7}");
+            Console.Write($"{solution.Uid,-36}");
 
             Console.ForegroundColor = color;
             Console.Write("  |  ");
 
             Console.ForegroundColor = solutionColor;
-            Console.Write($"{repoName,-50}");
+            Console.Write($"{repository?.RepositoryType ?? String.Empty,-7}");
 
             Console.ForegroundColor = color;
             Console.Write("  |  ");
