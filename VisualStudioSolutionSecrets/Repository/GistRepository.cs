@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -216,10 +215,9 @@ namespace VisualStudioSolutionSecrets.Repository
                             string? content = file.Value.content;
                             if (content == null && file.Value.raw_url != null)
                             {
-                                HttpClient httpClient = new HttpClient();
                                 try
                                 {
-                                    content = await httpClient.GetStringAsync(file.Value.raw_url);
+                                    content = await GetRawContent(file.Value.raw_url);
                                 }
                                 catch
                                 {
@@ -262,10 +260,9 @@ namespace VisualStudioSolutionSecrets.Repository
                     string? content = file.Value.content;
                     if (content == null && file.Value.raw_url != null)
                     {
-                        HttpClient httpClient = new HttpClient();
                         try
                         {
-                            content = await httpClient.GetStringAsync(file.Value.raw_url);
+                            content = await GetRawContent(file.Value.raw_url);
                         }
                         catch
                         {
@@ -325,6 +322,7 @@ namespace VisualStudioSolutionSecrets.Repository
 #endif
                 request.Content = new StringContent(payloadJson, Encoding.UTF8, "application/json");
 
+                Debug.WriteLine($"{request.Method} {request.RequestUri}");
                 var response = await client.SendAsync(request);
                 return response.IsSuccessStatusCode;
             }
@@ -342,7 +340,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
             for (int page = 1; page < GIST_PAGES_LIMIT; page++)
             {
-                var gists = await SendRequest<List<Gist>>(HttpMethod.Get, $"https://api.github.com/gists?per_page={GIST_PER_PAGE}&page={page}");
+                var gists = await SendRequest<List<Gist>>(HttpMethod.Get, $"https://api.github.com/gists?per_page={GIST_PER_PAGE}&page={page}", useCache: true);
                 if (gists == null || gists.Count == 0)
                 {
                     break;
@@ -375,26 +373,21 @@ namespace VisualStudioSolutionSecrets.Repository
                 {
                     if (file.Key == "secrets")
                     {
-                        string content;
-                        HttpClient httpClient = new HttpClient();
-                        try
+                        if (file.Value.raw_url != null)
                         {
-                            content = await httpClient.GetStringAsync(file.Value.raw_url);
-                        }
-                        catch
-                        {
-                            break;
-                        }
-
-                        if (content != null)
-                        {
+                            string? content = null;
                             try
                             {
-                                return JsonSerializer.Deserialize<HeaderFile>(content);
+                                content = await GetRawContent(file.Value.raw_url);
+                                if (content != null)
+                                {
+                                    return JsonSerializer.Deserialize<HeaderFile>(content);
+                                }
                             }
                             catch
                             { }
                         }
+                        break;
                     }
                 }
             }
@@ -423,6 +416,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
             try
             {
+                Debug.WriteLine($"{request.Method} {request.RequestUri}");
                 var response = await client.SendAsync(request);
                 return response.IsSuccessStatusCode;
             }
@@ -455,6 +449,7 @@ namespace VisualStudioSolutionSecrets.Repository
             message.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             try
             {
+                Debug.WriteLine($"{message.Method} {message.RequestUri}");
                 var response = await client.SendAsync(message).ConfigureAwait(false);
                 if (response.StatusCode != HttpStatusCode.NotFound)
                 {
@@ -472,37 +467,83 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        private async Task<T?> SendRequest<T>(HttpMethod method, string uri)
+        private Dictionary<string, string> _requestsCache = new Dictionary<string, string>();
+
+        private async Task<T?> SendRequest<T>(HttpMethod method, string uri, bool useCache = false)
             where T : class, new()
         {
-            HttpClient client = new HttpClient(new HttpClientHandler()
+            string? content = null;
+            string cacheKey = $"{method} {uri}";
+
+            if (useCache && _requestsCache.ContainsKey(cacheKey))
             {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
-            });
+                content = _requestsCache[cacheKey];
+            }
 
-            if (_oauthAccessToken != null)
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
-
-            if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
-                client.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
-
-            var message = new HttpRequestMessage(method, uri);
-            message.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            try
+            if (content == null)
             {
-                var response = await client.SendAsync(message).ConfigureAwait(false);
-                if (response.IsSuccessStatusCode)
+                HttpClient client = new HttpClient(new HttpClientHandler()
                 {
-                    var jsonContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    var data = JsonSerializer.Deserialize<T>(jsonContent);
-                    return data;
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
+                });
+
+                if (_oauthAccessToken != null)
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
+
+                if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
+                    client.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
+
+                var message = new HttpRequestMessage(method, uri);
+                message.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                try
+                {
+                    Debug.WriteLine($"{message.Method} {message.RequestUri}");
+                    var response = await client.SendAsync(message).ConfigureAwait(false);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        if (content != null)
+                        {
+                            _requestsCache[cacheKey] = content;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERR: {ex.Message}");
                 }
             }
-            catch (Exception ex)
+
+            if (content != null)
             {
-                Console.WriteLine($"ERR: {ex.Message}");
+                try
+                {
+                    var data = JsonSerializer.Deserialize<T>(content);
+                    return data;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERR: {ex.Message}");
+                }
             }
+
             return null;
+        }
+
+
+        private async Task<string?> GetRawContent(string uri)
+        {
+            HttpClient httpClient = new HttpClient();
+            Debug.WriteLine($"GET {uri}");
+            try
+            {
+                return await httpClient.GetStringAsync(uri);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
     }
