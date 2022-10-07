@@ -21,6 +21,9 @@ namespace VisualStudioSolutionSecrets
     public class Configuration : Dictionary<string, SolutionSynchronizationSettings>
     {
 
+        const string APP_DATA_FILENAME = "configuration.json";
+
+
         private Configuration() { }
 
 
@@ -93,11 +96,11 @@ namespace VisualStudioSolutionSecrets
                 {
                     _current = new Configuration();
 
-                    var loadedConfiguration = AppData.LoadData<Dictionary<string, SolutionSynchronizationSettings>>("configuration.json");
+                    var loadedConfiguration = AppData.LoadData<Dictionary<string, SolutionSynchronizationSettings>>(APP_DATA_FILENAME);
                     if (loadedConfiguration == null)
                     {
                         Default = Configuration.DefaultSettings;
-                        AppData.SaveData<Dictionary<string, SolutionSynchronizationSettings>>("configuration.json", _current);
+                        AppData.SaveData<Dictionary<string, SolutionSynchronizationSettings>>(APP_DATA_FILENAME, _current);
                     }
                     else
                     {
@@ -120,7 +123,7 @@ namespace VisualStudioSolutionSecrets
 
         public static void Save()
         {
-            AppData.SaveData<Dictionary<string, SolutionSynchronizationSettings>>("configuration.json", Current);
+            AppData.SaveData<Dictionary<string, SolutionSynchronizationSettings>>(APP_DATA_FILENAME, Current);
         }
 
     }
