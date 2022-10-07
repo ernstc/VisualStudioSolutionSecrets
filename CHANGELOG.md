@@ -1,3 +1,31 @@
+## October 2022 Release (version 2.0.0)
+
+This release enables the use of different kinds of repositories and enables to configure each solution to use a different kind of repository. 
+
+**Azure Key Vault** is the new supported repository. Azure Key Vault is the recommended repository to use for scenarios where the solution secrets can be shared within the development team.
+
+### New Features
+
+* Added **Azure Key Vault** as an alternative repository for storing solution secrets.
+* New command: `configure`
+
+  The "configure" command let to specify the default repository for your secrets (GitHub Gists or Azure Key Vault). Alternatively, with this command you can configure single solutions to use the preferred repository. Now you can have some solutions using GitHub Gists and some others using Azure Key Vault. It is possible to use different Azure Key Vault resources for different solutions, so, if you work with different development teams, each team can share their own secrets.
+
+* New command: `configure list`
+
+  This command display the custom repository configuration for the solutions.
+
+* New command: `clear`
+
+  The "clear" command erase the solution secrets from the local machine. It is equivalent to applying the command "dotnet user-secerts clear" for each project in the solution. 
+
+### Changes
+
+* Changed `status` command. It has been enhanced for displaying the default repository and the custom repository configured for each solution. In addition it display the synchronization status between the local and remote secret settings.
+* The command `changekey` has been renamed to `change-key`.
+
+---
+
 ## September 2022 Release (version 1.2.0)
 
 Added new features and improvements.
