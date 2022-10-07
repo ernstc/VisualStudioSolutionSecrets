@@ -10,6 +10,7 @@ Synchronize Visual Studio solution secrets across different development machines
 * [The Solution](#the-solution)
 * [How to install](#how-to-install)
 * [Configure the encryption key and authorizations](#configure-the-encryption-key-and-authorizations)
+* [Repository configuration](#repository-configuration)
 * [Push solution secrets](#push-solution-secrets)
 * [Pull solution secrets](#pull-solution-secrets)
 * [Utility commands](#utility-commands)
@@ -51,15 +52,40 @@ For being  ready to start coding and testing on the new development machine, you
 2) Recreate the secret settings on your new machine for each project of the solution, but this can be tedious because you have to recover passwords, keys, etc. from different resources and it can be time consuming.
 3) **\*\*New\*\*** : use **Visual Studio Solution Secrets** to synchronize secret settings through the cloud in a quick and secure way.
 
-The idea is to use GitHub Gists as the repository for your secrets. Visual Studio Solution Secrets collects all the secret settings used in the solution, **encrypts** and pushes them on your GitHub account in a secret Gist, so that only you can see them. The encryption key is generated from a passphrase or a key file that you specify during the one time initialization phase of the tool.
+The idea is to use a **secure** repository in the cloud for storing secret settings, so that when you change the development machine, you don't have to copy any file from the old one.
 
-Once you change the development machine, you don't have to copy any file from the old one.
-
-Just install the tool, recreate the encryption key with your passphrase or your key file, authorize the tool on GitHub, pull the solutions secrets on your new machine and you are ready to code. 
+Just install the tool, configure it and pull the solutions secrets on your new machine and you are ready to code. 
 
 ***It's fast!***
 
-![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/main/Concept.png)
+
+
+Visual Studio Solution Secrets support two kind of remote repositories:
+- GitHub Gists
+- Azure Key Vault
+
+## GitHub Gists
+
+A "gist" is a snippet of code that can either be public or secret. Visual Studio Solution Secrets uses only **secret** gists.
+
+GitHub Gists is the default repository used by Visual Studio Solution Secrets for storing solutions secrets. Secrets are collected, **encrypted** and pushed on your GitHub account in a **secret gist**, so that only you can see them. The encryption key is generated from a passphrase or a key file that you specify during the one time initialization phase of the tool.
+
+![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/dev/media/github-flow.svg)
+
+## Azure Key Vault
+
+Azure Key Vault is a cloud service for securely storing and accessing secrets. Secrets are encrypted at rest and can be accessed only be authorized accounts. No one else is capable of reading their contents.
+
+Since secrets are encrypted at rest and communication with the key vault is enforced to be TLS, Visual Studio Solution Secrets does not encprypt the secrets before sending them to the key vault, hence there is no need to use the encryption key on the local machine.
+
+This opens to the scenario where you can share the solutions secrets with the development team. You only need to authorize the team with read or read / write access to the Azure Key Vault secrects and the team can then pull secrets from key vault.
+**This is the recommended way for sharing solution secrets within the team.**
+
+![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/dev/media/azurekv-flow.svg)
+
+You can read the Azure Key Vault documentation [here](https://learn.microsoft.com/en-us/azure/key-vault/general/overview)
+
+<br/>
 
 # How to install
 
@@ -95,6 +121,30 @@ vs-secrets changekey --keyfile <file-path>
 ```
 When you change the encryption key with one of the above commands, any secret already encrypted on GitHub is re-encrypted with the new key. In this way the compromised key becomes useless.
 
+# Repository configuration
+
+Any solution can use a different repository for storing its secret settings.
+
+For configuring the solution to use GitHub Gists:
+```
+vs-secrets configure --repo github
+```
+For configuring the solution to use Azure Key Vault:
+```
+vs-secrets configure --repo azurekv --name <keyvault-name | keyvault-uri>
+```
+For changing the default repository, use one of the command below:
+```
+vs-secrets configure --default --repo github
+vs-secrets configure --default --repo azurekv --name <keyvault-name | keyvault-uri>
+```
+
+Sometimes you need to check what is the default repository, or if the solution has a custom repository configuration.
+
+The command configure list serve to this purpose.
+```
+vs-secrets configure list [--path <folder-path>] [--all]
+```
 
 # Push solution secrets
 
@@ -147,8 +197,15 @@ If the current folder contains a solution, the "status command" will show also t
 Optionally you can check the synchronization status in another folder using the **--path** parameter or in an entire folder tree adding the **--all** parameter. Here are some examples:
 ```
 vs-secrets status --all
-vs-secrets status --path c:\projects\my-project
+vs-secrets status --path c:\projects\my-project-folder
 vs-secrets status --path c:\projects --all
+```
+
+## Clear secrets settings from the local machine
+If there are secrets that you need to clear locally, the `clear` command erases the solution secrets from the local machine. It is equivalent to applying the command `dotnet user-secerts clear` for each project in the solution. 
+```
+vs-secrets clear
+vs-secrets clear --path .\my-solution.sln
 ```
 
 # Configuration files
@@ -167,4 +224,5 @@ The files generated by the tool are listed below.
 |------|-------------|
 | cipher.json | Contains the encryption key |
 | github.json | Contains the access token for managing user's GitHub Gists |
+| configuration.json | Contains the settings for the repository to use by default and for each solution configured with the command `configure`
 
