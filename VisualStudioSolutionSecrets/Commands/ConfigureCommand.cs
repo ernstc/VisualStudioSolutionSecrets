@@ -104,8 +104,7 @@ namespace VisualStudioSolutionSecrets.Commands
             }
             else
             {
-                string path = Context.Current.IO.GetCurrentDirectory();
-
+                string path = EnsureFullyQualifiedPath(Path) ?? Context.Current.IO.GetCurrentDirectory();
                 string[] solutionFiles = GetSolutionFiles(path, false);
                 if (solutionFiles.Length == 0)
                 {

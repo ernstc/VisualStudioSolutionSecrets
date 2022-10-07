@@ -15,12 +15,15 @@ namespace VisualStudioSolutionSecrets.Commands
     public class ClearCommand : CommandBase
     {
 
+        [Option("--path", Description = "Path for searching solutions or single solution file path.")]
+        public string? Path { get; set; }
+
+
         public int OnExecute()
         {
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
-           
-            string path = Context.Current.IO.GetCurrentDirectory();
 
+            string path = EnsureFullyQualifiedPath(Path) ?? Context.Current.IO.GetCurrentDirectory();
             string[] solutionFiles = GetSolutionFiles(path, false);
             if (solutionFiles.Length == 0)
             {
