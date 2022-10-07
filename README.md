@@ -60,13 +60,13 @@ For being  ready to start coding and testing on the new development machine, you
 
 The idea is to use a **secure** repository in the cloud for storing secret settings, so that when you change the development machine, you don't have to copy any file from the old one.
 
-Just install the tool, configure it and pull the solutions secrets on your new machine and you are ready to code. 
+Just install the tool, configure it and pull the solution secrets on your new machine and you are ready to code. 
 
 ***It's fast!***
 
 
 
-Visual Studio Solution Secrets support two kind of remote repositories:
+Visual Studio Solution Secrets supports two types of remote repositories:
 - GitHub Gists
 - Azure Key Vault
 
@@ -74,7 +74,7 @@ Visual Studio Solution Secrets support two kind of remote repositories:
 
 A "gist" is a snippet of code that can either be public or secret. Visual Studio Solution Secrets uses only **secret** gists.
 
-GitHub Gists is the default repository used by Visual Studio Solution Secrets for storing solutions secrets. Secrets are collected, **encrypted** and pushed on your GitHub account in a **secret gist**, so that only you can see them. The encryption key is generated from a passphrase or a key file that you specify during the one time initialization of the tool.
+GitHub Gists is the default repository used by Visual Studio Solution Secrets for storing solution secrets. Secrets are collected, **encrypted** and pushed on your GitHub account in a **secret gist**, so that only you can see them. The encryption key is generated from a passphrase or a key file that you specify during the one time initialization of the tool.
 
 ![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/dev/media/github-flow.svg)
 
@@ -200,7 +200,7 @@ vs-secrets search [--path <solution-path>] [--all]
 
 ## Checking the status
 
-The `status` command let you check for the status of the tool. The command below checks if the encryption key has been defined and if the tool has been authorized to access GitHub Gists:
+The `status` command lets you check for the status of the tool. The command below checks if the encryption key has been defined and if the tool has been authorized to access GitHub Gists:
 ```shell
 vs-secrets status
 ```
@@ -214,7 +214,7 @@ vs-secrets status --path ./projects --all
 ```
 
 ## Clear secret settings from the local machine
-The `clear` command erases the solution secrets from the local machine. It is equivalent to applying the command `dotnet user-secerts clear` for each project in the solution. 
+The `clear` command clears the solution secrets from the local machine. It is equivalent to applying the command `dotnet user-secerts clear` for each project in the solution. 
 ```shell
 vs-secrets clear
 vs-secrets clear --path ./my-solution.sln
