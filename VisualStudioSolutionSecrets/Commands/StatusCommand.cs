@@ -63,7 +63,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 {
                     Console.WriteLine();
                     Console.WriteLine("Solution                                          |  Version  |  Last Update          |  Repo     |  Status");
-                    Console.WriteLine("----------------------------------------------------------------------------------------------------------------------------------");
+                    Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------");
 
                     foreach (string solutionFile in solutionFiles)
                     {

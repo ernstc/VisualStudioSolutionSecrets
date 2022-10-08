@@ -10,7 +10,7 @@ Checking status...
 Checking solutions synchronization status...
 
 Solution                                          |  Version  |  Last Update          |  Repo     |  Status
-----------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------
 ReallySuperVeryVeryVeryLongNameForSolutionFil...  |           |                       |           |  No secrets found
 SolutionSample-WithEmptySecrets.sln               |           |                       |           |  No secrets found
 SolutionSample.sln                                |  #.#.#    |  ####-##-## ##:##:##  |  Mock     |  Synchronized
