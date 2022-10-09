@@ -15,7 +15,7 @@ namespace VisualStudioSolutionSecrets.Commands
     public class ClearCommand : CommandBase
     {
 
-        [Option("--path", Description = "Path for searching solutions or single solution file path.")]
+        [Argument(0, Name = "path", Description = "Path for searching solutions or single solution file path.")]
         public string? Path { get; set; }
 
 
