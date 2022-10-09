@@ -22,26 +22,48 @@ namespace VisualStudioSolutionSecrets.Commands
         [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
         public bool All { get; set; }
 
+        bool _renderedTableHeader = false;
+
 
         public int OnExecute()
         {
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
+
+            var color = Console.ForegroundColor;
+
+            Console.Write("Default repository: ");
+            var repository = Context.Current.GetRepository(Configuration.Default);
+            if (repository != null)
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(repository.RepositoryType);
+                if (!String.IsNullOrEmpty(repository.RepositoryName))
+                {
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    Console.Write($" {repository.RepositoryName}");
+                }
+            }
+            else
+            {
+                Console.Write("None");
+            }
+            Console.ForegroundColor = color;
+            Console.WriteLine("\n");
 
             string path = EnsureFullyQualifiedPath(Path) ?? Context.Current.IO.GetCurrentDirectory();
             string[] solutionFiles = GetSolutionFiles(path, All);
 
             if (solutionFiles.Length > 0)
             {
-                Console.WriteLine("List of solutions configuration\n");
-
-                Console.WriteLine("Solution                                          |  Uid                                   |  Repo     |  Cloud");
-                Console.WriteLine("---------------------------------------------------------------------------------------------------------------------------------------------------");
-
+                Console.WriteLine("Solutions with custom configuration...\n");
                 foreach (string solutionFile in solutionFiles)
                 {
                     GetSolutionConfiguration(solutionFile);
                 }
-
+                if (!_renderedTableHeader)
+                {
+                    Console.WriteLine("...none\n");
+                }
                 Console.WriteLine();
             }
 
@@ -49,7 +71,19 @@ namespace VisualStudioSolutionSecrets.Commands
         }
 
 
-        private static void GetSolutionConfiguration(string solutionFile)
+        private void ShowHeader()
+        {
+            if (!_renderedTableHeader)
+            {
+                _renderedTableHeader = true;
+
+                Console.WriteLine("Solution                                          |  Uid                                   |  Repo     |  Cloud / Name");
+                Console.WriteLine("---------------------------------------------------------------------------------------------------------------------------------------------------");
+            }
+        }
+
+
+        private void GetSolutionConfiguration(string solutionFile)
         {
             var color = Console.ForegroundColor;
 
@@ -59,6 +93,10 @@ namespace VisualStudioSolutionSecrets.Commands
             if (solutionName.Length > 48) solutionName = solutionName[..45] + "...";
 
             var synchronizationSettings = solution.CustomSynchronizationSettings;
+            if (synchronizationSettings == null)
+            {
+                return;
+            }
 
             IRepository? repository = synchronizationSettings != null ? Context.Current.GetRepository(synchronizationSettings) : null;
 
@@ -77,6 +115,8 @@ namespace VisualStudioSolutionSecrets.Commands
             }
 
             if (repoName.Length > 50) repoName = repoName[..47] + "...";
+
+            ShowHeader();
 
             Console.ForegroundColor = solutionColor;
             Console.Write($"{solutionName,-48}");
