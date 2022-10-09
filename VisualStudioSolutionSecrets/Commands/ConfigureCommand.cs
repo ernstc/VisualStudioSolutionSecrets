@@ -28,24 +28,51 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 if (paramSetRepo && paramSetReset)
                 {
-                    return new ValidationResult("\nThe --reset option is not compatible with --default, -r|--repo and -n|--name options.\n");
+                    return new ValidationResult("\nThe option --reset is not compatible with --default, -r|--repo and -n|--name options.\n");
                 }
 
                 if (command.Default && command.Path != null)
                 {
-                    return new ValidationResult("\nThe --default option is not compatible with --path option.\n");
+                    return new ValidationResult("\nThe option --default is not compatible with the option --path.\n");
                 }
 
-                if (String.Equals(command.RepositoryType, "github", StringComparison.OrdinalIgnoreCase)
-                    && !String.IsNullOrEmpty(command.RepositoryName))
+                if (command.RepositoryType != null)
                 {
-                    return new ValidationResult("\nFor repository of type \"github\" you cannot specify the option -n|--name.\n");
-                }
+                    if (String.Equals(command.RepositoryType, nameof(RepositoryTypesEnum.GitHub), StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (!String.IsNullOrEmpty(command.RepositoryName))
+                        {
+                            return new ValidationResult("\nFor repository of type \"github\" you cannot specify the option -n|--name.\n");
+                        }
+                    }
+                    else if (String.Equals(command.RepositoryType, nameof(RepositoryTypesEnum.AzureKV), StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (String.IsNullOrEmpty(command.RepositoryName))
+                        {
+                            return new ValidationResult("\nFor repository of type \"azurekv\" you need to specify the option -n|--name.\n");
+                        }
 
-                if (String.Equals(command.RepositoryType, "azurekv", StringComparison.OrdinalIgnoreCase)
-                    && String.IsNullOrEmpty(command.RepositoryName))
+                        var repository = new AzureKeyVaultRepository
+                        {
+                            RepositoryName = command.RepositoryName
+                        };
+
+                        if (!repository.IsValid())
+                        {
+                            return new ValidationResult($"The repository name is not valid: {command.RepositoryName}\n");
+                        }
+                    }
+                    else
+                    {
+                        return new ValidationResult("\nThe option -r|--repo is not valid.\n");
+                    }
+                }
+                else
                 {
-                    return new ValidationResult("\nFor repository of type \"azurekv\" you need to specify the option -n|--name.\n");
+                    if (command.RepositoryName != null)
+                    {
+                        return new ValidationResult("\nThe option -n|--name cannot be used without the option -r|--repo.\n");
+                    }
                 }
             }
             return ValidationResult.Success;
@@ -74,7 +101,7 @@ namespace VisualStudioSolutionSecrets.Commands
         [Option("--reset", Description = "Reset the configuration of the solution.")]
         public bool Reset { get; set; }
 
-        [Option("--path", Description = "Path for searching solutions or single solution file path.")]
+        [Argument(0, Name = "path", Description = "Path for searching solutions or single solution file path.")]
         public string? Path { get; set; }
 
 
@@ -109,12 +136,6 @@ namespace VisualStudioSolutionSecrets.Commands
             {
                 if (String.Equals(nameof(RepositoryTypesEnum.GitHub), RepositoryType, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (RepositoryName != null)
-                    {
-                        Console.WriteLine("The option --name cannot be used with the GitHub repository.\n");
-                        return 1;
-                    }
-
                     Configuration.Default.Repository = RepositoryTypesEnum.GitHub;
                     Configuration.Default.AzureKeyVaultName = null;
                     Configuration.Save();
@@ -124,26 +145,14 @@ namespace VisualStudioSolutionSecrets.Commands
                 }
                 else if (String.Equals(nameof(RepositoryTypesEnum.AzureKV), RepositoryType, StringComparison.OrdinalIgnoreCase))
                 {
-                    var repository = new AzureKeyVaultRepository
-                    {
-                        RepositoryName = RepositoryName
-                    };
+                    Configuration.Default.Repository = RepositoryTypesEnum.AzureKV;
+                    Configuration.Default.AzureKeyVaultName = RepositoryName;
+                    Configuration.Save();
 
-                    if (repository.IsValid())
-                    {
-                        Configuration.Default.Repository = RepositoryTypesEnum.AzureKV;
-                        Configuration.Default.AzureKeyVaultName = RepositoryName;
-                        Configuration.Save();
-
-                        Console.WriteLine($"Configured Azure Key Vault ({RepositoryName}) as the default repository.\n");
-                        return 0;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"The repository name is not valid: {RepositoryName}\n");
-                        return 1;
-                    }
+                    Console.WriteLine($"Configured Azure Key Vault ({RepositoryName}) as the default repository.\n");
+                    return 0;
                 }
+                return 1;
             }
             else
             {
@@ -155,69 +164,63 @@ namespace VisualStudioSolutionSecrets.Commands
                     return 1;
                 }
 
-                var solutionFilePath = solutionFiles[0];
-                SolutionFile solution = new SolutionFile(solutionFilePath);
-
-                if (solution.Uid == Guid.Empty)
+                bool foundError = false;
+                foreach (string solutionFilePath in solutionFiles)
                 {
-                    Console.WriteLine($"The solution \"{solution.Name}\" has not a unique identifier. You need to upgrade the solution file.\n");
-                    return 1;
+                    int result = ConfigureSolution(solutionFilePath);
+                    foundError = foundError || result != 0;
                 }
 
-                if (Reset)
+                return (foundError && solutionFiles.Length == 1) ? 1 : 0;
+            }
+        }
+
+
+        private int ConfigureSolution(string solutionFilePath)
+        {
+            SolutionFile solution = new SolutionFile(solutionFilePath);
+
+            if (solution.Uid == Guid.Empty)
+            {
+                Console.WriteLine($"The solution \"{solution.Name}\" has not a unique identifier. You need to upgrade the solution file.\n");
+                return 1;
+            }
+
+            if (Reset)
+            {
+                Configuration.SetCustomSynchronizationSettings(solution.Uid, null);
+                Configuration.Save();
+
+                Console.WriteLine($"Removed custom configuration for the solution \"{solution.Name}\" ({solution.Uid}).\n");
+                return 0;
+            }
+            else
+            {
+                if (String.Equals(nameof(RepositoryTypesEnum.GitHub), RepositoryType, StringComparison.OrdinalIgnoreCase))
                 {
-                    Configuration.SetCustomSynchronizationSettings(solution.Uid, null);
+                    var settings = new SolutionSynchronizationSettings
+                    {
+                        Repository = RepositoryTypesEnum.GitHub,
+                        AzureKeyVaultName = null
+                    };
+                    Configuration.SetCustomSynchronizationSettings(solution.Uid, settings);
                     Configuration.Save();
 
-                    Console.WriteLine($"Removed custom configuration for the solution \"{solution.Name}\" ({solution.Uid}).\n");
+                    Console.WriteLine($"Configured GitHub Gist as the repository for the solution \"{solution.Name}\" ({solution.Uid}).\n");
                     return 0;
                 }
-                else
+                else if (String.Equals(nameof(RepositoryTypesEnum.AzureKV), RepositoryType, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (String.Equals(nameof(RepositoryTypesEnum.GitHub), RepositoryType, StringComparison.OrdinalIgnoreCase))
+                    var settings = new SolutionSynchronizationSettings
                     {
-                        if (RepositoryName != null)
-                        {
-                            Console.WriteLine("The option --name cannot be used with the GitHub repository.\n");
-                            return 1;
-                        }
+                        Repository = RepositoryTypesEnum.AzureKV,
+                        AzureKeyVaultName = RepositoryName
+                    };
+                    Configuration.SetCustomSynchronizationSettings(solution.Uid, settings);
+                    Configuration.Save();
 
-                        var settings = new SolutionSynchronizationSettings
-                        {
-                            Repository = RepositoryTypesEnum.GitHub,
-                            AzureKeyVaultName = null
-                        };
-                        Configuration.SetCustomSynchronizationSettings(solution.Uid, settings);
-                        Configuration.Save();
-
-                        Console.WriteLine($"Configured GitHub Gist as the repository for the solution \"{solution.Name}\" ({solution.Uid}).\n");
-                        return 0;
-                    }
-                    else if (String.Equals(nameof(RepositoryTypesEnum.AzureKV), RepositoryType, StringComparison.OrdinalIgnoreCase))
-                    {
-                        var repository = new AzureKeyVaultRepository
-                        {
-                            RepositoryName = RepositoryName
-                        };
-
-                        if (repository.IsValid())
-                        {
-                            var settings = new SolutionSynchronizationSettings
-                            {
-                                Repository = RepositoryTypesEnum.AzureKV,
-                                AzureKeyVaultName = RepositoryName
-                            };
-                            Configuration.SetCustomSynchronizationSettings(solution.Uid, settings);
-                            Configuration.Save();
-
-                            Console.WriteLine($"Configured Azure Key Vault ({RepositoryName}) as the repository for the solution \"{solution.Name}\" ({solution.Uid}).\n");
-                            return 0;
-                        }
-                        else
-                        {
-                            Console.WriteLine($"The repository name is not valid: {RepositoryName}\n");
-                        }
-                    }
+                    Console.WriteLine($"Configured Azure Key Vault ({RepositoryName}) as the repository for the solution \"{solution.Name}\" ({solution.Uid}).\n");
+                    return 0;
                 }
             }
             return 1;

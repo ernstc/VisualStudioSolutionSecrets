@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.Repository;
 
@@ -34,12 +35,10 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_InvalidParams_1_Test()
         {
-            var result = new ConfigureCommand
-            {
-                Default = true,
-                Reset = true
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "--default",
+                "--reset"
+            );
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -49,11 +48,9 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_InvalidParams_2_Test()
         {
-            var result = new ConfigureCommand
-            {
-                RepositoryType = "unknown",
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "--repo", "unknown"
+                );
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -63,13 +60,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_InvalidParams_3_Test()
         {
-            var result = new ConfigureCommand
-            {
-                Default = true,
-                RepositoryType = nameof(RepositoryTypesEnum.GitHub),
-                RepositoryName = KEY_VAULT_NAME
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "--default",
+                "--repo", nameof(RepositoryTypesEnum.GitHub),
+                "--name", KEY_VAULT_NAME
+            );
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -79,12 +74,10 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_InvalidParams_4_Test()
         {
-            var result = new ConfigureCommand
-            {
-                RepositoryType = nameof(RepositoryTypesEnum.GitHub),
-                RepositoryName = KEY_VAULT_NAME
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "--repo", nameof(RepositoryTypesEnum.GitHub),
+                "--name", KEY_VAULT_NAME
+            );
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -94,11 +87,9 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_InvalidParams_5_Test()
         {
-            var result = new ConfigureCommand
-            {
-                RepositoryName = KEY_VAULT_NAME
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "--name", KEY_VAULT_NAME
+            );
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -108,12 +99,10 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_InvalidParams_6_Test()
         {
-            var result = new ConfigureCommand
-            {
-                Default = true,
-                Path = "path"
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "--default",
+                "--path", "path"
+            );
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -123,13 +112,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_GitHubByDefault_Test()
         {
-            new ConfigureCommand
-            {
-                Default = true,
-                RepositoryType = nameof(RepositoryTypesEnum.GitHub)
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "--default",
+                "--repo", nameof(RepositoryTypesEnum.GitHub)
+            );
 
+            Assert.Equal(0, result);
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
 
             Configuration.Refresh();
@@ -142,14 +130,13 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_AzureKVByDefault_1_Test()
         {
-            new ConfigureCommand
-            {
-                Default = true,
-                RepositoryType = nameof(RepositoryTypesEnum.AzureKV),
-                RepositoryName = KEY_VAULT_NAME
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "--default",
+                "--repo", nameof(RepositoryTypesEnum.AzureKV),
+                "--name", KEY_VAULT_NAME
+            );
 
+            Assert.Equal(0, result);
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
 
             Configuration.Refresh();
@@ -162,13 +149,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_AzureKVByDefault_2_Test()
         {
-            var result = new ConfigureCommand
-            {
-                Default = true,
-                RepositoryType = nameof(RepositoryTypesEnum.AzureKV),
-                RepositoryName = "https://my-domain.com"
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "--default",
+                "--repo", nameof(RepositoryTypesEnum.AzureKV),
+                "--name", "https://my-domain.com"
+            );
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -178,12 +163,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_GitHubForProject_Test()
         {
-            new ConfigureCommand
-            {
-                RepositoryType = nameof(RepositoryTypesEnum.GitHub)
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "--repo", nameof(RepositoryTypesEnum.GitHub)
+            );
 
+            Assert.Equal(0, result);
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
 
             Configuration.Refresh();
@@ -199,12 +183,10 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_GitHubForProject_WithoutGuid_Test()
         {
-            var result = new ConfigureCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample-WithoutGuid.sln"),
-                RepositoryType = nameof(RepositoryTypesEnum.GitHub)
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "SolutionSample-WithoutGuid.sln",
+                "--repo", nameof(RepositoryTypesEnum.GitHub)
+            );
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -214,12 +196,10 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_AzureKVForProject_1_Test()
         {
-            var result = new ConfigureCommand
-            {
-                RepositoryType = nameof(RepositoryTypesEnum.AzureKV),
-                RepositoryName = KEY_VAULT_NAME
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "--repo", nameof(RepositoryTypesEnum.AzureKV),
+                "--name", KEY_VAULT_NAME
+            );
 
             Assert.Equal(0, result);
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -237,12 +217,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_AzureKVForProject_2_Test()
         {
-            var result = new ConfigureCommand
-            {
-                RepositoryType = nameof(RepositoryTypesEnum.AzureKV),
-                RepositoryName = "http://my-domain.com"
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "SolutionSample.sln",
+                "--repo", nameof(RepositoryTypesEnum.AzureKV),
+                "--name", "http://my-domain.com"
+            );
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -252,13 +231,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_AzureKVForProject_WithoutGuid_Test()
         {
-            var result = new ConfigureCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample-WithoutGuid.sln"),
-                RepositoryType = nameof(RepositoryTypesEnum.AzureKV),
-                RepositoryName = KEY_VAULT_NAME
-            }
-            .OnExecute();
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "SolutionSample-WithoutGuid.sln",
+                "--repo", nameof(RepositoryTypesEnum.AzureKV),
+                "--name", KEY_VAULT_NAME
+            );
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
