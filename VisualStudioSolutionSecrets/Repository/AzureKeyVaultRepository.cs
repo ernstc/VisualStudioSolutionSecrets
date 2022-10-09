@@ -17,13 +17,13 @@ namespace VisualStudioSolutionSecrets.Repository
 
         private readonly IDictionary<string, string> _clouds = new Dictionary<string, string>
         {
-            {"AzureCloud",         ".vault.azure.net" },
-            {"AzureChinaCloud",    ".vault.azure.cn" },
-            {"AzureUSGovernment",  ".vault.usgovcloudapi.net" },
-            {"AzureGermanCloud",   ".vault.microsoftazure.de" }
+            {".vault.azure.net",            "AzureCloud"},
+            {".vault.azure.cn",             "AzureChinaCloud" },
+            {".vault.usgovcloudapi.net",    "AzureUSGovernment" },
+            {".vault.microsoftazure.de",    "AzureGermanCloud" }
         };
 
-        private const string DEFAULT_CLOUD = "AzureCloud";
+        private const string DEFAULT_CLOUD = ".vault.azure.net";
         private const string SECRET_PREFIX = "vs-secrets--";
 
         public bool EncryptOnClient => false;
@@ -45,19 +45,21 @@ namespace VisualStudioSolutionSecrets.Repository
                     string loweredValue = value.ToLower();
                     if (Uri.TryCreate(loweredValue, UriKind.Absolute, out Uri? repositoryUri) && repositoryUri != null)
                     {
-                        string cloudDomain = loweredValue[loweredValue.IndexOf(".vault.")..];
-                        if (_clouds.Any(item => item.Value == cloudDomain))
+                        int vaultIndex = loweredValue.IndexOf(".vault.");
+                        if (vaultIndex >= 0)
                         {
-                            _repositoryName = repositoryUri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase) ? loweredValue : null;
+                            string cloudDomain = loweredValue[vaultIndex..];
+                            if (_clouds.ContainsKey(cloudDomain))
+                            {
+                                _repositoryName = repositoryUri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase) ? loweredValue : null;
+                                return;
+                            }
                         }
-                        else
-                        {
-                            _repositoryName = null;
-                        }
+                        _repositoryName = null;
                     }
                     else
                     {
-                        _repositoryName = $"https://{loweredValue}{_clouds[DEFAULT_CLOUD]}";
+                        _repositoryName = $"https://{loweredValue}{DEFAULT_CLOUD}";
                     }
                 }
             }
@@ -79,12 +81,13 @@ namespace VisualStudioSolutionSecrets.Repository
             name = name[8..];
             name = name[..name.IndexOf(".vault.")];
 
-            string cloudDomain = RepositoryName;
+            string cloudDomain = RepositoryName.ToLower();
             cloudDomain = cloudDomain[cloudDomain.IndexOf(".vault.")..];
 
-            var cloud = _clouds.First(entry => entry.Value.Equals(cloudDomain, StringComparison.OrdinalIgnoreCase));
-
-            return $"{cloud.Key} ({name})";
+            if (_clouds.TryGetValue(cloudDomain, out var cloud))
+                return $"{cloud} ({name})";
+            else
+                return RepositoryName;
         }
 
 
@@ -151,7 +154,9 @@ namespace VisualStudioSolutionSecrets.Repository
                 return files;
             }
 
-            string prefix = $"{SECRET_PREFIX}{solution.Uid}--";
+            string prefix = solution.Uid != Guid.Empty ?
+                $"{SECRET_PREFIX}{solution.Uid}--" :
+                $"{SECRET_PREFIX}{solution.Name}--";
 
             List<string> solutionSecretsName = new List<string>();
             await foreach (var secretProperties in _client.GetPropertiesOfSecretsAsync())
@@ -201,7 +206,10 @@ namespace VisualStudioSolutionSecrets.Repository
                     fileName = fileName[(fileName.IndexOf('\\') + 1)..];
                     fileName = fileName[..fileName.IndexOf('.')];
                 }
-                string secretName = $"{SECRET_PREFIX}{solution.Uid}--{fileName}";
+
+                string secretName = solution.Uid != Guid.Empty ?
+                    $"{SECRET_PREFIX}{solution.Uid}--{fileName}" :
+                    $"{SECRET_PREFIX}{solution.Name}--{fileName}";
 
                 int retry = 1;
                 bool checkSecretEquality = true;
@@ -278,6 +286,9 @@ namespace VisualStudioSolutionSecrets.Repository
         {
             return Task.CompletedTask;
         }
+
+
+        public bool IsValid() => _repositoryName != null;
 
     }
 }

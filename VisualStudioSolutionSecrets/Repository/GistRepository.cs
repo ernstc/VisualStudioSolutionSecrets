@@ -298,9 +298,12 @@ namespace VisualStudioSolutionSecrets.Repository
 
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
 
+            string gistDescription = solution.Name;
+            if (solution.Uid != Guid.Empty) gistDescription += $" ({solution.Uid})";
+
             var payload = new Gist
             {
-                description = $"{solution.Name} ({solution.Uid})",
+                description = gistDescription,
                 @public = false,
                 files = new Dictionary<string, GistFile>()
             };
@@ -334,9 +337,13 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
+        public bool IsValid() => true;
+
+
         private async Task<Gist?> GetGistAsync(ISolution solution)
         {
-            string gistDescription = $"{solution.Name} ({solution.Uid})";
+            string gistDescription = solution.Name;
+            if (solution.Uid != Guid.Empty) gistDescription += $" ({solution.Uid})";
 
             for (int page = 1; page < GIST_PAGES_LIMIT; page++)
             {

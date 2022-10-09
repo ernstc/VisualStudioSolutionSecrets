@@ -36,7 +36,6 @@ namespace VisualStudioSolutionSecrets
             var defaultRepository = new GistRepository();
             Context.Current.AddService<IRepository>(defaultRepository);
             Context.Current.AddService<IRepository>(defaultRepository, nameof(RepositoryTypesEnum.GitHub));
-
             Context.Current.AddService<IRepository>(new AzureKeyVaultRepository(), nameof(RepositoryTypesEnum.AzureKV));
 
             CommandLineApplication.Execute<Program>(args);

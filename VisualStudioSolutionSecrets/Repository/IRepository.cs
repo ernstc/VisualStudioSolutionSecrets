@@ -17,5 +17,6 @@ namespace VisualStudioSolutionSecrets.Repository
         Task<bool> PushFilesAsync(ISolution solution, ICollection<(string name, string? content)> files);
         Task<ICollection<(string name, string? content)>> PullFilesAsync(ISolution solution);
         Task<ICollection<SolutionSettings>> PullAllSecretsAsync();
+        bool IsValid();
     }
 }

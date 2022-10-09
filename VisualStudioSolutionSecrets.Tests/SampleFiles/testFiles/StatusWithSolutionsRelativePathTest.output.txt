@@ -13,4 +13,5 @@ Solution                                          |  Version  |  Last Update    
 -----------------------------------------------------------------------------------------------------------------------------
 ReallySuperVeryVeryVeryLongNameForSolutionFil...  |           |                       |           |  No secrets found
 SolutionSample-WithEmptySecrets.sln               |           |                       |           |  No secrets found
+SolutionSample-WithoutGuid.sln                    |           |                       |           |  No secrets found
 SolutionSample.sln                                |  #.#.#    |  ####-##-## ##:##:##  |  Mock     |  Synchronized
