@@ -1,0 +1,9 @@
+﻿vs-secrets 2.0.0
+
+Default repository: Mock Name
+
+Solutions with custom configuration...
+
+Solution                                          |  Uid                                   |  Repo     |  Cloud / Name
+---------------------------------------------------------------------------------------------------------------------------------------------------
+SolutionSample.sln                                |  d16e70f9-e206-4047-8a33-01710ebd0eeb  |  Mock     |  Name

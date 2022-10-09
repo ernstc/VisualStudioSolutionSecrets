@@ -125,8 +125,16 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                .Returns("Name");
 
             repositoryMock
+                .Setup(o => o.GetFriendlyName())
+                .Returns("Name");
+
+            repositoryMock
                 .Setup(o => o.IsReady())
                 .ReturnsAsync(true);
+
+            repositoryMock
+                .Setup(o => o.IsValid())
+                .Returns(true);
 
             repositoryMock
                 .Setup(o => o.PushFilesAsync(It.IsAny<ISolution>(), It.IsAny<ICollection<(string name, string? content)>>()))
