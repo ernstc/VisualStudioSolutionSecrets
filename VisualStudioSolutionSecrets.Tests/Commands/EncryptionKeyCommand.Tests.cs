@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 using Moq;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 
+
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class EncryptionKeyCommandTests
     {
 

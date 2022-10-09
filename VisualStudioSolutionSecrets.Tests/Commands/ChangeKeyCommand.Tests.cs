@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using Moq;
 using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.IO;
 
+
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class ChangeKeyCommandTests : CommandTests, IDisposable
     {
 
@@ -76,104 +79,86 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         }
 
 
-        private static async Task PrepareTest()
+        private static void PrepareTest()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Constants.SolutionFilesPath
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Constants.SolutionFilesPath
+                );
         }
 
 
         [Fact]
-        public async Task ChangeKeyWithoutParameters()
+        public void ChangeKeyWithoutParameters()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+            );
 
             string encryptionKeyFilePath = Path.Combine(Constants.ConfigFilesPath, "cipher.json");
             string encryptionKey = File.ReadAllText(encryptionKeyFilePath);
 
-            await new ChangeKeyCommand().OnExecute();
+            CommandLineApplication.Execute<ChangeKeyCommand>();
 
             Assert.Equal(encryptionKey, File.ReadAllText(encryptionKeyFilePath));
         }
 
 
         [Fact]
-        public async Task ChangeKeyWithPassphrase()
+        public void ChangeKeyWithPassphrase()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await new ChangeKeyCommand
-            {
-                Passphrase = NEW_PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<ChangeKeyCommand>(
+                "-p", NEW_PASSPHRASE
+                );
 
             ChangeSecretsFilesPath();
 
-            await new PullCommand
-            {
-                Path = Constants.SolutionFilesPath
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PullCommand>(
+                Constants.SolutionFilesPath
+                );
 
             VerifyTestResults();
         }
 
 
         [Fact]
-        public async Task ChangeKeyWithKeyFile()
+        public void ChangeKeyWithKeyFile()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await new ChangeKeyCommand
-            {
-                KeyFile = Path.Combine(Constants.TestFilesPath, "initFile2.key")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<ChangeKeyCommand>(
+                "-f", Path.Combine(Constants.TestFilesPath, "initFile2.key")
+                );
 
             ChangeSecretsFilesPath();
 
-            await new PullCommand
-            {
-                Path = Constants.SolutionFilesPath
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PullCommand>(
+                Constants.SolutionFilesPath
+                );
 
             VerifyTestResults();
         }
 
 
         [Fact]
-        public async Task ChangeKeyWithKeyFileWithRelativePath()
+        public void ChangeKeyWithKeyFileWithRelativePath()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await new ChangeKeyCommand
-            {
-                KeyFile = "initFile2.key"
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<ChangeKeyCommand>(
+                "-f", "initFile2.key"
+                );
 
             ChangeSecretsFilesPath();
 
-            await new PullCommand
-            {
-                Path = Constants.SolutionFilesPath
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PullCommand>(
+                Constants.SolutionFilesPath
+                );
 
             VerifyTestResults();
         }

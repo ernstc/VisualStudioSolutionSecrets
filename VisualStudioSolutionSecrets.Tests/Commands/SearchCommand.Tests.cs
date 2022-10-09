@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands;
-using VisualStudioSolutionSecrets.Tests.Helpers;
+
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class SearchCommandTests : CommandTests
     {
 
@@ -20,11 +22,9 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void SearchTest()
         {
-            new SearchCommand
-            {
-                Path = Constants.SolutionFilesPath
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<SearchCommand>(
+                Constants.SolutionFilesPath
+                );
 
             VerifyOutput();
         }
@@ -33,12 +33,9 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void SearchWithNoResultsTest()
         {
-            new SearchCommand
-            {
-                Path = Constants.SampleFilesPath,
-                All = false
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<SearchCommand>(
+                Constants.SampleFilesPath
+                );
 
             VerifyOutput();
         }
@@ -47,12 +44,10 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void SearchAllTest()
         {
-            new SearchCommand
-            {
-                Path = Constants.SampleFilesPath,
-                All = true
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<SearchCommand>(
+                Constants.SampleFilesPath,
+                "--all"
+                );
 
             VerifyOutput();
         }

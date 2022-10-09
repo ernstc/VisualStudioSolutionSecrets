@@ -7,8 +7,10 @@ using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.Repository;
 
+
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class ConfigureCommandTests : CommandTests, IDisposable
     {
 

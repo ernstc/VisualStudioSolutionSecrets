@@ -10,8 +10,10 @@ using VisualStudioSolutionSecrets.Encryption;
 using VisualStudioSolutionSecrets.IO;
 using VisualStudioSolutionSecrets.Repository;
 
+
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class CommandTests
     {
 

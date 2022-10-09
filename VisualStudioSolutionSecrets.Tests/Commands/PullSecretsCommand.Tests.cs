@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using Moq;
 using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.IO;
 
+
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class PullSecretsCommandTests : CommandTests, IDisposable
     {
 
@@ -75,64 +78,54 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         }
 
 
-        private async Task PrepareTest()
+        private void PrepareTest()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Constants.SolutionFilesPath
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Constants.SolutionFilesPath
+                );
 
             ChangeSecretsFilesPath();
         }
 
 
         [Fact]
-        public async Task PullPathTest()
+        public void PullPathTest()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await new PullCommand
-            {
-                Path = Constants.SolutionFilesPath
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PullCommand>(
+                Constants.SolutionFilesPath
+                );
 
             VerifyTestResults();
         }
 
 
         [Fact]
-        public async Task PullRelativePathTest()
+        public void PullRelativePathTest()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await new PullCommand
-            {
-                Path = "."
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PullCommand>(
+                "."
+                );
 
             VerifyTestResults();
         }
 
 
         [Fact]
-        public async Task PullPathWithoutSolutionTest()
+        public void PullPathWithoutSolutionTest()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await new PullCommand
-            {
-                Path = "unknown"
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PullCommand>(
+                "unknown"
+                );
 
             string pulledFilePath1 = Path.Combine(PulledSecretsFilesPath, "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99", "secrets.json");
             string pulledFilePath2 = Path.Combine(PulledSecretsFilesPath, "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99", "secrets.xml");
@@ -143,16 +136,14 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task PullAllWithinPathTest()
+        public void PullAllWithinPathTest()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await new PullCommand
-            {
-                Path = Constants.SampleFilesPath,
-                All = true
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PullCommand>(
+                "--all",
+                Constants.SampleFilesPath
+                );
 
             VerifyTestResults();
         }

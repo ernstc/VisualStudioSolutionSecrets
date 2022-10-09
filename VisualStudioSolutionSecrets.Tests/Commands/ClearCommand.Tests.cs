@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands;
+
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class ClearCommandTests : CommandTests, IDisposable
     {
 
@@ -47,7 +50,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             MockFileSystem(secretsFolder: Constants.TempFolderPath);
 
-            new ClearCommand().OnExecute();
+            CommandLineApplication.Execute<ClearCommand>();
 
             var secretFile1 = new SecretFile(Path.Combine(Constants.TempFolderPath, secretId, "secrets.json"), String.Empty);
             var secretFile2 = new SecretFile(Path.Combine(Constants.TempFolderPath, secretId, "secrets.xml"), String.Empty);

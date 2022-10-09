@@ -5,13 +5,13 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Moq;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands;
-using VisualStudioSolutionSecrets.IO;
-using VisualStudioSolutionSecrets.Tests.Helpers;
+
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class StatusCommandTests : CommandTests, IDisposable
     {
 
@@ -37,200 +37,158 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task StatusTest()
+        public void StatusTest()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Constants.SolutionFilesPath
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Constants.SolutionFilesPath
+                );
 
             ClearOutput();
 
-            await new StatusCommand().OnExecute();
+            CommandLineApplication.Execute<StatusCommand>();
 
             VerifyOutput();
         }
 
 
         [Fact]
-        public async Task StatusWithSolutionsPathTest()
+        public void StatusWithSolutionsPathTest()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Constants.SolutionFilesPath
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Constants.SolutionFilesPath
+                );
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Constants.SampleFilesPath
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Constants.SampleFilesPath
+                );
 
             VerifyOutput();
         }
 
 
         [Fact]
-        public async Task StatusWithSolutionsFilePathTest()
+        public void StatusWithSolutionsFilePathTest()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             VerifyOutput();
         }
 
 
         [Fact]
-        public async Task StatusWithSolutionsPathAllTest()
+        public void StatusWithSolutionsPathAllTest()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Constants.SolutionFilesPath
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Constants.SolutionFilesPath
+                );
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Constants.SampleFilesPath,
-                All = true
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Constants.SampleFilesPath,
+                "--all"
+                );
 
             VerifyOutput();
         }
 
 
         [Fact]
-        public async Task StatusWithSolutionsRelativePathTest()
+        public void StatusWithSolutionsRelativePathTest()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Constants.SolutionFilesPath
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Constants.SolutionFilesPath
+                );
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = ".",
-                All = false
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                ".",
+                "--all"
+                );
 
             VerifyOutput();
         }
 
 
         [Fact]
-        public async Task Status_Synchronized_Test()
+        public void Status_Synchronized_Test()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-           .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Synchronized"));
         }
 
 
         [Fact]
-        public async Task Status_NoSecretFound_Test()
+        public void Status_NoSecretFound_Test()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample-WithEmptySecrets.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample-WithEmptySecrets.sln")
+                );
 
             VerifyOutput("status_name", l => l.Replace("{status}", "No secrets found"));
         }
 
 
         [Fact]
-        public async Task Status_HeaderError_Test()
+        public void Status_HeaderError_Test()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             File.WriteAllText(
                 Path.Combine(Constants.RepositoryFilesPath, "secrets.json"),
@@ -239,30 +197,24 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             VerifyOutput("status_name", l => l.Replace("{status}", "ERROR: Header"));
         }
 
 
         [Fact]
-        public async Task Status_ContentError_Test()
+        public void Status_ContentError_Test()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             File.WriteAllText(
                 Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json"),
@@ -271,153 +223,121 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             VerifyOutput("status_name", l => l.Replace("{status}", "ERROR: Content"));
         }
 
 
         [Fact]
-        public async Task Status_LocalOnly_Test()
+        public void Status_LocalOnly_Test()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Local only"));
         }
 
 
         [Fact]
-        public async Task Status_CloundOnly_Test()
+        public void Status_CloundOnly_Test()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             // Fake file system for hiding local settings
             MockFileSystem(secretsFolder: Constants.TempFolderPath);
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Cloud only"));
         }
 
 
         [Fact]
-        public async Task Status_CloudOnly_InvalidKey_Test()
+        public void Status_CloudOnly_InvalidKey_Test()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             // Fake file system for hiding local settings
             MockFileSystem(secretsFolder: Constants.TempFolderPath);
 
             // Invalidate the key
-            await new InitCommand
-            {
-                Passphrase = "New" + Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", "New" + Constants.PASSPHRASE
+                );
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Cloud only / Invalid key"));
         }
 
 
         [Fact]
-        public async Task Status_InvalidKey_Test()
+        public void Status_InvalidKey_Test()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
-            await new InitCommand
-            {
-                Passphrase = "New" + Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", "New" + Constants.PASSPHRASE
+                );
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Invalid key"));
         }
 
 
         [Fact]
-        public async Task Status_NotSynchronized_1_Test()
+        public void Status_NotSynchronized_1_Test()
         {
             UseRepositoryEncryption = false;
 
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             string filePath = Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json");
             string fileContent = File.ReadAllText(filePath);
@@ -426,32 +346,26 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
         }
 
 
         [Fact]
-        public async Task Status_NotSynchronized_2_Test()
+        public void Status_NotSynchronized_2_Test()
         {
             UseRepositoryEncryption = false;
 
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             string filePath = Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json");
             string fileContent = File.ReadAllText(filePath);
@@ -462,60 +376,48 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
         }
 
 
         [Fact]
-        public async Task Status_NotSynchronized_3_Test()
+        public void Status_NotSynchronized_3_Test()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             string filePath = Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json");
             File.Delete(filePath);
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
         }
 
 
         [Fact]
-        public async Task Status_NotSynchronized_4_Test()
+        public void Status_NotSynchronized_4_Test()
         {
-            await new InitCommand
-            {
-                Passphrase = Constants.PASSPHRASE
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<InitCommand>(
+                "-p", Constants.PASSPHRASE
+                );
 
-            await new PushCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<PushCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             const string secretId = "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99";
             string filePath = Path.Combine(secretId, "secrets.json");
@@ -530,11 +432,9 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            await new StatusCommand
-            {
-                Path = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-            }
-            .OnExecute();
+            CommandLineApplication.Execute<StatusCommand>(
+                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
+                );
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
         }

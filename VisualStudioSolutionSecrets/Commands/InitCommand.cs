@@ -14,7 +14,6 @@ namespace VisualStudioSolutionSecrets.Commands
         public string? Passphrase { get; set; }
 
         [Option("-f|--keyfile <path>", Description = "Key file path to use for creating the encryption key.")]
-        [FileExists]
         public string? KeyFile { get; set; }
 
 
