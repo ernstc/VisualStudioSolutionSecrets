@@ -76,7 +76,7 @@ A "gist" is a snippet of code that can either be public or secret. Visual Studio
 
 GitHub Gists is the default repository used by Visual Studio Solution Secrets for storing solution secrets. Secrets are collected, **encrypted** and pushed on your GitHub account in a **secret gist**, so that only you can see them. The encryption key is generated from a passphrase or a key file that you specify during the one time initialization of the tool.
 
-![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/dev/media/github-flow.svg)
+![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/dev/media/github-flow.png)
 
 ## Azure Key Vault
 
@@ -87,7 +87,7 @@ Since secrets are encrypted at rest and communication with the key vault is secu
 This opens to the scenario where you can share the solution secrets with the development team. You only need to authorize the team with read or read/write access to the Azure Key Vault secrects, so that the team can pull secrets.
 **This is the recommended way for sharing solution secrets within the team.**
 
-![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/dev/media/azurekv-flow.svg)
+![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/dev/media/azurekv-flow.png)
 
 You can read the Azure Key Vault documentation [here](https://learn.microsoft.com/en-us/azure/key-vault/general/overview)
 
