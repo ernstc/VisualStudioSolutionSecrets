@@ -243,5 +243,28 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
         }
 
+
+        [Fact]
+        public void Configure_Reset_Test()
+        {
+            CommandLineApplication.Execute<ConfigureCommand>(
+                "SolutionSample.sln",
+                "--repo", nameof(RepositoryTypesEnum.AzureKV),
+                "--name", KEY_VAULT_NAME
+            );
+
+            var result = CommandLineApplication.Execute<ConfigureCommand>(
+                "SolutionSample.sln",
+                "--reset"
+            );
+
+            Assert.Equal(0, result);
+            Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+
+            var settings = Configuration.GetCustomSynchronizationSettings(new Guid(SOLUTION_GUID));
+
+            Assert.Null(settings);
+        }
+
     }
 }
