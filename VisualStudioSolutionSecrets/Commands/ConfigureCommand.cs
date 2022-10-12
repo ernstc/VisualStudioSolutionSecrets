@@ -86,8 +86,9 @@ namespace VisualStudioSolutionSecrets.Commands
     [Subcommand(
        typeof(ConfigureListCommand)
     )]
-    internal class ConfigureCommand : CommandBase
+    internal class ConfigureCommand : CommandBaseWithPath
     {
+
         [Option("--default", Description = "Changes the default configuration.")]
         public bool Default { get; set; }
 
@@ -100,9 +101,6 @@ namespace VisualStudioSolutionSecrets.Commands
 
         [Option("--reset", Description = "Reset the configuration of the solution.")]
         public bool Reset { get; set; }
-
-        [Argument(0, Name = "path", Description = "Path for searching solutions or single solution file path.")]
-        public string? Path { get; set; }
 
 
         public int OnExecute(CommandLineApplication? app = null)

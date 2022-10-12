@@ -11,11 +11,8 @@ namespace VisualStudioSolutionSecrets.Commands
 {
 
     [Command(Description = "Push encrypted solution secrets.")]
-    internal class PushCommand : CommandBase
-	{
-
-        [Argument(0, Name = "path", Description = "Path for searching solutions or single solution file path.")]
-        public string? Path { get; set; }
+    internal class PushCommand : CommandBaseWithPath
+    {
 
         [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
         public bool All { get; set; }

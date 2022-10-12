@@ -11,11 +11,8 @@ namespace VisualStudioSolutionSecrets.Commands
 {
 
     [Command(Description = "Pull solution secrets and decrypt them.")]
-    internal class PullCommand : CommandBase
+    internal class PullCommand : CommandBaseWithPath
     {
-
-        [Argument(0, Name = "path", Description = "Path for searching solutions or single solution file path.")]
-        public string? Path { get; set; }
 
         [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
         public bool All { get; set; }

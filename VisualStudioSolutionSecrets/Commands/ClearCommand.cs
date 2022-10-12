@@ -12,12 +12,8 @@ namespace VisualStudioSolutionSecrets.Commands
 {
 
     [Command(Description = "Delete all the solution secrets from the local machine.")]
-    public class ClearCommand : CommandBase
+    internal class ClearCommand : CommandBaseWithPath
     {
-
-        [Argument(0, Name = "path", Description = "Path for searching solutions or single solution file path.")]
-        public string? Path { get; set; }
-
 
         public int OnExecute()
         {

@@ -7,11 +7,8 @@ namespace VisualStudioSolutionSecrets.Commands
 {
 
     [Command(Description = "Search for solution secrets.")]
-    internal class SearchCommand : CommandBase
+    internal class SearchCommand : CommandBaseWithPath
     {
-
-        [Argument(0, Name = "path", Description = "Path for searching solutions or single solution file path.")]
-        public string? Path { get; set; }
 
         [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
         public bool All { get; set; }
