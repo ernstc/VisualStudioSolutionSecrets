@@ -1,4 +1,4 @@
-vs-secrets 1.2.0
+vs-secrets 1.2.1
 
 Checking status...
 
