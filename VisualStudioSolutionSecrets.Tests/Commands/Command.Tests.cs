@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using Moq;
 using VisualStudioSolutionSecrets.Encryption;
 using VisualStudioSolutionSecrets.IO;
@@ -231,6 +232,65 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         protected void ClearOutput()
         {
             _consoleOutput.Clear();
+        }
+
+
+        protected int RunCommand(string arguments)
+        {
+            const char multiWordParamDelimiter = '\'';
+
+            arguments = arguments.Trim();
+            List<string> args = new List<string>();
+
+            bool capturing = true;
+            bool aggregating = false;
+            int startIndex = 0;
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                switch (arguments[i])
+                {
+                    case multiWordParamDelimiter:
+                        {
+                            aggregating = !aggregating;
+                            if (aggregating)
+                            {
+                                capturing = true;
+                                startIndex = i + 1;
+                            }
+                            else
+                            {
+                                capturing = false;
+                                args.Add(arguments[startIndex..i]);
+                            }
+                            break;
+                        }
+                    case ' ':
+                        {
+                            if (!aggregating && capturing)
+                            {
+                                capturing = false;
+                                args.Add(arguments[startIndex..i]);
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            if (!capturing)
+                            {
+                                startIndex = i;
+                                capturing = true;
+                            }
+                            break;
+                        }
+                }
+            }
+
+            if (capturing)
+            {
+                args.Add(arguments[startIndex..]);
+            }
+
+            return CommandLineApplication.Execute<Program>(args.ToArray());
         }
 
 

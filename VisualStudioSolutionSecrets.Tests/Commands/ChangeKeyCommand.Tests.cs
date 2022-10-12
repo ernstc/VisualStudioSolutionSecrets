@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using McMaster.Extensions.CommandLineUtils;
 using Moq;
-using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.IO;
 
 
@@ -79,29 +77,22 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         }
 
 
-        private static void PrepareTest()
+        private void PrepareTest()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Constants.SolutionFilesPath
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Constants.SolutionFilesPath}'");
         }
 
 
         [Fact]
         public void ChangeKeyWithoutParameters()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-            );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
 
             string encryptionKeyFilePath = Path.Combine(Constants.ConfigFilesPath, "cipher.json");
             string encryptionKey = File.ReadAllText(encryptionKeyFilePath);
 
-            CommandLineApplication.Execute<ChangeKeyCommand>();
+            RunCommand("change-key");
 
             Assert.Equal(encryptionKey, File.ReadAllText(encryptionKeyFilePath));
         }
@@ -112,15 +103,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             PrepareTest();
 
-            CommandLineApplication.Execute<ChangeKeyCommand>(
-                "-p", NEW_PASSPHRASE
-                );
+            RunCommand($"change-key -p {NEW_PASSPHRASE}");
 
             ChangeSecretsFilesPath();
 
-            CommandLineApplication.Execute<PullCommand>(
-                Constants.SolutionFilesPath
-                );
+            RunCommand($"pull '{Constants.SolutionFilesPath}'");
 
             VerifyTestResults();
         }
@@ -131,15 +118,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             PrepareTest();
 
-            CommandLineApplication.Execute<ChangeKeyCommand>(
-                "-f", Path.Combine(Constants.TestFilesPath, "initFile2.key")
-                );
+            RunCommand($"change-key -f '{Path.Combine(Constants.TestFilesPath, "initFile2.key")}'");
 
             ChangeSecretsFilesPath();
 
-            CommandLineApplication.Execute<PullCommand>(
-                Constants.SolutionFilesPath
-                );
+            RunCommand($"pull '{Constants.SolutionFilesPath}'");
 
             VerifyTestResults();
         }
@@ -150,15 +133,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             PrepareTest();
 
-            CommandLineApplication.Execute<ChangeKeyCommand>(
-                "-f", "initFile2.key"
-                );
+            RunCommand("change-key -f initFile2.key");
 
             ChangeSecretsFilesPath();
 
-            CommandLineApplication.Execute<PullCommand>(
-                Constants.SolutionFilesPath
-                );
+            RunCommand($"pull '{Constants.SolutionFilesPath}'");
 
             VerifyTestResults();
         }

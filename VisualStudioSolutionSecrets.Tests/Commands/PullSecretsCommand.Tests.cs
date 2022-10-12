@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using McMaster.Extensions.CommandLineUtils;
 using Moq;
-using VisualStudioSolutionSecrets.Commands;
 using VisualStudioSolutionSecrets.IO;
 
 
@@ -80,13 +78,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
         private void PrepareTest()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Constants.SolutionFilesPath
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Constants.SolutionFilesPath}'");
 
             ChangeSecretsFilesPath();
         }
@@ -97,9 +90,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             PrepareTest();
 
-            CommandLineApplication.Execute<PullCommand>(
-                Constants.SolutionFilesPath
-                );
+            RunCommand($"pull '{Constants.SolutionFilesPath}'");
 
             VerifyTestResults();
         }
@@ -110,9 +101,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             PrepareTest();
 
-            CommandLineApplication.Execute<PullCommand>(
-                "."
-                );
+            RunCommand("pull .");
 
             VerifyTestResults();
         }
@@ -123,9 +112,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             PrepareTest();
 
-            CommandLineApplication.Execute<PullCommand>(
-                "unknown"
-                );
+            RunCommand("pull unknown");
 
             string pulledFilePath1 = Path.Combine(PulledSecretsFilesPath, "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99", "secrets.json");
             string pulledFilePath2 = Path.Combine(PulledSecretsFilesPath, "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99", "secrets.xml");
@@ -140,10 +127,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             PrepareTest();
 
-            CommandLineApplication.Execute<PullCommand>(
-                "--all",
-                Constants.SampleFilesPath
-                );
+            RunCommand($"pull --all '{Constants.SampleFilesPath}'");
 
             VerifyTestResults();
         }

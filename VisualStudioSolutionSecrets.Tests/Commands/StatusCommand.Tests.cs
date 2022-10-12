@@ -5,8 +5,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using McMaster.Extensions.CommandLineUtils;
-using VisualStudioSolutionSecrets.Commands;
 
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
@@ -39,17 +37,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void StatusTest()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Constants.SolutionFilesPath
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Constants.SolutionFilesPath}'");
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>();
+            RunCommand("status");
 
             VerifyOutput();
         }
@@ -58,19 +51,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void StatusWithSolutionsPathTest()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Constants.SolutionFilesPath
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Constants.SolutionFilesPath}'");
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Constants.SampleFilesPath
-                );
+            RunCommand($"status '{Constants.SampleFilesPath}'");
 
             VerifyOutput();
         }
@@ -79,19 +65,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void StatusWithSolutionsFilePathTest()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput();
         }
@@ -100,20 +79,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void StatusWithSolutionsPathAllTest()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Constants.SolutionFilesPath
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Constants.SolutionFilesPath}'");
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Constants.SampleFilesPath,
-                "--all"
-                );
+            RunCommand($"status --all '{Constants.SampleFilesPath}'");
 
             VerifyOutput();
         }
@@ -122,20 +93,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void StatusWithSolutionsRelativePathTest()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Constants.SolutionFilesPath
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Constants.SolutionFilesPath}'");
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                ".",
-                "--all"
-                );
+            RunCommand($"status . --all");
 
             VerifyOutput();
         }
@@ -144,19 +107,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Status_Synchronized_Test()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Synchronized"));
         }
@@ -165,15 +121,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Status_NoSecretFound_Test()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample-WithEmptySecrets.sln")
-                );
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample-WithEmptySecrets.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "No secrets found"));
         }
@@ -182,13 +134,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Status_HeaderError_Test()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             File.WriteAllText(
                 Path.Combine(Constants.RepositoryFilesPath, "secrets.json"),
@@ -197,9 +144,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "ERROR: Header"));
         }
@@ -208,13 +153,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Status_ContentError_Test()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             File.WriteAllText(
                 Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json"),
@@ -223,9 +163,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "ERROR: Content"));
         }
@@ -234,15 +172,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Status_LocalOnly_Test()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Local only"));
         }
@@ -251,22 +185,15 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Status_CloundOnly_Test()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push {Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}");
 
             // Fake file system for hiding local settings
             MockFileSystem(secretsFolder: Constants.TempFolderPath);
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Cloud only"));
         }
@@ -275,27 +202,18 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Status_CloudOnly_InvalidKey_Test()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             // Fake file system for hiding local settings
             MockFileSystem(secretsFolder: Constants.TempFolderPath);
 
             // Invalidate the key
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", "New" + Constants.PASSPHRASE
-                );
+            RunCommand($"init -p New{Constants.PASSPHRASE}");
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Cloud only / Invalid key"));
         }
@@ -304,23 +222,13 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Status_InvalidKey_Test()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
-
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", "New" + Constants.PASSPHRASE
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
+            RunCommand($"init -p New{Constants.PASSPHRASE}");
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Invalid key"));
         }
@@ -331,13 +239,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             UseRepositoryEncryption = false;
 
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             string filePath = Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json");
             string fileContent = File.ReadAllText(filePath);
@@ -346,9 +249,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
         }
@@ -359,13 +260,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             UseRepositoryEncryption = false;
 
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             string filePath = Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json");
             string fileContent = File.ReadAllText(filePath);
@@ -376,9 +272,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
         }
@@ -387,22 +281,15 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Status_NotSynchronized_3_Test()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             string filePath = Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json");
             File.Delete(filePath);
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
         }
@@ -411,13 +298,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Status_NotSynchronized_4_Test()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             const string secretId = "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99";
             string filePath = Path.Combine(secretId, "secrets.json");
@@ -432,9 +314,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            CommandLineApplication.Execute<StatusCommand>(
-                Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")
-                );
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
         }

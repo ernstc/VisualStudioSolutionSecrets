@@ -5,8 +5,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using McMaster.Extensions.CommandLineUtils;
-using VisualStudioSolutionSecrets.Commands;
 
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
@@ -65,13 +63,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void PushPathTest()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Constants.SolutionFilesPath
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Constants.SolutionFilesPath}'");
 
             VerifyTestResults();
         }
@@ -80,13 +73,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void PushRelativePathTest()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                "."
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand("push .");
 
             VerifyTestResults();
         }
@@ -95,13 +83,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void PushPathWithoutSolutionTest()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                "unknown"
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand("push unknown");
 
             string headerPath = Path.Combine(Constants.RepositoryFilesPath, "secrets.json");
           
@@ -112,14 +95,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void PushAllWithinPathTest()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
-
-            CommandLineApplication.Execute<PushCommand>(
-                Constants.SampleFilesPath,
-                "--all"
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push --all '{Constants.SampleFilesPath}'");
 
             VerifyTestResults();
         }

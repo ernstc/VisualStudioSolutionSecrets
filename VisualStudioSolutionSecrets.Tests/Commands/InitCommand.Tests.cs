@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using McMaster.Extensions.CommandLineUtils;
-using VisualStudioSolutionSecrets.Commands;
 
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
@@ -35,7 +33,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void InitWithoutParametersTest()
         {
-            CommandLineApplication.Execute<InitCommand>();
+            RunCommand("init");
 
             Assert.False(File.Exists(_generatedFilePath));
         }
@@ -44,9 +42,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void InitWithPassphraseTest()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-p", Constants.PASSPHRASE
-                );
+            RunCommand($"init -p {Constants.PASSPHRASE}");
 
             Assert.True(File.Exists(_generatedFilePath));
             Assert.Equal(File.ReadAllLines(_sampleFilePath), File.ReadAllLines(_generatedFilePath));
@@ -56,9 +52,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void InitWithKeyFileTest()
         {
-            CommandLineApplication.Execute<InitCommand>(
-                "-f", Path.Combine(Constants.TestFilesPath, "initFile.key")
-                );
+            RunCommand($"init -f '{Path.Combine(Constants.TestFilesPath, "initFile.key")}'");
 
             Assert.True(File.Exists(_generatedFilePath));
             Assert.Equal(File.ReadAllLines(_sampleFilePath), File.ReadAllLines(_generatedFilePath));
@@ -68,9 +62,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void InitWithKeyFileWithRelativePathTest()
         {
-            int result = CommandLineApplication.Execute<InitCommand>(
-                "-f", Path.Combine("..", "testFiles", "initFile.key")
-                );
+            RunCommand($"init -f '{Path.Combine("..", "testFiles", "initFile.key")}'");
 
             Assert.True(File.Exists(_generatedFilePath));
             Assert.Equal(File.ReadAllLines(_sampleFilePath), File.ReadAllLines(_generatedFilePath));
