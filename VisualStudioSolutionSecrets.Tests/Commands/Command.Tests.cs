@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -10,7 +11,7 @@ using Moq;
 using VisualStudioSolutionSecrets.Encryption;
 using VisualStudioSolutionSecrets.IO;
 using VisualStudioSolutionSecrets.Repository;
-
+using Xunit;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
@@ -159,7 +160,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 .Setup(o => o.PullFilesAsync(It.IsAny<ISolution>()))
                 .ReturnsAsync((ISolution solution) =>
                 {
-                    List<(string name, string? content)> files = new();
+                    List<(string name, string? content)> files = new List<(string name, string? content)>();
                     string[] filesPath = Directory.GetFiles(Constants.RepositoryFilesPath, "*.json", SearchOption.AllDirectories);
                     foreach (var filePath in filesPath)
                     {
@@ -198,7 +199,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 .ReturnsAsync(() =>
                 {
 
-                    List<(string name, string? content)> files = new();
+                    List<(string name, string? content)> files = new List<(string name, string? content)>();
                     string[] filesPath = Directory.GetFiles(Constants.RepositoryFilesPath, "*.json", SearchOption.AllDirectories);
                     foreach (var filePath in filesPath)
                     {
@@ -363,7 +364,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                     .Replace("|", @"\|")
                     .Replace("#", @"\d")
                     .Replace(".", @"\.")
-                    .Replace("*", @".*")
+                    .Replace("%", ".")
+                    .Replace("*", ".*")
                     .Replace("(", @"\(")
                     .Replace(")", @"\)")
                     + "$";

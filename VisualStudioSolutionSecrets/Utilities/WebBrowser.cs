@@ -25,7 +25,7 @@ namespace VisualStudioSolutionSecrets.Utilities
                 // hack because of this: https://github.com/dotnet/corefx/issues/10361
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    url = url.Replace("&", "^&");
+                    url = url.Replace("&", "^&", StringComparison.Ordinal);
                     Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
                     return;
                 }

@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
-using NuGet.Protocol.Core.Types;
-using VisualStudioSolutionSecrets.Encryption;
 using VisualStudioSolutionSecrets.IO;
-using VisualStudioSolutionSecrets.Repository;
+using Xunit;
+
 
 namespace VisualStudioSolutionSecrets.Tests
 {

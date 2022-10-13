@@ -50,9 +50,9 @@ namespace VisualStudioSolutionSecrets
                 string[] lines = File.ReadAllLines(filePath);
                 foreach (var line in lines)
                 {
-                    if (line.Contains("SolutionGuid") && line.Contains('='))
+                    if (line.Contains("SolutionGuid", StringComparison.Ordinal) && line.Contains('=', StringComparison.Ordinal))
                     {
-                        string guid = line.Substring(line.IndexOf('=') + 1);
+                        string guid = line.Substring(line.IndexOf('=', StringComparison.Ordinal) + 1);
                         _uid = Guid.Parse(guid.Trim());
                         break;
                     }
@@ -77,9 +77,9 @@ namespace VisualStudioSolutionSecrets
             string[] lines = File.ReadAllLines(_filePath);
             foreach (string line in lines)
             {
-                if (line.StartsWith("Project("))
+                if (line.StartsWith("Project(", StringComparison.Ordinal))
                 {
-                    int idx = line.IndexOf('"');
+                    int idx = line.IndexOf('"', StringComparison.Ordinal);
                     while (idx >= 0)
                     {
                         int endIdx = line.IndexOf('"', idx + 1);
@@ -139,7 +139,7 @@ namespace VisualStudioSolutionSecrets
             int idx = projectFileContent.IndexOf(openTag, StringComparison.InvariantCultureIgnoreCase);
             if (idx >= 0)
             {
-                int endIdx = projectFileContent.IndexOf(closeTag, idx + 1);
+                int endIdx = projectFileContent.IndexOf(closeTag, idx + 1, StringComparison.Ordinal);
                 if (endIdx > idx)
                 {
                     string secretsId = projectFileContent.Substring(idx + openTag.Length, endIdx - idx - openTag.Length);
@@ -164,7 +164,7 @@ namespace VisualStudioSolutionSecrets
             int idx = projectFileContent.IndexOf(openTag, StringComparison.InvariantCultureIgnoreCase);
             if (idx >= 0)
             {
-                int endIdx = projectFileContent.IndexOf(closeTag, idx + 1);
+                int endIdx = projectFileContent.IndexOf(closeTag, idx + 1, StringComparison.Ordinal);
                 if (endIdx > idx)
                 {
                     string[] projectGuids = projectFileContent.Substring(idx + openTag.Length, endIdx - idx - openTag.Length).ToLower().Split(';');

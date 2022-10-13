@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 
@@ -51,7 +52,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             try
             {
                 var files =  Directory.GetFiles(directory, "*.sln", all ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-                Array.Sort(files);
+                Array.Sort(files, StringComparer.Ordinal);
                 return files;
             }
             catch (Exception ex)

@@ -45,7 +45,7 @@ namespace VisualStudioSolutionSecrets.Repository
                     string loweredValue = value.ToLower();
                     if (Uri.TryCreate(loweredValue, UriKind.Absolute, out Uri? repositoryUri) && repositoryUri != null)
                     {
-                        int vaultIndex = loweredValue.IndexOf(".vault.");
+                        int vaultIndex = loweredValue.IndexOf(".vault.", StringComparison.Ordinal);
                         if (vaultIndex >= 0)
                         {
                             string cloudDomain = loweredValue[vaultIndex..];
@@ -79,10 +79,10 @@ namespace VisualStudioSolutionSecrets.Repository
 
             string name = RepositoryName;
             name = name[8..];
-            name = name[..name.IndexOf(".vault.")];
+            name = name[..name.IndexOf(".vault.", StringComparison.Ordinal)];
 
             string cloudDomain = RepositoryName.ToLower();
-            cloudDomain = cloudDomain[cloudDomain.IndexOf(".vault.")..];
+            cloudDomain = cloudDomain[cloudDomain.IndexOf(".vault.", StringComparison.Ordinal)..];
 
             if (_clouds.TryGetValue(cloudDomain, out var cloud))
                 return $"{cloud} ({name})";
@@ -161,7 +161,7 @@ namespace VisualStudioSolutionSecrets.Repository
             List<string> solutionSecretsName = new List<string>();
             await foreach (var secretProperties in _client.GetPropertiesOfSecretsAsync())
             {
-                if (secretProperties.Enabled == true && secretProperties.Name.StartsWith(prefix))
+                if (secretProperties.Enabled == true && secretProperties.Name.StartsWith(prefix, StringComparison.Ordinal))
                 {
                     solutionSecretsName.Add(secretProperties.Name);
                 }
@@ -201,10 +201,10 @@ namespace VisualStudioSolutionSecrets.Repository
             foreach (var (name, content) in files)
             {
                 string fileName = name;
-                if (fileName.Contains('\\'))
+                if (fileName.Contains('\\', StringComparison.Ordinal))
                 {
-                    fileName = fileName[(fileName.IndexOf('\\') + 1)..];
-                    fileName = fileName[..fileName.IndexOf('.')];
+                    fileName = fileName[(fileName.IndexOf('\\', StringComparison.Ordinal) + 1)..];
+                    fileName = fileName[..fileName.IndexOf('.', StringComparison.Ordinal)];
                 }
 
                 string secretName = solution.Uid != Guid.Empty ?
