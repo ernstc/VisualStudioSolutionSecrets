@@ -47,7 +47,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             Assert.True(header.ContainsKey("lastUpload"));
             Assert.True(header.ContainsKey("solutionFile"));
 
-            Assert.Equal("2.0.0", header["visualStudioSolutionSecretsVersion"]);
+            Assert.Equal(Versions.VersionString, header["visualStudioSolutionSecretsVersion"]);
             Assert.Equal("SolutionSample.sln", header["solutionFile"]);
 
             var secrets = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(encryptedSecretsPath))!;

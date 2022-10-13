@@ -1,4 +1,4 @@
-vs-secrets 2.0.0
+vs-secrets #.#.#
 
 Checking status...
 
