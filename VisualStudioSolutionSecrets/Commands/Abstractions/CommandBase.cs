@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using VisualStudioSolutionSecrets.IO;
+
 
 namespace VisualStudioSolutionSecrets.Commands.Abstractions
 {
@@ -50,7 +50,9 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             var directory = path ?? Context.Current.IO.GetCurrentDirectory();
             try
             {
-                return Directory.GetFiles(directory, "*.sln", all ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+                var files =  Directory.GetFiles(directory, "*.sln", all ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+                Array.Sort(files);
+                return files;
             }
             catch (Exception ex)
             {

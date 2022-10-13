@@ -186,7 +186,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         public void Status_CloundOnly_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
-            RunCommand($"push {Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}");
+            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             // Fake file system for hiding local settings
             MockFileSystem(secretsFolder: Constants.TempFolderPath);
