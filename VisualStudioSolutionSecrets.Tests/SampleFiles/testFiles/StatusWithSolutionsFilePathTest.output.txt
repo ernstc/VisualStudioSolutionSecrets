@@ -4,7 +4,6 @@ Checking status...
 
              Ecryption key: OK
   Repository authorization: OK
-        Default repository: Mock (Name)
 
 
 Checking solutions synchronization status...

@@ -30,25 +30,9 @@ namespace VisualStudioSolutionSecrets.Commands
 
             string encryptionKeyStatus = isCipherReady ? "OK" : "NOT DEFINED";
             string repositoryAuthorizationStatus = isRepositoryReady ? "OK" : "NOT AUTHORIZED";
-            string defaultRepository;
-
-            var repository = Context.Current.GetService<IRepository>();
-            if (repository != null)
-            {
-                defaultRepository = repository.RepositoryType;
-                if (!String.IsNullOrEmpty(repository.RepositoryName))
-                {
-                    defaultRepository += $" ({repository.RepositoryName})";
-                }
-            }
-            else
-            {
-                defaultRepository = "None";
-            }
 
             Console.WriteLine($"             Ecryption key: {encryptionKeyStatus}");
-            Console.WriteLine($"  Repository authorization: {repositoryAuthorizationStatus}");
-            Console.WriteLine($"        Default repository: {defaultRepository}\n\n");
+            Console.WriteLine($"  Repository authorization: {repositoryAuthorizationStatus}\n\n");
 
             if (isCipherReady && isRepositoryReady)
             {
