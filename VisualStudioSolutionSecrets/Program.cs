@@ -52,7 +52,7 @@ namespace VisualStudioSolutionSecrets
 
         private string GetVersion()
         {
-            var assembly = typeof(Versions).Assembly; 
+            var assembly = typeof(Versions).Assembly;
             var version = assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             var copyright = assembly?.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
             return $"vs-secrets {version}\n{copyright}";

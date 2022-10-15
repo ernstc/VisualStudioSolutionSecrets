@@ -27,9 +27,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 return 1;
             }
 
-            string? path = EnsureFullyQualifiedPath(Path) ?? Context.Current.IO.GetCurrentDirectory();
-
-            string[] solutionFiles = GetSolutionFiles(path, All);
+            string[] solutionFiles = GetSolutionFiles(Path, All);
             if (solutionFiles.Length == 0)
             {
                 Console.WriteLine("Solution files not found.\n");

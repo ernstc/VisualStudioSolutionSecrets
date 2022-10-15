@@ -48,8 +48,7 @@ namespace VisualStudioSolutionSecrets.Commands
             Console.ForegroundColor = color;
             Console.WriteLine("\n");
 
-            string path = EnsureFullyQualifiedPath(Path) ?? Context.Current.IO.GetCurrentDirectory();
-            string[] solutionFiles = GetSolutionFiles(path, All);
+            string[] solutionFiles = GetSolutionFiles(Path, All);
 
             if (solutionFiles.Length > 0)
             {

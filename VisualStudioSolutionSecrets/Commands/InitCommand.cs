@@ -30,7 +30,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 return 1;
             }
 
-            string? keyFile = EnsureFullyQualifiedPath(KeyFile);
+            string? keyFile = KeyFile != null ? EnsureFullyQualifiedPath(KeyFile) : null;
 
 			if (AreEncryptionKeyParametersValid(Passphrase, keyFile))
 			{

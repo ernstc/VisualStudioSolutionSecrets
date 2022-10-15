@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 namespace VisualStudioSolutionSecrets.Commands.Abstractions
 {
 
-	public abstract class CommandBase
-	{
+    public abstract class CommandBase
+    {
 
-        protected string? EnsureFullyQualifiedPath(string? path)
+        protected string EnsureFullyQualifiedPath(string? path)
         {
-            string? fullyQualifiedPath = path;
-            if (fullyQualifiedPath != null && !Path.IsPathFullyQualified(fullyQualifiedPath))
+            string fullyQualifiedPath = path ?? Context.Current.IO.GetCurrentDirectory();
+            if (!Path.IsPathFullyQualified(fullyQualifiedPath))
             {
                 fullyQualifiedPath = Path.Combine(Context.Current.IO.GetCurrentDirectory(), fullyQualifiedPath);
             }
@@ -42,8 +42,35 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
         protected string[] GetSolutionFiles(string? path, bool all)
         {
-            if (path == null)
-                throw new ArgumentNullException(nameof(path));
+            path ??= Context.Current.IO.GetCurrentDirectory();
+
+            if (path.EndsWith(".sln", StringComparison.OrdinalIgnoreCase))
+            {
+                var fileInfo = new FileInfo(path);
+                if (fileInfo.Exists)
+                {
+                    return new string[] { fileInfo.FullName };
+                }
+                else if (fileInfo.Name == path)
+                {
+                    try
+                    {
+                        string localDir = Context.Current.IO.GetCurrentDirectory();
+                        var files = Directory.GetFiles(localDir, fileInfo.Name, SearchOption.AllDirectories);
+                        if (files.Length == 1)
+                        {
+                            return files;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"ERR: {ex.Message}\n");
+                        return Array.Empty<string>();
+                    }
+                }
+            }
+
+            path = EnsureFullyQualifiedPath(path) ?? Context.Current.IO.GetCurrentDirectory();
 
             if (path.EndsWith(".sln", StringComparison.OrdinalIgnoreCase) && File.Exists(path))
                 return new string[] { path };
@@ -51,7 +78,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             var directory = path ?? Context.Current.IO.GetCurrentDirectory();
             try
             {
-                var files =  Directory.GetFiles(directory, "*.sln", all ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+                var files = Directory.GetFiles(directory, "*.sln", all ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
                 Array.Sort(files, StringComparer.Ordinal);
                 return files;
             }

@@ -19,8 +19,7 @@ namespace VisualStudioSolutionSecrets.Commands
         {
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
 
-            string path = EnsureFullyQualifiedPath(Path) ?? Context.Current.IO.GetCurrentDirectory();
-            string[] solutionFiles = GetSolutionFiles(path, false);
+            string[] solutionFiles = GetSolutionFiles(Path, false);
             if (solutionFiles.Length == 0)
             {
                 Console.WriteLine("Solution files not found.\n");
