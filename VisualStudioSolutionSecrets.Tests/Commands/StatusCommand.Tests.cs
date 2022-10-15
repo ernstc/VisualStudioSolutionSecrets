@@ -87,7 +87,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status --all '{Constants.SampleFilesPath}'");
 
-            VerifyOutput();
+            VerifyOutput("StatusTest", s => s);
         }
 
 
@@ -101,7 +101,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status . --all");
 
-            VerifyOutput();
+            VerifyOutput("StatusTest", s => s);
         }
 
 
@@ -128,7 +128,20 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample-WithEmptySecrets.sln")}'");
 
-            VerifyOutput("status_name", l => l.Replace("{status}", "No secrets found"));
+            VerifyOutput("status_name", l => l.Replace("{status}", "Secrets not setted"));
+        }
+
+
+        [Fact]
+        public void Status_Unmanaged_Test()
+        {
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+
+            ClearOutput();
+
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "ReallySuperVeryVeryVeryLongNameForSolutionFileSample.sln")}'");
+
+            VerifyOutput("status_name", l => l.Replace("{status}", "Unmanaged"));
         }
 
 

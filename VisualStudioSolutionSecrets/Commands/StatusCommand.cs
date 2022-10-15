@@ -58,11 +58,12 @@ namespace VisualStudioSolutionSecrets.Commands
                 if (solutionFiles.Length > 0)
                 {
                     Console.WriteLine();
-                    Console.WriteLine("Solution                                          |  Version  |  Last Update          |  Repo     |  Status");
+                    Console.WriteLine("Solution                                          |  Version  |  Last Update          |  Repo     |  Secrets Status");
                     Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------");
 
                     foreach (string solutionFile in solutionFiles)
                     {
+                        SolutionFile solution = new SolutionFile(solutionFile);
                         await GetSolutionStatus(solutionFile);
                     }
                 }
@@ -90,6 +91,7 @@ namespace VisualStudioSolutionSecrets.Commands
             NotSynchronized = 0x40,
             InvalidKey = 0x80,
             CannotLoadStatus = 0x200,
+            Unmanaged = 0x400
         }
 
 
@@ -98,7 +100,7 @@ namespace VisualStudioSolutionSecrets.Commands
        *  Possible SyncStatus values and description:
        *  
        *  Synchronized                  Local and remote settings are synchronized
-       *  NoSecretsFound                No secrets found in the solution
+       *  NoSecretsFound                The solution uses user secrets but they are not setted.
        *  HeaderError                   Found errors in the header file
        *  ContentError                  Remote file is empty or it is not in the corret format.
        *  LocalOnly                     Settings found only on the local machine.
@@ -107,6 +109,7 @@ namespace VisualStudioSolutionSecrets.Commands
        *  NotSynchronized               Local and remote settings are not synchronized.
        *  InvalidKey                    Local settings cannot be compared with remote settings because they cannot be decrypted.
        *  CannotLoadStatus              It is not possible to determine the synchronization status.
+       *  Unmanaged                     The solution does not manage user secrets.
        * 
        */
 
@@ -117,10 +120,15 @@ namespace VisualStudioSolutionSecrets.Commands
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write("Synchronized");
             }
-            else if ((status & SyncStatus.NoSecretsFound) == SyncStatus.NoSecretsFound)
+            else if ((status & SyncStatus.Unmanaged) == SyncStatus.Unmanaged)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.Write("No secrets found");
+                Console.Write("Unmanaged");
+            }
+            else if ((status & SyncStatus.NoSecretsFound) == SyncStatus.NoSecretsFound)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkCyan;
+                Console.Write("Secrets not setted");
             }
             else if ((status & SyncStatus.HeaderError) == SyncStatus.HeaderError)
             {
@@ -186,172 +194,182 @@ namespace VisualStudioSolutionSecrets.Commands
             string solutionName = solution.Name;
             if (solutionName.Length > 48) solutionName = solutionName[..45] + "...";
 
-            var synchronizationSettings = solution.CustomSynchronizationSettings;
-
-            IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
-            repository ??= Context.Current.Repository;
-
-            bool tryToDecrypt = repository.EncryptOnClient;
-
             try
             {
-                // Ensure authorization on the selected repository
-                if (!await repository.IsReady())
-                {
-                    await repository.AuthorizeAsync();
-                }
-
-                var remoteFiles = await repository.PullFilesAsync(solution);
-
-                bool hasRemoteSecrets = remoteFiles.Count > 0;
-
-                var configFiles = solution.GetProjectsSecretFiles().Where(c => c.Content != null).ToList();
-                if (configFiles.Count == 0 && !hasRemoteSecrets)
+                var secretFiles = solution.GetProjectsSecretFiles();
+                if (secretFiles.Count == 0)
                 {
                     // This solution has not projects with secrets.
-                    status = SyncStatus.NoSecretsFound;
+                    status = SyncStatus.Unmanaged;
                     solutionColor = ConsoleColor.DarkGray;
                 }
                 else
                 {
-                    solutionColor = ConsoleColor.White;
+                    var synchronizationSettings = solution.CustomSynchronizationSettings;
 
-                    if (configFiles.Count > 0 && !hasRemoteSecrets)
+                    IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
+                    repository ??= Context.Current.Repository;
+
+                    bool tryToDecrypt = repository.EncryptOnClient;
+
+                    // Ensure authorization on the selected repository
+                    if (!await repository.IsReady())
                     {
-                        status = SyncStatus.LocalOnly;
+                        await repository.AuthorizeAsync();
+                    }
+
+                    var remoteFiles = await repository.PullFilesAsync(solution);
+
+                    bool hasRemoteSecrets = remoteFiles.Count > 0;
+
+                    var configFiles = solution.GetProjectsSecretFiles().Where(c => c.Content != null).ToList();
+                    if (configFiles.Count == 0 && !hasRemoteSecrets)
+                    {
+                        // This solution manage secrects but files cannot be found
+                        status = SyncStatus.NoSecretsFound;
+                        solutionColor = ConsoleColor.DarkGray;
                     }
                     else
                     {
-                        // Here hasRemoteSecrets is true
-                        repositoryType = repository.RepositoryType;
+                        solutionColor = ConsoleColor.White;
 
-                        if (configFiles.Count == 0)
+                        if (configFiles.Count > 0 && !hasRemoteSecrets)
                         {
-                            status = SyncStatus.CloudOnly;
-                            solutionColor = ConsoleColor.White;
-                        }
-
-                        HeaderFile? header = null;
-                        try
-                        {
-                            string? headerContent = remoteFiles.First(f => f.name == "secrets").content;
-                            if (headerContent != null)
-                            {
-                                header = JsonSerializer.Deserialize<HeaderFile>(headerContent);
-                            }
-                        }
-                        catch
-                        { }
-
-                        if (header == null)
-                        {
-                            status = SyncStatus.HeaderError;
-                            foundContentError = true;
+                            status = SyncStatus.LocalOnly;
                         }
                         else
                         {
-                            var remoteSecretFiles = new List<SecretFile>();
-                            foreach (var remoteFile in remoteFiles)
+                            // Here hasRemoteSecrets is true
+                            repositoryType = repository.RepositoryType;
+
+                            if (configFiles.Count == 0)
                             {
-                                if (remoteFile.name == "secrets")
-                                {
-                                    continue;
-                                }
+                                status = SyncStatus.CloudOnly;
+                                solutionColor = ConsoleColor.White;
+                            }
 
-                                if (remoteFile.content == null)
+                            HeaderFile? header = null;
+                            try
+                            {
+                                string? headerContent = remoteFiles.First(f => f.name == "secrets").content;
+                                if (headerContent != null)
                                 {
-                                    status = SyncStatus.ContentError;
-                                    foundContentError = true;
-                                    break;
+                                    header = JsonSerializer.Deserialize<HeaderFile>(headerContent);
                                 }
+                            }
+                            catch
+                            { }
 
-                                Dictionary<string, string>? contents = null;
-                                try
+                            if (header == null)
+                            {
+                                status = SyncStatus.HeaderError;
+                                foundContentError = true;
+                            }
+                            else
+                            {
+                                var remoteSecretFiles = new List<SecretFile>();
+                                foreach (var remoteFile in remoteFiles)
                                 {
-                                    contents = JsonSerializer.Deserialize<Dictionary<string, string>>(remoteFile.content);
-                                }
-                                catch
-                                { }
-
-                                if (contents == null)
-                                {
-                                    status = SyncStatus.ContentError;
-                                    foundContentError = true;
-                                    break;
-                                }
-                                else
-                                {
-                                    foreach (var item in contents)
+                                    if (remoteFile.name == "secrets")
                                     {
-                                        string? content = item.Value;
+                                        continue;
+                                    }
 
-                                        if (content == null)
-                                        {
-                                            status = SyncStatus.ContentError;
-                                            foundContentError = true;
-                                            break;
-                                        }
+                                    if (remoteFile.content == null)
+                                    {
+                                        status = SyncStatus.ContentError;
+                                        foundContentError = true;
+                                        break;
+                                    }
 
-                                        if (tryToDecrypt)
+                                    Dictionary<string, string>? contents = null;
+                                    try
+                                    {
+                                        contents = JsonSerializer.Deserialize<Dictionary<string, string>>(remoteFile.content);
+                                    }
+                                    catch
+                                    { }
+
+                                    if (contents == null)
+                                    {
+                                        status = SyncStatus.ContentError;
+                                        foundContentError = true;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        foreach (var item in contents)
                                         {
-                                            content = Context.Current.Cipher.Decrypt(content);
+                                            string? content = item.Value;
+
                                             if (content == null)
                                             {
-                                                status |= SyncStatus.InvalidKey;
+                                                status = SyncStatus.ContentError;
                                                 foundContentError = true;
                                                 break;
                                             }
+
+                                            if (tryToDecrypt)
+                                            {
+                                                content = Context.Current.Cipher.Decrypt(content);
+                                                if (content == null)
+                                                {
+                                                    status |= SyncStatus.InvalidKey;
+                                                    foundContentError = true;
+                                                    break;
+                                                }
+                                            }
+
+                                            remoteSecretFiles.Add(new SecretFile
+                                            {
+                                                Name = item.Key,
+                                                ContainerName = remoteFile.name,
+                                                Content = content
+                                            });
                                         }
 
-                                        remoteSecretFiles.Add(new SecretFile
+                                        if (foundContentError)
                                         {
-                                            Name = item.Key,
-                                            ContainerName = remoteFile.name,
-                                            Content = content
-                                        });
-                                    }
-
-                                    if (foundContentError)
-                                    {
-                                        break;
+                                            break;
+                                        }
                                     }
                                 }
-                            }
 
-                            if (!foundContentError && status == SyncStatus.Unknown)
-                            {
-                                // Check if the local and remote settings are synchronized
-                                if (configFiles.Count != remoteSecretFiles.Count)
+                                if (!foundContentError && status == SyncStatus.Unknown)
                                 {
-                                    status = SyncStatus.NotSynchronized;
-                                }
-                                else
-                                {
-                                    foreach (var remoteFile in remoteSecretFiles)
+                                    // Check if the local and remote settings are synchronized
+                                    if (configFiles.Count != remoteSecretFiles.Count)
                                     {
-                                        var localFile = configFiles.FirstOrDefault(c => c.ContainerName == remoteFile.ContainerName && c.Name == remoteFile.Name);
-                                        if (localFile != null)
+                                        status = SyncStatus.NotSynchronized;
+                                    }
+                                    else
+                                    {
+                                        foreach (var remoteFile in remoteSecretFiles)
                                         {
-                                            if (localFile.Content == null)
+                                            var localFile = configFiles.FirstOrDefault(c => c.ContainerName == remoteFile.ContainerName && c.Name == remoteFile.Name);
+                                            if (localFile != null)
                                             {
-                                                status = SyncStatus.NotSynchronized;
-                                                break;
-                                            }
-                                            else
-                                            {
-                                                if (localFile.Content != remoteFile.Content)
+                                                if (localFile.Content == null)
                                                 {
                                                     status = SyncStatus.NotSynchronized;
                                                     break;
+                                                }
+                                                else
+                                                {
+                                                    if (localFile.Content != remoteFile.Content)
+                                                    {
+                                                        status = SyncStatus.NotSynchronized;
+                                                        break;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
 
-                            version = header.visualStudioSolutionSecretsVersion ?? String.Empty;
-                            lastUpdate = header.lastUpload.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? String.Empty;
+                                version = header.visualStudioSolutionSecretsVersion ?? String.Empty;
+                                lastUpdate = header.lastUpload.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? String.Empty;
+                            }
                         }
                     }
                 }

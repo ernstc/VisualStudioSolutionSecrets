@@ -9,6 +9,6 @@ Checking status...
 
 Checking solutions synchronization status...
 
-Solution                                          |  Version  |  Last Update          |  Repo     |  Status
+Solution                                          |  Version  |  Last Update          |  Repo     |  Secrets Status
 -----------------------------------------------------------------------------------------------------------------------------
 SolutionSample.sln                                |  #.#.#    |  ####-##-## ##:##:##  |  Mock     |  Synchronized
