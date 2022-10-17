@@ -265,7 +265,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
-            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
+            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized 2↔"));
         }
 
 
@@ -288,7 +288,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
-            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
+            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized 1↓"));
         }
 
 
@@ -305,7 +305,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
-            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
+            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized 2↓"));
         }
 
 
@@ -330,7 +330,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
-            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized"));
+            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized 1↑"));
         }
 
     }

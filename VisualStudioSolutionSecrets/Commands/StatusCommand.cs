@@ -8,6 +8,7 @@ using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Repository;
 
+
 namespace VisualStudioSolutionSecrets.Commands
 {
 
@@ -167,6 +168,7 @@ namespace VisualStudioSolutionSecrets.Commands
             string lastUpdate = String.Empty;
             string repositoryType = String.Empty;
             SyncStatus status = SyncStatus.Unknown;
+            string statusDetails = String.Empty;
 
             bool foundContentError = false;
 
@@ -206,10 +208,10 @@ namespace VisualStudioSolutionSecrets.Commands
 
                     bool hasRemoteSecrets = remoteFiles.Count > 0;
 
-                    var configFiles = solution.GetProjectsSecretFiles().Where(c => c.Content != null).ToList();
+                    var configFiles = secretFiles.Where(c => c.Content != null).ToList();
                     if (configFiles.Count == 0 && !hasRemoteSecrets)
                     {
-                        // This solution manage secrects but files cannot be found
+                        // This solution manage secrets but files cannot be found
                         status = SyncStatus.NoSecretsFound;
                         solutionColor = ConsoleColor.DarkGray;
                     }
@@ -322,32 +324,40 @@ namespace VisualStudioSolutionSecrets.Commands
                                 if (!foundContentError && status == SyncStatus.Unknown)
                                 {
                                     // Check if the local and remote settings are synchronized
-                                    if (configFiles.Count != remoteSecretFiles.Count)
+                                    HashSet<string> localNames = new HashSet<string>(configFiles.Select(f => $"{f.ContainerName}-{f.Name}"));
+                                    HashSet<string> remoteNames = new HashSet<string>(remoteSecretFiles.Select(f => $"{f.ContainerName}-{f.Name}"));
+
+                                    int countLocalOnly = localNames.Count(n => !remoteNames.Contains(n));
+                                    int countRemoteOnly = remoteNames.Count(n => !localNames.Contains(n));
+                                    int countDifferences = 0;
+
+                                    foreach (var remoteFile in remoteSecretFiles)
                                     {
-                                        status = SyncStatus.NotSynchronized;
-                                    }
-                                    else
-                                    {
-                                        foreach (var remoteFile in remoteSecretFiles)
+                                        var localFile = configFiles.FirstOrDefault(c => c.ContainerName == remoteFile.ContainerName && c.Name == remoteFile.Name);
+                                        if (localFile != null)
                                         {
-                                            var localFile = configFiles.FirstOrDefault(c => c.ContainerName == remoteFile.ContainerName && c.Name == remoteFile.Name);
-                                            if (localFile != null)
+                                            if (localFile.Content == null)
                                             {
-                                                if (localFile.Content == null)
+                                                countDifferences++;
+                                            }
+                                            else
+                                            {
+                                                if (localFile.Content != remoteFile.Content)
                                                 {
-                                                    status = SyncStatus.NotSynchronized;
-                                                    break;
-                                                }
-                                                else
-                                                {
-                                                    if (localFile.Content != remoteFile.Content)
-                                                    {
-                                                        status = SyncStatus.NotSynchronized;
-                                                        break;
-                                                    }
+                                                    countDifferences++;
                                                 }
                                             }
                                         }
+                                    }
+
+                                    if (countLocalOnly != 0
+                                        || countRemoteOnly != 0
+                                        || countDifferences != 0)
+                                    {
+                                        status = SyncStatus.NotSynchronized;
+                                        if (countLocalOnly != 0) statusDetails += $" {countLocalOnly}↓";
+                                        if (countRemoteOnly != 0) statusDetails += $" {countRemoteOnly}↑";
+                                        if (countDifferences != 0) statusDetails += $" {countDifferences}↔";
                                     }
                                 }
 
@@ -395,6 +405,7 @@ namespace VisualStudioSolutionSecrets.Commands
             Console.Write("  |  ");
 
             WriteStatus(status, color);
+            Console.Write(statusDetails);
 
             Console.WriteLine();
 
