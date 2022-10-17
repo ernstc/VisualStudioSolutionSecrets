@@ -22,6 +22,7 @@ This release enables the use of different kinds of repositories and enables to c
 ### Changes
 
 * Changed `status` command. It has been enhanced for displaying the default repository and the custom repository configured for each solution. In addition it display the synchronization status between the local and remote secret settings.
+* The `search` command shows also the user secret id setted in the project file.
 * The command `changekey` has been renamed to `change-key`.
 
 ---
@@ -65,4 +66,4 @@ Tool for syncing Visual Studio solution secrets across different development mac
 * Searching for projects that use secrets.
 * Pushing encrypted secrets to a remote repository.
 * Pulling ecrypted secrets from a remote repository.
-* Implemented GitHub Gist as remote secrets repository.color
+* Implemented GitHub Gist as remote secrets repository.
