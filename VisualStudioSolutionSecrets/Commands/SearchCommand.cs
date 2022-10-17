@@ -46,7 +46,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     int i = 0;
                     foreach (var configFile in configFiles)
                     {
-                        Console.WriteLine($"   {++i,3}) {configFile.ProjectFileName}");
+                        Console.WriteLine($"   {++i,3}) [{configFile.SecretsId}] - {configFile.ProjectFileName} ");
                     }
                 }
             }

@@ -22,6 +22,7 @@ namespace VisualStudioSolutionSecrets
         public string ContainerName { get; set; } = null!;
         public string? Content { get; set; }
         public string? ProjectFileName { get; set; }
+        public string? SecretsId { get; set; }
 
 
 

@@ -104,20 +104,21 @@ namespace VisualStudioSolutionSecrets
                                     break;
                                 }
 
-                                var secrects = GetProjectSecretsFilePath(projectFileContent);
-                                if (secrects == null && projectFile.Directory != null)
+                                var secrets = GetProjectSecretsFilePath(projectFileContent);
+                                if (secrets == null && projectFile.Directory != null)
                                 {
-                                    secrects = GetDotNetFrameworkProjectSecretFiles(projectFileContent, projectFile.Directory.FullName);
+                                    secrets = GetDotNetFrameworkProjectSecretFiles(projectFileContent, projectFile.Directory.FullName);
                                 }
 
-                                if (secrects != null)
+                                if (secrets != null)
                                 {
-                                    string groupName = $"secrets\\{secrects.SecretsId}.json";
-                                    if (!configFiles.ContainsKey(secrects.FilePath))
+                                    string groupName = $"secrets\\{secrets.SecretsId}.json";
+                                    if (!configFiles.ContainsKey(secrets.FilePath))
                                     {
-                                        var configFile = new SecretFile(secrects.FilePath, groupName);
+                                        var configFile = new SecretFile(secrets.FilePath, groupName);
                                         configFile.ProjectFileName = projectFileRelativePath;
-                                        configFiles.Add(secrects.FilePath, configFile);
+                                        configFile.SecretsId = secrets.SecretsId;
+                                        configFiles.Add(secrets.FilePath, configFile);
                                     }
                                 }
                                 break;

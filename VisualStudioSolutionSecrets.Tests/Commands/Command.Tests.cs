@@ -368,6 +368,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                     .Replace("*", ".*")
                     .Replace("(", @"\(")
                     .Replace(")", @"\)")
+                    .Replace("[", @"\[")
+                    .Replace("]", @"\]")
                     + "$";
 
                 Assert.Matches(pattern, generatedLines[i]);
