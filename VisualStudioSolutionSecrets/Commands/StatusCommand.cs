@@ -33,7 +33,7 @@ namespace VisualStudioSolutionSecrets.Commands
             string repositoryAuthorizationStatus = isRepositoryReady ? "OK" : "NOT AUTHORIZED";
 
             Console.WriteLine($"             Ecryption key: {encryptionKeyStatus}");
-            Console.WriteLine($"  Repository authorization: {repositoryAuthorizationStatus}\n\n");
+            Console.WriteLine($"  Repository authorization: {repositoryAuthorizationStatus}\n");
 
             if (isCipherReady && isRepositoryReady)
             {
@@ -206,45 +206,60 @@ namespace VisualStudioSolutionSecrets.Commands
 
                     var remoteFiles = await repository.PullFilesAsync(solution);
 
-                    bool hasRemoteSecrets = remoteFiles.Count > 0;
+                    HeaderFile? header = null;
+                    try
+                    {
+                        string? headerContent = remoteFiles.First(f => f.name == "secrets").content;
+                        if (headerContent != null)
+                        {
+                            header = JsonSerializer.Deserialize<HeaderFile>(headerContent);
+                            if (header != null)
+                            {
+                                version = header.visualStudioSolutionSecretsVersion ?? String.Empty;
+                                lastUpdate = header.lastUpload.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? String.Empty;
+                                repositoryType = repository.RepositoryType;
+                            }
+                        }
+                    }
+                    catch
+                    { }
+
+                    int remoteSecretsCount = remoteFiles.Count(item => !String.Equals("secrets", item.name, StringComparison.OrdinalIgnoreCase));
+
+                    bool hasRemoteSecrets = remoteSecretsCount > 0;
 
                     var configFiles = secretFiles.Where(c => c.Content != null).ToList();
                     if (configFiles.Count == 0 && !hasRemoteSecrets)
                     {
-                        // This solution manage secrets but files cannot be found
-                        status = SyncStatus.NoSecretsFound;
-                        solutionColor = ConsoleColor.DarkGray;
+                        if (header != null)
+                        {
+                            // The remote repository exists but it's empty
+                            status = SyncStatus.Synchronized;
+                            solutionColor = ConsoleColor.White;
+                        }
+                        else
+                        {
+                            // This solution manage secrets but files cannot be foundò
+                            status = SyncStatus.NoSecretsFound;
+                            solutionColor = ConsoleColor.DarkGray;
+                        }
                     }
                     else
                     {
                         solutionColor = ConsoleColor.White;
 
-                        if (configFiles.Count > 0 && !hasRemoteSecrets)
+                        if (configFiles.Count > 0 && remoteFiles.Count == 0)
                         {
                             status = SyncStatus.LocalOnly;
                         }
                         else
                         {
                             // Here hasRemoteSecrets is true
-                            repositoryType = repository.RepositoryType;
-
                             if (configFiles.Count == 0)
                             {
                                 status = SyncStatus.CloudOnly;
                                 solutionColor = ConsoleColor.White;
                             }
-
-                            HeaderFile? header = null;
-                            try
-                            {
-                                string? headerContent = remoteFiles.First(f => f.name == "secrets").content;
-                                if (headerContent != null)
-                                {
-                                    header = JsonSerializer.Deserialize<HeaderFile>(headerContent);
-                                }
-                            }
-                            catch
-                            { }
 
                             if (header == null)
                             {
@@ -361,8 +376,6 @@ namespace VisualStudioSolutionSecrets.Commands
                                     }
                                 }
 
-                                version = header.visualStudioSolutionSecretsVersion ?? String.Empty;
-                                lastUpdate = header.lastUpload.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? String.Empty;
                             }
                         }
                     }

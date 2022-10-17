@@ -5,7 +5,6 @@ Checking status...
              Ecryption key: OK
   Repository authorization: OK
 
-
 Checking solutions synchronization status...
 
 Solution                                          |  Version  |  Last Update          |  Repo     |  Secrets Status

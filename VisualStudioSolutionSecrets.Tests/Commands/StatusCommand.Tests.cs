@@ -106,12 +106,14 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void Status_Synchronized_Test()
+        public void Status_Synchronized_1_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
             RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             ClearOutput();
+
+            // Configuration files are both equal.
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
@@ -120,11 +122,35 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void Status_NoSecretFound_Test()
+        public void Status_Synchronized_2_Test()
+        {
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
+
+            string filePath = Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json");
+            File.Delete(filePath);
+
+            // Fake file system for hiding local settings
+            MockFileSystem(secretsFolder: Constants.TempFolderPath);
+
+            ClearOutput();
+
+            // No secrets on the local machine, only header file on the repository
+
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
+
+            VerifyOutput("status_name", l => l.Replace("{status}", "Synchronized"));
+        }
+
+
+        [Fact]
+        public void Status_NoSecretFound_1_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
 
             ClearOutput();
+
+            // No secrets on the local machine, no secrets on the repository, no header on the repository.
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample-WithEmptySecrets.sln")}'");
 
@@ -263,6 +289,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
+            // Configuration files are both different.
+
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized 2↔"));
@@ -286,6 +314,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
+            // Local machine has 1 file that does not exist in the repository.
+
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized 1↓"));
@@ -302,6 +332,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             File.Delete(filePath);
 
             ClearOutput();
+
+            // The repository contains only the header file but not the configuration files.
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
@@ -327,6 +359,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             MockFileSystem(secretsFolder: Constants.TempFolderPath);
 
             ClearOutput();
+
+            // The local machine has not 1 file that exists in the repository.
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
