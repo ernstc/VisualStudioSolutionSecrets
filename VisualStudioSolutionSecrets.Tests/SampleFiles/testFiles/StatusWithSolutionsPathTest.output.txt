@@ -2,8 +2,8 @@ vs-secrets #.#.#
 
 Checking status...
 
-             Ecryption key: OK
-  Repository authorization: OK
+                   Ecryption Key: OK
+Default Repository Authorization: OK
 
 Checking solutions synchronization status...
 ... no solution found.

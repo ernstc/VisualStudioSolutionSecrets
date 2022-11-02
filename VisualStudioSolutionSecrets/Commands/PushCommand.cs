@@ -70,7 +70,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 Console.Write($"Pushing secrets for solution: {solution.Name}... ");
 
-                Dictionary<string, Dictionary<string, string>> secrets = new Dictionary<string, Dictionary<string, string>>();
+                var secrets = new Dictionary<string, Dictionary<string, string>>();
 
                 bool isEmpty = true;
                 bool failed = false;

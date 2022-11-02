@@ -2,14 +2,14 @@ vs-secrets #.#.#
 
 Checking status...
 
-             Ecryption key: OK
-  Repository authorization: OK
+                   Ecryption Key: OK
+Default Repository Authorization: OK
 
 Checking solutions synchronization status...
 
-Solution                                          |  Version  |  Last Update          |  Repo     |  Secrets Status
------------------------------------------------------------------------------------------------------------------------------
-ReallySuperVeryVeryVeryLongNameForSolutionFil...  |           |                       |           |  Unmanaged
-SolutionSample-WithEmptySecrets.sln               |           |                       |           |  Secrets not setted
-SolutionSample-WithoutGuid.sln                    |           |                       |           |  Unmanaged
-SolutionSample.sln                                |  #.#.#    |  ####-##-## ##:##:##  |  Mock     |  Synchronized
+Solution                                    | Version | Last Update         | Repo    | Secrets Status
+--------------------------------------------|---------|---------------------|---------|---------------------------------
+ReallySuperVeryVeryVeryLongNameForSoluti... |         |                     |         | Unmanaged
+SolutionSample-WithEmptySecrets.sln         |         |                     |         | Secrets not setted
+SolutionSample-WithoutGuid.sln              |         |                     |         | Unmanaged
+SolutionSample.sln                          | #.#.#   | ####-##-## ##:##:## | Mock    | Synchronized

@@ -16,6 +16,9 @@ namespace VisualStudioSolutionSecrets.Commands
     internal class StatusCommand : CommandBaseWithPath
     {
 
+        const int MAX_SOLUTION_LENGTH = 40;
+
+
         [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
         public bool All { get; set; }
 
@@ -32,8 +35,8 @@ namespace VisualStudioSolutionSecrets.Commands
             string encryptionKeyStatus = isCipherReady ? "OK" : "NOT DEFINED";
             string repositoryAuthorizationStatus = isRepositoryReady ? "OK" : "NOT AUTHORIZED";
 
-            Console.WriteLine($"             Ecryption key: {encryptionKeyStatus}");
-            Console.WriteLine($"  Repository authorization: {repositoryAuthorizationStatus}\n");
+            Console.WriteLine($"                   Ecryption Key: {encryptionKeyStatus}");
+            Console.WriteLine($"Default Repository Authorization: {repositoryAuthorizationStatus}\n");
 
             if (isCipherReady && isRepositoryReady)
             {
@@ -43,8 +46,8 @@ namespace VisualStudioSolutionSecrets.Commands
                 if (solutionFiles.Length > 0)
                 {
                     Console.WriteLine();
-                    Console.WriteLine("Solution                                          |  Version  |  Last Update          |  Repo     |  Secrets Status");
-                    Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------");
+                    Console.WriteLine("Solution                                    | Version | Last Update         | Repo    | Secrets Status");
+                    Console.WriteLine("--------------------------------------------|---------|---------------------|---------|---------------------------------");
 
                     foreach (string solutionFile in solutionFiles)
                     {
@@ -178,7 +181,7 @@ namespace VisualStudioSolutionSecrets.Commands
             SolutionFile solution = new SolutionFile(solutionFile);
 
             string solutionName = solution.Name;
-            if (solutionName.Length > 48) solutionName = solutionName[..45] + "...";
+            if (solutionName.Length > (MAX_SOLUTION_LENGTH + 3)) solutionName = solutionName[..MAX_SOLUTION_LENGTH] + "...";
 
             try
             {
@@ -394,28 +397,28 @@ namespace VisualStudioSolutionSecrets.Commands
             }
 
             Console.ForegroundColor = solutionColor;
-            Console.Write($"{solutionName,-48}");
+            Console.Write($"{solutionName,-(MAX_SOLUTION_LENGTH + 3)}");
 
             Console.ForegroundColor = color;
-            Console.Write("  |  ");
+            Console.Write(" | ");
 
             Console.ForegroundColor = solutionColor;
             Console.Write($"{version,-7}");
 
             Console.ForegroundColor = color;
-            Console.Write("  |  ");
+            Console.Write(" | ");
 
             Console.ForegroundColor = solutionColor;
             Console.Write($"{lastUpdate,-19}");
 
             Console.ForegroundColor = color;
-            Console.Write("  |  ");
+            Console.Write(" | ");
 
             Console.ForegroundColor = solutionColor;
             Console.Write($"{repositoryType,-7}");
 
             Console.ForegroundColor = color;
-            Console.Write("  |  ");
+            Console.Write(" | ");
 
             WriteStatus(status, color);
             Console.Write(statusDetails);
