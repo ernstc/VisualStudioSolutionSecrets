@@ -56,7 +56,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_InvalidParams_3_Test()
         {
-            var result = RunCommand($"configure --default --repo {nameof(RepositoryTypesEnum.GitHub)} --name {KEY_VAULT_NAME}");
+            var result = RunCommand($"configure --default --repo {nameof(RepositoryType.GitHub)} --name {KEY_VAULT_NAME}");
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -66,7 +66,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_InvalidParams_4_Test()
         {
-            var result = RunCommand($"configure --repo {nameof(RepositoryTypesEnum.GitHub)} --name {KEY_VAULT_NAME}");
+            var result = RunCommand($"configure --repo {nameof(RepositoryType.GitHub)} --name {KEY_VAULT_NAME}");
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -96,37 +96,37 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_GitHubByDefault_Test()
         {
-            var result = RunCommand($"configure --default --repo {nameof(RepositoryTypesEnum.GitHub)}");
+            var result = RunCommand($"configure --default --repo {nameof(RepositoryType.GitHub)}");
 
             Assert.Equal(0, result);
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
 
-            Configuration.Refresh();
+            SyncConfiguration.Refresh();
 
-            Assert.Equal(RepositoryTypesEnum.GitHub, Configuration.Default.Repository);
-            Assert.Null(Configuration.Default.AzureKeyVaultName);
+            Assert.Equal(RepositoryType.GitHub, SyncConfiguration.Default.Repository);
+            Assert.Null(SyncConfiguration.Default.AzureKeyVaultName);
         }
 
 
         [Fact]
         public void Configure_AzureKVByDefault_1_Test()
         {
-            var result = RunCommand($"configure --default --repo {nameof(RepositoryTypesEnum.AzureKV)} --name {KEY_VAULT_NAME}");
+            var result = RunCommand($"configure --default --repo {nameof(RepositoryType.AzureKV)} --name {KEY_VAULT_NAME}");
 
             Assert.Equal(0, result);
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
 
-            Configuration.Refresh();
+            SyncConfiguration.Refresh();
 
-            Assert.Equal(RepositoryTypesEnum.AzureKV, Configuration.Default.Repository);
-            Assert.Equal(KEY_VAULT_NAME, Configuration.Default.AzureKeyVaultName);
+            Assert.Equal(RepositoryType.AzureKV, SyncConfiguration.Default.Repository);
+            Assert.Equal(KEY_VAULT_NAME, SyncConfiguration.Default.AzureKeyVaultName);
         }
 
 
         [Fact]
         public void Configure_AzureKVByDefault_2_Test()
         {
-            var result = RunCommand($"configure --default --repo {nameof(RepositoryTypesEnum.AzureKV)} --name https://my-domain.com");
+            var result = RunCommand($"configure --default --repo {nameof(RepositoryType.AzureKV)} --name https://my-domain.com");
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -136,17 +136,17 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_GitHubForProject_Test()
         {
-            var result = RunCommand($"configure --repo {nameof(RepositoryTypesEnum.GitHub)}");
+            var result = RunCommand($"configure --repo {nameof(RepositoryType.GitHub)}");
 
             Assert.Equal(0, result);
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
 
-            Configuration.Refresh();
+            SyncConfiguration.Refresh();
 
-            var settings = Configuration.GetCustomSynchronizationSettings(new Guid(SOLUTION_GUID));
+            var settings = SyncConfiguration.GetCustomSynchronizationSettings(new Guid(SOLUTION_GUID));
 
             Assert.NotNull(settings);
-            Assert.Equal(RepositoryTypesEnum.GitHub, settings.Repository);
+            Assert.Equal(RepositoryType.GitHub, settings.Repository);
             Assert.Null(settings.AzureKeyVaultName);
         }
 
@@ -154,7 +154,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_GitHubForProject_WithoutGuid_Test()
         {
-            var result = RunCommand($"configure SolutionSample-WithoutGuid.sln --repo {nameof(RepositoryTypesEnum.GitHub)}");
+            var result = RunCommand($"configure SolutionSample-WithoutGuid.sln --repo {nameof(RepositoryType.GitHub)}");
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -164,17 +164,17 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_AzureKVForProject_1_Test()
         {
-            var result = RunCommand($"configure --repo {nameof(RepositoryTypesEnum.AzureKV)} --name {KEY_VAULT_NAME}");
+            var result = RunCommand($"configure --repo {nameof(RepositoryType.AzureKV)} --name {KEY_VAULT_NAME}");
 
             Assert.Equal(0, result);
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
 
-            Configuration.Refresh();
+            SyncConfiguration.Refresh();
 
-            var settings = Configuration.GetCustomSynchronizationSettings(new Guid(SOLUTION_GUID));
+            var settings = SyncConfiguration.GetCustomSynchronizationSettings(new Guid(SOLUTION_GUID));
 
             Assert.NotNull(settings);
-            Assert.Equal(RepositoryTypesEnum.AzureKV, settings.Repository);
+            Assert.Equal(RepositoryType.AzureKV, settings.Repository);
             Assert.Equal(KEY_VAULT_NAME, settings.AzureKeyVaultName);
         }
 
@@ -182,7 +182,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_AzureKVForProject_2_Test()
         {
-            var result = RunCommand($"configure SolutionSample.sln --repo {nameof(RepositoryTypesEnum.AzureKV)} --name http://my-domain.com");
+            var result = RunCommand($"configure SolutionSample.sln --repo {nameof(RepositoryType.AzureKV)} --name http://my-domain.com");
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -192,7 +192,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_AzureKVForProject_WithoutGuid_Test()
         {
-            var result = RunCommand($"configure SolutionSample-WithoutGuid.sln --repo {nameof(RepositoryTypesEnum.AzureKV)} --name {KEY_VAULT_NAME}");
+            var result = RunCommand($"configure SolutionSample-WithoutGuid.sln --repo {nameof(RepositoryType.AzureKV)} --name {KEY_VAULT_NAME}");
 
             Assert.Equal(1, result);
             Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
@@ -202,14 +202,14 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void Configure_Reset_Test()
         {
-            RunCommand($"configure SolutionSample.sln --repo {nameof(RepositoryTypesEnum.AzureKV)} --name {KEY_VAULT_NAME}");
+            RunCommand($"configure SolutionSample.sln --repo {nameof(RepositoryType.AzureKV)} --name {KEY_VAULT_NAME}");
 
-            var result = RunCommand($"configure SolutionSample.sln --reset"); 
+            var result = RunCommand("configure SolutionSample.sln --reset");
 
             Assert.Equal(0, result);
             Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
 
-            var settings = Configuration.GetCustomSynchronizationSettings(new Guid(SOLUTION_GUID));
+            var settings = SyncConfiguration.GetCustomSynchronizationSettings(new Guid(SOLUTION_GUID));
 
             Assert.Null(settings);
         }

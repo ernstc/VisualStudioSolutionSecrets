@@ -10,8 +10,13 @@ namespace VisualStudioSolutionSecrets.Utilities
 {
     public static class WebBrowser
     {
-        public static void OpenUrl(string url)
+        public static void OpenUrl(Uri uri)
         {
+            if (uri == null)
+                throw new ArgumentNullException(nameof(uri));
+
+            string url = uri.ToString();
+
             try
             {
                 Process.Start(url);

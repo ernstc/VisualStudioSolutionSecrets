@@ -42,9 +42,9 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [Fact]
         public void ConfigureList_Project_Test()
         {
-            RunCommand($"configure SolutionSample.sln --repo {nameof(RepositoryTypesEnum.AzureKV)} --name {KEY_VAULT_NAME}");
+            RunCommand($"configure SolutionSample.sln --repo {nameof(RepositoryType.AzureKV)} --name {KEY_VAULT_NAME}");
 
-            Configuration.Refresh();
+            SyncConfiguration.Refresh();
             
             ClearOutput();
             

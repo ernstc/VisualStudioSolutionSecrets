@@ -23,7 +23,7 @@ namespace VisualStudioSolutionSecrets.Commands
         public bool All { get; set; }
 
 
-        bool _renderedTableHeader = false;
+        bool _renderedTableHeader;
 
 
         public int OnExecute(CommandLineApplication? app = null)
@@ -33,7 +33,7 @@ namespace VisualStudioSolutionSecrets.Commands
             var color = Console.ForegroundColor;
 
             Console.Write("Default repository: ");
-            var repository = Context.Current.GetRepository(Configuration.Default);
+            var repository = Context.Current.GetRepository(SyncConfiguration.Default);
             if (repository != null)
             {
                 Console.ForegroundColor = ConsoleColor.White;
@@ -98,7 +98,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 return;
             }
 
-            IRepository? repository = synchronizationSettings != null ? Context.Current.GetRepository(synchronizationSettings) : null;
+            IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
 
             string repoName;
             ConsoleColor solutionColor;

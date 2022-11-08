@@ -13,24 +13,24 @@ namespace VisualStudioSolutionSecrets
     public class SolutionSynchronizationSettings
     {
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public RepositoryTypesEnum Repository { get; set; }
+        public RepositoryType Repository { get; set; }
         public string? AzureKeyVaultName { get; set; }
     }
 
 
-    public class Configuration : Dictionary<string, SolutionSynchronizationSettings>
+    public class SyncConfiguration : Dictionary<string, SolutionSynchronizationSettings>
     {
 
         const string APP_DATA_FILENAME = "configuration.json";
 
 
-        private Configuration() { }
+        private SyncConfiguration() { }
 
 
 
-        public static SolutionSynchronizationSettings DefaultSettings = new SolutionSynchronizationSettings
+        public static readonly SolutionSynchronizationSettings DefaultSettings = new SolutionSynchronizationSettings
         {
-            Repository = RepositoryTypesEnum.GitHub
+            Repository = RepositoryType.GitHub
         };
 
 
@@ -61,9 +61,9 @@ namespace VisualStudioSolutionSecrets
         public static SolutionSynchronizationSettings? GetCustomSynchronizationSettings(Guid solutionGuid)
         {
             string key = solutionGuid.ToString();
-            if (Current.ContainsKey(key))
+            if (Current.TryGetValue(key, out SolutionSynchronizationSettings? value))
             {
-                return Current[key];
+                return value;
             }
             else
             {
@@ -79,27 +79,27 @@ namespace VisualStudioSolutionSecrets
             {
                 Current[key] = settings;
             }
-            else if (Current.ContainsKey(key))
+            else
             {
                 Current.Remove(key);
             }
         }
 
 
-        private static Configuration? _current;
+        private static SyncConfiguration? _current;
 
-        private static Configuration Current
+        private static SyncConfiguration Current
         {
             get
             {
                 if (_current == null)
                 {
-                    _current = new Configuration();
+                    _current = new SyncConfiguration();
 
                     var loadedConfiguration = AppData.LoadData<Dictionary<string, SolutionSynchronizationSettings>>(APP_DATA_FILENAME);
                     if (loadedConfiguration == null)
                     {
-                        Default = Configuration.DefaultSettings;
+                        Default = SyncConfiguration.DefaultSettings;
                         AppData.SaveData<Dictionary<string, SolutionSynchronizationSettings>>(APP_DATA_FILENAME, _current);
                     }
                     else

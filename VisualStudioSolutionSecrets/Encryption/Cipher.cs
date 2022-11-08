@@ -74,13 +74,9 @@ namespace VisualStudioSolutionSecrets.Encryption
         private void GenerateEncryptionKey(byte[] data)
         {
             byte[] result;
-            var hashAlgorithm = HashAlgorithm.Create("SHA512");
-            if (hashAlgorithm == null)
-            {
-                Console.WriteLine("    ERR: Cannot create encryption key.");
-                return;
-            }
 
+            using var hashAlgorithm = SHA512.Create();
+            
             result = hashAlgorithm.ComputeHash(data);
             _key = Convert.ToBase64String(result);
 
@@ -93,111 +89,113 @@ namespace VisualStudioSolutionSecrets.Encryption
 
         public string? Encrypt(string plainText)
         {
-            try
+            if (
+                plainText != null
+                && plainText.Length > 0
+                && _key != null
+                && _key.Length > 0
+                )
             {
-                // Check arguments.
-                if (plainText == null || plainText.Length <= 0)
-                    throw new ArgumentNullException("plainText");
-                if (_key == null || _key.Length <= 0)
-                    throw new ArgumentNullException("Key");
-
-                byte[] encrypted;
-                byte[] Key = new byte[32];
-                byte[] IV = new byte[16];
-
-                byte[] keyBytes = Convert.FromBase64String(_key);
-                for (int i = 0; i < Key.Length; i++) Key[i] = keyBytes[i];
-                for (int i = 0; i < IV.Length; i++) IV[i] = keyBytes[i + 32];
-
-                // Create an Aes object
-                // with the specified key and IV.
-                using (Aes aesAlg = Aes.Create())
+                try
                 {
-                    aesAlg.Key = Key;
-                    aesAlg.IV = IV;
+                    byte[] encrypted;
+                    byte[] Key = new byte[32];
+                    byte[] IV = new byte[16];
 
-                    // Create an encryptor to perform the stream transform.
-                    ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+                    byte[] keyBytes = Convert.FromBase64String(_key);
+                    for (int i = 0; i < Key.Length; i++) Key[i] = keyBytes[i];
+                    for (int i = 0; i < IV.Length; i++) IV[i] = keyBytes[i + 32];
 
-                    // Create the streams used for encryption.
-                    using (MemoryStream msEncrypt = new MemoryStream())
+                    // Create an Aes object
+                    // with the specified key and IV.
+                    using (Aes aesAlg = Aes.Create())
                     {
-                        using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                        aesAlg.Key = Key;
+                        aesAlg.IV = IV;
+
+                        // Create an encryptor to perform the stream transform.
+                        ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
+
+                        // Create the streams used for encryption.
+                        using (MemoryStream msEncrypt = new MemoryStream())
                         {
-                            using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                            using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
                             {
-                                //Write all data to the stream.
-                                swEncrypt.Write(plainText);
+                                using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                                {
+                                    //Write all data to the stream.
+                                    swEncrypt.Write(plainText);
+                                }
+                                encrypted = msEncrypt.ToArray();
                             }
-                            encrypted = msEncrypt.ToArray();
                         }
                     }
-                }
 
-                // Return the encrypted bytes from the memory stream.
-                return Convert.ToBase64String(encrypted);
+                    // Return the encrypted bytes from the memory stream.
+                    return Convert.ToBase64String(encrypted);
+                }
+                catch
+                { }
             }
-            catch
-            {
-                return null;
-            }
+            return null;
         }
 
 
         public string? Decrypt(string encrypted)
         {
-            try
+            if (
+                encrypted != null
+                && encrypted.Length > 0
+                && _key != null
+                && _key.Length > 0
+                )
             {
-                // Check arguments.
-                if (encrypted == null || encrypted.Length <= 0)
-                    throw new ArgumentNullException("encrypted");
-                if (_key == null || _key.Length <= 0)
-                    throw new ArgumentNullException("Key");
-
-                byte[] Key = new byte[32];
-                byte[] IV = new byte[16];
-
-                byte[] keyBytes = Convert.FromBase64String(_key);
-                for (int i = 0; i < Key.Length; i++) Key[i] = keyBytes[i];
-                for (int i = 0; i < IV.Length; i++) IV[i] = keyBytes[i + 32];
-
-                // Declare the string used to hold
-                // the decrypted text.
-                string plaintext;
-
-                // Create an Aes object
-                // with the specified key and IV.
-                using (Aes aesAlg = Aes.Create())
+                try
                 {
-                    aesAlg.Key = Key;
-                    aesAlg.IV = IV;
+                    byte[] Key = new byte[32];
+                    byte[] IV = new byte[16];
 
-                    // Create a decryptor to perform the stream transform.
-                    ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+                    byte[] keyBytes = Convert.FromBase64String(_key);
+                    for (int i = 0; i < Key.Length; i++) Key[i] = keyBytes[i];
+                    for (int i = 0; i < IV.Length; i++) IV[i] = keyBytes[i + 32];
 
-                    // Create the streams used for decryption.
-                    byte[] encryptedBytes = Convert.FromBase64String(encrypted);
-                    using (MemoryStream msDecrypt = new MemoryStream(encryptedBytes))
+                    // Declare the string used to hold
+                    // the decrypted text.
+                    string plaintext;
+
+                    // Create an Aes object
+                    // with the specified key and IV.
+                    using (Aes aesAlg = Aes.Create())
                     {
-                        using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
-                        {
-                            using (StreamReader srDecrypt = new StreamReader(csDecrypt))
-                            {
+                        aesAlg.Key = Key;
+                        aesAlg.IV = IV;
 
-                                // Read the decrypted bytes from the decrypting stream
-                                // and place them in a string.
-                                plaintext = srDecrypt.ReadToEnd();
+                        // Create a decryptor to perform the stream transform.
+                        ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+
+                        // Create the streams used for decryption.
+                        byte[] encryptedBytes = Convert.FromBase64String(encrypted);
+                        using (MemoryStream msDecrypt = new MemoryStream(encryptedBytes))
+                        {
+                            using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                            {
+                                using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+                                {
+
+                                    // Read the decrypted bytes from the decrypting stream
+                                    // and place them in a string.
+                                    plaintext = srDecrypt.ReadToEnd();
+                                }
                             }
                         }
                     }
-                }
 
-                return plaintext;
+                    return plaintext;
+                }
+                catch
+                { }
             }
-            catch
-            {
-                return null;
-            }
+            return null;
         }
 
     }

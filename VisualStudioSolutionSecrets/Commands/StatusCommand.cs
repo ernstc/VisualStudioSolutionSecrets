@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -101,7 +102,7 @@ namespace VisualStudioSolutionSecrets.Commands
        * 
        */
 
-        private void WriteStatus(SyncStatus status, ConsoleColor defaultColor)
+        private static void WriteStatus(SyncStatus status, ConsoleColor defaultColor)
         {
             if ((status & SyncStatus.Synchronized) == SyncStatus.Synchronized)
             {
@@ -165,7 +166,7 @@ namespace VisualStudioSolutionSecrets.Commands
         }
 
 
-        private async Task GetSolutionStatus(string solutionFile)
+        private static async Task GetSolutionStatus(string solutionFile)
         {
             string version = String.Empty;
             string lastUpdate = String.Empty;
@@ -219,7 +220,7 @@ namespace VisualStudioSolutionSecrets.Commands
                             if (header != null)
                             {
                                 version = header.visualStudioSolutionSecretsVersion ?? String.Empty;
-                                lastUpdate = header.lastUpload.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? String.Empty;
+                                lastUpdate = header.lastUpload.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture.DateTimeFormat) ?? String.Empty;
                                 repositoryType = repository.RepositoryType;
                             }
                         }

@@ -117,10 +117,9 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 if (decryptionSucceded)
                 {
-                    successfulSolutionSecrets.Add(new SolutionSettings
+                    successfulSolutionSecrets.Add(new SolutionSettings(decryptedSettings)
                     {
-                        Name = solutionSecrets.Name,
-                        Settings = decryptedSettings
+                        Name = solutionSecrets.Name
                     });
                 }
             }

@@ -41,7 +41,7 @@ namespace VisualStudioSolutionSecrets
 
             var key = typeof(T).FullName;
             if (key == null)
-                throw new ArgumentNullException("The service cannot be added as a dependency.");
+                throw new InvalidOperationException("The service cannot be added as a dependency.");
 
             if (!String.IsNullOrEmpty(label))
             {
@@ -87,7 +87,7 @@ namespace VisualStudioSolutionSecrets
             if (settings != null)
             {
                 var repository = GetService<IRepository>(settings.Repository.ToString());
-                if (repository != null && settings.Repository == RepositoryTypesEnum.AzureKV)
+                if (repository != null && settings.Repository == RepositoryType.AzureKV)
                 {
                     repository.RepositoryName = settings.AzureKeyVaultName;
                 }

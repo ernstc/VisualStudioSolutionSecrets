@@ -142,7 +142,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
             if (_oauthAccessToken == null)
             {
-                WebBrowser.OpenUrl(_deviceFlowResponse.verification_uri);
+                WebBrowser.OpenUrl(new Uri(_deviceFlowResponse.verification_uri));
 
                 for (int seconds = _deviceFlowResponse.expires_in; seconds > 0; seconds -= _deviceFlowResponse.interval)
                 {
@@ -229,10 +229,9 @@ namespace VisualStudioSolutionSecrets.Repository
 
                         if (files.Count > 0)
                         {
-                            var solutionSettings = new SolutionSettings
+                            var solutionSettings = new SolutionSettings(files)
                             {
-                                Name = header.solutionFile,
-                                Settings = files
+                                Name = header.solutionFile
                             };
 
                             data.Add(solutionSettings);
@@ -251,6 +250,9 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public async Task<ICollection<(string name, string? content)>> PullFilesAsync(ISolution solution)
         {
+            if (solution == null)
+                throw new ArgumentNullException(nameof(solution));
+
             var files = new List<(string name, string? content)>();
             var gist = await GetGistAsync(solution);
             if (gist?.files != null)
@@ -278,23 +280,32 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public async Task<bool> PushFilesAsync(ISolution solution, ICollection<(string name, string? content)> files)
         {
+            if (solution == null)
+                throw new ArgumentNullException(nameof(solution));
+
+            if (files == null)
+                throw new ArgumentNullException(nameof(files));
+
             var gist = await GetGistAsync(solution);
             if (gist != null)
             {
                 await DeleteGist(gist);
             }
 
-            HttpClient client = new HttpClient(new HttpClientHandler()
+            using var httpHandler = new HttpClientHandler()
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
-            });
+                CheckCertificateRevocationList = true
+            };
 
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
+            using HttpClient httpClient = new HttpClient(httpHandler);
 
-            if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
-                client.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://api.github.com/gists");
+            if (httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
+                httpClient.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
+
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://api.github.com/gists");
 
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
 
@@ -326,7 +337,7 @@ namespace VisualStudioSolutionSecrets.Repository
                 request.Content = new StringContent(payloadJson, Encoding.UTF8, "application/json");
 
                 Debug.WriteLine($"{request.Method} {request.RequestUri}");
-                var response = await client.SendAsync(request);
+                var response = await httpClient.SendAsync(request);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
@@ -372,7 +383,7 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        private async Task<HeaderFile?> GetHeaderFile(Gist gist)
+        private static async Task<HeaderFile?> GetHeaderFile(Gist gist)
         {
             if (gist.files != null)
             {
@@ -407,24 +418,27 @@ namespace VisualStudioSolutionSecrets.Repository
             if (gist == null)
                 throw new ArgumentNullException(nameof(gist));
 
-            HttpClient client = new HttpClient(new HttpClientHandler()
+            using var httpHandler = new HttpClientHandler()
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
-            });
+                CheckCertificateRevocationList = true
+            };
 
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
+            using HttpClient httpClient = new HttpClient(httpHandler);
+            
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
 
-            if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
-                client.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
+            if (httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
+                httpClient.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, $"https://api.github.com/gists/{gist.id}");
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, $"https://api.github.com/gists/{gist.id}");
 
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
 
             try
             {
                 Debug.WriteLine($"{request.Method} {request.RequestUri}");
-                var response = await client.SendAsync(request);
+                var response = await httpClient.SendAsync(request);
                 return response.IsSuccessStatusCode;
             }
             catch
@@ -441,23 +455,25 @@ namespace VisualStudioSolutionSecrets.Repository
                 return;
             }
 
-            HttpClient client = new HttpClient(new HttpClientHandler()
+            using var httpHandler = new HttpClientHandler()
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
-            });
+                CheckCertificateRevocationList = true
+            };
 
-            if (_oauthAccessToken != null)
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
+            using HttpClient httpClient = new HttpClient(httpHandler);
 
-            if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
-                client.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
 
-            var message = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/gists/00000000000000000000000000000000");
+            if (httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
+                httpClient.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
+
+            using var message = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/gists/00000000000000000000000000000000");
             message.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             try
             {
                 Debug.WriteLine($"{message.Method} {message.RequestUri}");
-                var response = await client.SendAsync(message).ConfigureAwait(false);
+                var response = await httpClient.SendAsync(message).ConfigureAwait(false);
                 if (response.StatusCode != HttpStatusCode.NotFound)
                 {
                     _oauthAccessToken = null;
@@ -489,24 +505,27 @@ namespace VisualStudioSolutionSecrets.Repository
 
             if (content == null)
             {
-                HttpClient client = new HttpClient(new HttpClientHandler()
+                using var httpHandler = new HttpClientHandler()
                 {
                     AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
-                });
+                    CheckCertificateRevocationList = true
+                };
+
+                using HttpClient httpClient = new HttpClient(httpHandler);
 
                 if (_oauthAccessToken != null)
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _oauthAccessToken);
 
-                if (client.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
-                    client.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
+                if (httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(Constants.USER_AGENT))
+                    httpClient.DefaultRequestHeaders.Add("User-Agent", Constants.USER_AGENT);
 
-                var message = new HttpRequestMessage(method, uri);
+                using var message = new HttpRequestMessage(method, uri);
                 message.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 try
                 {
                     Debug.WriteLine($"{message.Method} {message.RequestUri}");
-                    var response = await client.SendAsync(message).ConfigureAwait(false);
+                    var response = await httpClient.SendAsync(message).ConfigureAwait(false);
                     if (response.IsSuccessStatusCode)
                     {
                         content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -539,13 +558,13 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        private async Task<string?> GetRawContent(string uri)
+        private static async Task<string?> GetRawContent(string uri)
         {
-            HttpClient httpClient = new HttpClient();
+            using HttpClient httpClient = new HttpClient();
             Debug.WriteLine($"GET {uri}");
             try
             {
-                return await httpClient.GetStringAsync(uri);
+                return await httpClient.GetStringAsync(new Uri(uri));
             }
             catch (Exception)
             {

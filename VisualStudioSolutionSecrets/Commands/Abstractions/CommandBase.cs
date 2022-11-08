@@ -10,7 +10,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
     public abstract class CommandBase
     {
 
-        protected string EnsureFullyQualifiedPath(string? path)
+        protected static string EnsureFullyQualifiedPath(string? path)
         {
             string fullyQualifiedPath = path ?? Context.Current.IO.GetCurrentDirectory();
             if (!Path.IsPathFullyQualified(fullyQualifiedPath))
@@ -21,7 +21,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         }
 
 
-        protected bool Confirm()
+        protected static bool Confirm()
         {
             while (true)
             {
@@ -40,7 +40,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         }
 
 
-        protected string[] GetSolutionFiles(string? path, bool all)
+        protected static string[] GetSolutionFiles(string? path, bool all)
         {
             path ??= Context.Current.IO.GetCurrentDirectory();
 
@@ -90,7 +90,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         }
 
 
-        protected async Task<bool> CanSync()
+        protected static async Task<bool> CanSync()
         {
             if (!await Context.Current.Cipher.IsReady())
             {

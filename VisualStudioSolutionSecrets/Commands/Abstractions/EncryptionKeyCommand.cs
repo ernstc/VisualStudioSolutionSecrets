@@ -8,9 +8,9 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 {
 
     [AttributeUsage(AttributeTargets.Class)]
-    public class EncryptionKeyParametersValidationAttribute : ValidationAttribute
+    public sealed class EncryptionKeyParametersValidationAttribute : ValidationAttribute
     {
-        protected override ValidationResult? IsValid(object? value, ValidationContext context)
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             if (value is InitCommand initCommand)
             {
@@ -35,7 +35,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
     internal abstract class EncryptionKeyCommand : CommandBase
 	{
 
-        internal bool ValidatePassphrase(string passphrase)
+        internal static bool ValidatePassphrase(string passphrase)
         {
             if (string.IsNullOrWhiteSpace(passphrase))
             {
@@ -60,7 +60,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         }
 
 
-        protected bool AreEncryptionKeyParametersValid(string? passphrase, string? keyFile)
+        protected static bool AreEncryptionKeyParametersValid(string? passphrase, string? keyFile)
         {
             if (string.IsNullOrEmpty(passphrase) && string.IsNullOrEmpty(keyFile))
             {
@@ -95,7 +95,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         }
 
 
-        protected void GenerateEncryptionKey(string? passphrase, string? keyFile)
+        protected static void GenerateEncryptionKey(string? passphrase, string? keyFile)
         {
             Console.Write("\nGenerating encryption key... ");
             if (!string.IsNullOrEmpty(passphrase))

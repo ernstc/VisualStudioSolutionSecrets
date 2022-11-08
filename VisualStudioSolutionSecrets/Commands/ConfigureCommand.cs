@@ -12,9 +12,9 @@ namespace VisualStudioSolutionSecrets.Commands
 {
 
     [AttributeUsage(AttributeTargets.Class)]
-    public class ConfigureCommandValidationAttribute : ValidationAttribute
+    public sealed class ConfigureCommandValidationAttribute : ValidationAttribute
     {
-        protected override ValidationResult? IsValid(object? value, ValidationContext context)
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             if (value is ConfigureCommand command)
             {
@@ -38,14 +38,14 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 if (command.RepositoryType != null)
                 {
-                    if (String.Equals(command.RepositoryType, nameof(RepositoryTypesEnum.GitHub), StringComparison.OrdinalIgnoreCase))
+                    if (String.Equals(command.RepositoryType, nameof(RepositoryType.GitHub), StringComparison.OrdinalIgnoreCase))
                     {
                         if (!String.IsNullOrEmpty(command.RepositoryName))
                         {
                             return new ValidationResult("\nFor repository of type \"github\" you cannot specify the option -n|--name.\n");
                         }
                     }
-                    else if (String.Equals(command.RepositoryType, nameof(RepositoryTypesEnum.AzureKV), StringComparison.OrdinalIgnoreCase))
+                    else if (String.Equals(command.RepositoryType, nameof(RepositoryType.AzureKV), StringComparison.OrdinalIgnoreCase))
                     {
                         if (String.IsNullOrEmpty(command.RepositoryName))
                         {
@@ -132,20 +132,20 @@ namespace VisualStudioSolutionSecrets.Commands
 
             if (Default)
             {
-                if (String.Equals(nameof(RepositoryTypesEnum.GitHub), RepositoryType, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(nameof(Repository.RepositoryType.GitHub), RepositoryType, StringComparison.OrdinalIgnoreCase))
                 {
-                    Configuration.Default.Repository = RepositoryTypesEnum.GitHub;
-                    Configuration.Default.AzureKeyVaultName = null;
-                    Configuration.Save();
+                    SyncConfiguration.Default.Repository = Repository.RepositoryType.GitHub;
+                    SyncConfiguration.Default.AzureKeyVaultName = null;
+                    SyncConfiguration.Save();
 
                     Console.WriteLine("Configured GitHub Gist as the default repository.\n");
                     return 0;
                 }
-                else if (String.Equals(nameof(RepositoryTypesEnum.AzureKV), RepositoryType, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(nameof(Repository.RepositoryType.AzureKV), RepositoryType, StringComparison.OrdinalIgnoreCase))
                 {
-                    Configuration.Default.Repository = RepositoryTypesEnum.AzureKV;
-                    Configuration.Default.AzureKeyVaultName = RepositoryName;
-                    Configuration.Save();
+                    SyncConfiguration.Default.Repository = Repository.RepositoryType.AzureKV;
+                    SyncConfiguration.Default.AzureKeyVaultName = RepositoryName;
+                    SyncConfiguration.Save();
 
                     Console.WriteLine($"Configured Azure Key Vault ({RepositoryName}) as the default repository.\n");
                     return 0;
@@ -185,36 +185,36 @@ namespace VisualStudioSolutionSecrets.Commands
 
             if (Reset)
             {
-                Configuration.SetCustomSynchronizationSettings(solution.Uid, null);
-                Configuration.Save();
+                SyncConfiguration.SetCustomSynchronizationSettings(solution.Uid, null);
+                SyncConfiguration.Save();
 
                 Console.WriteLine($"Removed custom configuration for the solution \"{solution.Name}\" ({solution.Uid}).\n");
                 return 0;
             }
             else
             {
-                if (String.Equals(nameof(RepositoryTypesEnum.GitHub), RepositoryType, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(nameof(Repository.RepositoryType.GitHub), RepositoryType, StringComparison.OrdinalIgnoreCase))
                 {
                     var settings = new SolutionSynchronizationSettings
                     {
-                        Repository = RepositoryTypesEnum.GitHub,
+                        Repository = Repository.RepositoryType.GitHub,
                         AzureKeyVaultName = null
                     };
-                    Configuration.SetCustomSynchronizationSettings(solution.Uid, settings);
-                    Configuration.Save();
+                    SyncConfiguration.SetCustomSynchronizationSettings(solution.Uid, settings);
+                    SyncConfiguration.Save();
 
                     Console.WriteLine($"Configured GitHub Gist as the repository for the solution \"{solution.Name}\" ({solution.Uid}).\n");
                     return 0;
                 }
-                else if (String.Equals(nameof(RepositoryTypesEnum.AzureKV), RepositoryType, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(nameof(Repository.RepositoryType.AzureKV), RepositoryType, StringComparison.OrdinalIgnoreCase))
                 {
                     var settings = new SolutionSynchronizationSettings
                     {
-                        Repository = RepositoryTypesEnum.AzureKV,
+                        Repository = Repository.RepositoryType.AzureKV,
                         AzureKeyVaultName = RepositoryName
                     };
-                    Configuration.SetCustomSynchronizationSettings(solution.Uid, settings);
-                    Configuration.Save();
+                    SyncConfiguration.SetCustomSynchronizationSettings(solution.Uid, settings);
+                    SyncConfiguration.Save();
 
                     Console.WriteLine($"Configured Azure Key Vault ({RepositoryName}) as the repository for the solution \"{solution.Name}\" ({solution.Uid}).\n");
                     return 0;

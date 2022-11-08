@@ -36,7 +36,7 @@ namespace VisualStudioSolutionSecrets
         {
             ILogger logger = NullLogger.Instance;
             CancellationToken cancellationToken = CancellationToken.None;
-            SourceCacheContext cache = new SourceCacheContext();
+            using SourceCacheContext cache = new SourceCacheContext();
             SourceRepository repository = NuGet.Protocol.Core.Types.Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
             FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>();
             IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(

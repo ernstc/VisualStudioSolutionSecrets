@@ -35,12 +35,14 @@ namespace VisualStudioSolutionSecrets
 
             var defaultRepository = new GistRepository();
             Context.Current.AddService<IRepository>(defaultRepository);
-            Context.Current.AddService<IRepository>(defaultRepository, nameof(RepositoryTypesEnum.GitHub));
-            Context.Current.AddService<IRepository>(new AzureKeyVaultRepository(), nameof(RepositoryTypesEnum.AzureKV));
+            Context.Current.AddService<IRepository>(defaultRepository, nameof(RepositoryType.GitHub));
+            Context.Current.AddService<IRepository>(new AzureKeyVaultRepository(), nameof(RepositoryType.AzureKV));
 
             CommandLineApplication.Execute<Program>(args);
         }
 
+
+#pragma warning disable CA1822
 
         protected int OnExecute(CommandLineApplication app)
         {
@@ -49,17 +51,29 @@ namespace VisualStudioSolutionSecrets
             return 0;
         }
 
+#pragma warning restore CA1822
 
-        private string GetVersion()
+
+        private static string GetVersion()
         {
             var assembly = typeof(Versions).Assembly;
             var version = assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             var copyright = assembly?.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
-            return $"vs-secrets {version}\n{copyright}";
+            string platform;
+#if NET7_0
+            platform = " (.NET 7.0)";
+#elif NET6_0
+            platform = " (.NET 6.0)";
+#elif NETCOREAPP3_1
+            platform = " (.Net Core 3.1)";
+#else
+            platform = String.Empty;
+#endif
+            return $"vs-secrets {version}\n{copyright}{platform}";
         }
 
 
-        private static bool _showedLogo = false;
+        private static bool _showedLogo;
         private static void ShowLogo()
         {
             if (_showedLogo) return;

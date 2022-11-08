@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
+using System.Globalization;
 
 namespace VisualStudioSolutionSecrets.Repository
 {
@@ -42,7 +43,7 @@ namespace VisualStudioSolutionSecrets.Repository
                 }
                 else
                 {
-                    string loweredValue = value.ToLower();
+                    string loweredValue = value.ToLowerInvariant();
                     if (Uri.TryCreate(loweredValue, UriKind.Absolute, out Uri? repositoryUri) && repositoryUri != null)
                     {
                         int vaultIndex = loweredValue.IndexOf(".vault.", StringComparison.Ordinal);
@@ -81,7 +82,7 @@ namespace VisualStudioSolutionSecrets.Repository
             name = name[8..];
             name = name[..name.IndexOf(".vault.", StringComparison.Ordinal)];
 
-            string cloudDomain = RepositoryName.ToLower();
+            string cloudDomain = RepositoryName.ToLowerInvariant();
             cloudDomain = cloudDomain[cloudDomain.IndexOf(".vault.", StringComparison.Ordinal)..];
 
             if (_clouds.TryGetValue(cloudDomain, out var cloud))
@@ -147,6 +148,9 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public async Task<ICollection<(string name, string? content)>> PullFilesAsync(ISolution solution)
         {
+            if (solution == null)
+                throw new ArgumentNullException(nameof(solution));
+
             var files = new List<(string name, string? content)>();
 
             if (_client == null)
@@ -193,6 +197,12 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public async Task<bool> PushFilesAsync(ISolution solution, ICollection<(string name, string? content)> files)
         {
+            if (solution == null)
+                throw new ArgumentNullException(nameof(solution));
+
+            if (files == null)
+                throw new ArgumentNullException(nameof(files));
+
             if (_client == null)
             {
                 return false;
@@ -246,6 +256,7 @@ namespace VisualStudioSolutionSecrets.Repository
                             }
                             catch (Azure.RequestFailedException aex2)
                             {
+#pragma warning disable CA1508
                                 if (aex2.Status == 403)
                                 {
                                     Console.WriteLine($"\nERR: Cannot proceed with the operation.\n     Check if there is a secret named \"{secretName}\" that is deleted, but recoverable. In that case purge the secret or recover it before pushing local secrets.");
@@ -254,6 +265,7 @@ namespace VisualStudioSolutionSecrets.Repository
                                 {
                                     Console.WriteLine($"\nERR: Cannot proceed with the operation.\n     There is a conflict with the secret named \"{secretName}\" that cannot be resolved. Contact the administrator of the Key Vault.");
                                 }
+#pragma warning restore CA1508
                                 return false;
                             }
                             catch (Exception)
