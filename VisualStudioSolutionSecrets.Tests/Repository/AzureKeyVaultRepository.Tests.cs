@@ -11,12 +11,15 @@ namespace VisualStudioSolutionSecrets.Tests.Repository
     public class AzureKeyVaultRepositoryTests
     {
 
-        [Fact]
-        public void RepositoryName_1_Test()
+        [Theory]
+        [InlineData("https://my-kv-name.vault.azure.net")]
+        [InlineData("HTTPS://MY-KV-NAME.VAULT.AZURE.NET")]
+        public void RepositoryName_1_Test(string repositoryName)
         {
             var repository = new AzureKeyVaultRepository();
-            repository.RepositoryName = "https://my-kv-name.vault.azure.net";
+            repository.RepositoryName = repositoryName;
             Assert.Equal("https://my-kv-name.vault.azure.net", repository.RepositoryName);
+            Assert.Equal("AzureCloud (my-kv-name)", repository.GetFriendlyName());
         }
 
 
@@ -29,11 +32,13 @@ namespace VisualStudioSolutionSecrets.Tests.Repository
         }
 
 
-        [Fact]
-        public void RepositoryName_3_Test()
+        [Theory]
+        [InlineData("my-kv-name")]
+        [InlineData("MY-KV-NAME")]
+        public void RepositoryName_3_Test(string repositoryName)
         {
             var repository = new AzureKeyVaultRepository();
-            repository.RepositoryName = "my-kv-name";
+            repository.RepositoryName = repositoryName;
             Assert.Equal("AzureCloud (my-kv-name)", repository.GetFriendlyName());
         }
 

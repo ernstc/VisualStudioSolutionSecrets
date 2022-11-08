@@ -52,7 +52,7 @@ namespace VisualStudioSolutionSecrets.Repository
                             string cloudDomain = loweredValue[vaultIndex..];
                             if (_clouds.ContainsKey(cloudDomain))
                             {
-                                _repositoryName = repositoryUri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase) ? loweredValue : null;
+                                _repositoryName = repositoryUri.Scheme.Equals("https", StringComparison.Ordinal) ? loweredValue : null;
                                 return;
                             }
                         }
@@ -73,22 +73,22 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public string? GetFriendlyName()
         {
-            if (RepositoryName == null)
+            if (_repositoryName == null)
             {
                 return null;
             }
 
-            string name = RepositoryName;
+            string name = _repositoryName;
             name = name[8..];
             name = name[..name.IndexOf(".vault.", StringComparison.Ordinal)];
 
-            string cloudDomain = RepositoryName.ToLowerInvariant();
+            string cloudDomain = _repositoryName;
             cloudDomain = cloudDomain[cloudDomain.IndexOf(".vault.", StringComparison.Ordinal)..];
 
             if (_clouds.TryGetValue(cloudDomain, out var cloud))
                 return $"{cloud} ({name})";
             else
-                return RepositoryName;
+                return _repositoryName;
         }
 
 
