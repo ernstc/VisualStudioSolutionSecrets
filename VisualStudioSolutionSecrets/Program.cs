@@ -1,70 +1,79 @@
 ﻿using System;
+using System.Reflection;
 using System.Threading.Tasks;
-using CommandLine;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands;
-using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Encryption;
-using VisualStudioSolutionSecrets.IO;
 using VisualStudioSolutionSecrets.Repository;
 
 
 namespace VisualStudioSolutionSecrets
 {
 
-    static class Program
+    [Command("vs-secrets")]
+    [VersionOptionFromMember("--version", MemberName = nameof(GetVersion))]
+    [Subcommand(
+        typeof(InitCommand),
+        typeof(ChangeKeyCommand),
+        typeof(PushCommand),
+        typeof(PullCommand),
+        typeof(SearchCommand),
+        typeof(StatusCommand),
+        typeof(ConfigureCommand),
+        typeof(ClearCommand)
+    )]
+    internal class Program
     {
 
         static void Main(string[] args)
         {
-            if (args.Length == 0)
-            {
-                ShowLogo();
-            }
+            CheckForUpdates().Wait();
 
-            CommandLine.Parser.Default.ParseArguments<
-                InitOptions,
-                ChangeKeyOptions,
-                PushSecretsOptions,
-                PullSecretsOptions,
-                SearchSecretsOptions,
-                StatusCheckOptions
-                >(args)
+            var cipher = new Cipher();
+            cipher.RefreshStatus().Wait();
+            Context.Current.AddService<ICipher>(cipher);
 
-            .WithNotParsed(err =>
-            {
-                CheckForUpdates().Wait();
-                Console.WriteLine("\nUsage:");
-                Console.WriteLine("     vs-secrets push --all");
-                Console.WriteLine("     vs-secrets pull --all\n");
-            })
+            var defaultRepository = new GistRepository();
+            Context.Current.AddService<IRepository>(defaultRepository);
+            Context.Current.AddService<IRepository>(defaultRepository, nameof(RepositoryType.GitHub));
+            Context.Current.AddService<IRepository>(new AzureKeyVaultRepository(), nameof(RepositoryType.AzureKV));
 
-            .MapResult(
-                (InitOptions options) => { return Execute(new InitCommand(), options); },
-                (ChangeKeyOptions options) => { return Execute(new ChangeKeyCommand(), options); },
-                (PushSecretsOptions options) => { return Execute(new PushSecretsCommand(), options); },
-                (PullSecretsOptions options) => { return Execute(new PullSecretsCommand(), options); },
-                (SearchSecretsOptions options) => { return Execute(new SearchSecretsCommand(), options); },
-                (StatusCheckOptions options) => { return Execute(new StatusCheckCommand(), options); },
-                err => 1
-                );
+            CommandLineApplication.Execute<Program>(args);
         }
 
 
-        private static int Execute<TOptions>(Command<TOptions> command, TOptions options)
+#pragma warning disable CA1822
+
+        protected int OnExecute(CommandLineApplication app)
         {
-            CheckForUpdates().Wait();
-            Context.Configure(context =>
-            {
-                context.Cipher = new Cipher();
-                context.Repository = new GistRepository();
-            });
-            Context.Current.Cipher.RefreshStatus().Wait();
-            command.Execute(Context.Current, options).Wait();
+            ShowLogo();
+            app.ShowHelp();
             return 0;
         }
 
+#pragma warning restore CA1822
 
-        private static bool _showedLogo = false;
+
+        private static string GetVersion()
+        {
+            var assembly = typeof(Versions).Assembly;
+            var version = assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            var copyright = assembly?.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
+            string platform;
+#if NET7_0
+            platform = " (.NET 7.0)";
+#elif NET6_0
+            platform = " (.NET 6.0)";
+#elif NETCOREAPP3_1
+            platform = " (.Net Core 3.1)";
+#else
+            platform = String.Empty;
+#endif
+            return $"vs-secrets {version}\n{copyright}{platform}";
+        }
+
+
+        private static bool _showedLogo;
         private static void ShowLogo()
         {
             if (_showedLogo) return;
@@ -85,12 +94,12 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        static async Task CheckForUpdates()
+        private static async Task CheckForUpdates()
         {
-            if (Context.Current.CurrentVersion != null)
+            if (Versions.CurrentVersion != null)
             {
                 var lastVersion = await Versions.CheckForNewVersion();
-                var currentVersion = Context.Current.CurrentVersion;
+                var currentVersion = Versions.CurrentVersion;
 
                 var v1 = new Version(lastVersion.Major, lastVersion.Minor, lastVersion.Build);
                 var v2 = new Version(currentVersion.Major, currentVersion.Minor, currentVersion.Build);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -6,10 +7,35 @@ using System.Text.RegularExpressions;
 namespace VisualStudioSolutionSecrets.Commands.Abstractions
 {
 
-	internal abstract class EncryptionKeyCommand<TOptions> : Command<TOptions>
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class EncryptionKeyParametersValidationAttribute : ValidationAttribute
+    {
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+        {
+            if (value is InitCommand initCommand)
+            {
+                if (!String.IsNullOrEmpty(initCommand.Passphrase) && !String.IsNullOrEmpty(initCommand.KeyFile))
+                {
+                    return new ValidationResult("\nSpecify -p|--passphrase or -f|--key-file, not both.\n");
+                }
+            }
+            else if (value is ChangeKeyCommand changeKeyCommand)
+            {
+                if (!String.IsNullOrEmpty(changeKeyCommand.Passphrase) && !String.IsNullOrEmpty(changeKeyCommand.KeyFile))
+                {
+                    return new ValidationResult("\nSpecify -p|--passphrase or -f|--key-file, not both.\n");
+                }
+            }
+            return ValidationResult.Success;
+        }
+    }
+
+
+
+    internal abstract class EncryptionKeyCommand : CommandBase
 	{
 
-        internal bool ValidatePassphrase(string passphrase)
+        internal static bool ValidatePassphrase(string passphrase)
         {
             if (string.IsNullOrWhiteSpace(passphrase))
             {
@@ -34,7 +60,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         }
 
 
-        protected bool AreEncryptionKeyParametersValid(string? passphrase, string? keyFile)
+        protected static bool AreEncryptionKeyParametersValid(string? passphrase, string? keyFile)
         {
             if (string.IsNullOrEmpty(passphrase) && string.IsNullOrEmpty(keyFile))
             {
@@ -69,17 +95,17 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         }
 
 
-        protected void GenerateEncryptionKey(string? passphrase, string? keyFile)
+        protected static void GenerateEncryptionKey(string? passphrase, string? keyFile)
         {
             Console.Write("\nGenerating encryption key... ");
             if (!string.IsNullOrEmpty(passphrase))
             {
-                Context.Cipher.Init(passphrase);
+                Context.Current.Cipher.Init(passphrase);
             }
             else if (!string.IsNullOrEmpty(keyFile))
             {
                 using var file = File.OpenRead(keyFile);
-                Context.Cipher.Init(file);
+                Context.Current.Cipher.Init(file);
                 file.Close();
             }
             Console.WriteLine("Done\n");

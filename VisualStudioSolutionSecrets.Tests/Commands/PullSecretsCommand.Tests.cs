@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using VisualStudioSolutionSecrets.IO;
-using VisualStudioSolutionSecrets.Tests.Helpers;
+using Xunit;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class PullSecretsCommandTests : CommandTests, IDisposable
     {
 
@@ -55,10 +57,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 .Setup(o => o.GetCurrentDirectory())
                 .Returns(Constants.SolutionFilesPath);
 
-            Context.Configure(context =>
-            {
-                context.IO = fileSystemMock.Object;
-            });
+            Context.Current.AddService<IFileSystem>(fileSystemMock.Object);
         }
 
 
@@ -78,59 +77,43 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         }
 
 
-        private async Task PrepareTest()
+        private void PrepareTest()
         {
-            await CallCommand.Init(new InitOptions
-            {
-                Passphrase = Constants.PASSPHRASE
-            });
-
-            await CallCommand.Push(new PushSecretsOptions
-            {
-                Path = Constants.SolutionFilesPath
-            });
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Constants.SolutionFilesPath}'");
 
             ChangeSecretsFilesPath();
         }
 
 
         [Fact]
-        public async Task PullPathTest()
+        public void PullPathTest()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await CallCommand.Pull(new PullSecretsOptions
-            {
-                Path = Constants.SolutionFilesPath
-            });
+            RunCommand($"pull '{Constants.SolutionFilesPath}'");
 
             VerifyTestResults();
         }
 
 
         [Fact]
-        public async Task PullRelativePathTest()
+        public void PullRelativePathTest()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await CallCommand.Pull(new PullSecretsOptions
-            {
-                Path = "."
-            });
+            RunCommand("pull .");
 
             VerifyTestResults();
         }
 
 
         [Fact]
-        public async Task PullPathWithoutSolutionTest()
+        public void PullPathWithoutSolutionTest()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await CallCommand.Pull(new PullSecretsOptions
-            {
-                Path = "unknown"
-            });
+            RunCommand("pull unknown");
 
             string pulledFilePath1 = Path.Combine(PulledSecretsFilesPath, "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99", "secrets.json");
             string pulledFilePath2 = Path.Combine(PulledSecretsFilesPath, "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99", "secrets.xml");
@@ -141,15 +124,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task PullAllWithinPathTest()
+        public void PullAllWithinPathTest()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await CallCommand.Pull(new PullSecretsOptions
-            {
-                Path = Constants.SampleFilesPath,
-                All = true
-            });
+            RunCommand($"pull --all '{Constants.SampleFilesPath}'");
 
             VerifyTestResults();
         }

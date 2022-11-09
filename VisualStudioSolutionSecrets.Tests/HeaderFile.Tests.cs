@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xunit;
+
 
 namespace VisualStudioSolutionSecrets.Tests
 {
@@ -16,6 +18,7 @@ namespace VisualStudioSolutionSecrets.Tests
         [InlineData("1.1.3")]
         [InlineData("1.9.1")]
         [InlineData("1.9.1.1")]
+        [InlineData("2.0.0")]
 
         public void IsVersionSupportedTests(string version)
         {
@@ -30,8 +33,9 @@ namespace VisualStudioSolutionSecrets.Tests
         [Theory]
         [InlineData("")]
         [InlineData("1")]
-        [InlineData("2.0.0")]
         [InlineData("1.9.1.1.1")]
+        [InlineData("3.0.0")]
+
         public void IsVersionNotSupportedTests(string version)
         {
             HeaderFile headerFile = new HeaderFile();

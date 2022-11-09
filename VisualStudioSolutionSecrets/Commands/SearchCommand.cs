@@ -1,40 +1,44 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
-
 
 namespace VisualStudioSolutionSecrets.Commands
 {
 
-    internal class SearchSecretsCommand : Command<SearchSecretsOptions>
+    [Command(Description = "Search for solution secrets.")]
+    internal class SearchCommand : CommandBaseWithPath
     {
 
-        protected override Task Execute(SearchSecretsOptions options)
-        {
-            string? path = EnsureFullyQualifiedPath(options.Path);
+        [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
+        public bool All { get; set; }
 
-            string[] solutionFiles = GetSolutionFiles(path, options.All);
+
+        public int OnExecute()
+        {
+            Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
+
+            string[] solutionFiles = GetSolutionFiles(Path, All);
             if (solutionFiles.Length == 0)
             {
                 Console.WriteLine("Solution files not found.\n");
-                return Task.CompletedTask;
+                return 1;
             }
 
             int solutionIndex = 0;
             foreach (var solutionFile in solutionFiles)
             {
-                SolutionFile solution = new SolutionFile(solutionFile, null);
+                SolutionFile solution = new SolutionFile(solutionFile);
 
-                var configFiles = solution.GetProjectsSecretConfigFiles();
+                var configFiles = solution.GetProjectsSecretFiles();
                 if (configFiles.Count > 0)
                 {
                     solutionIndex++;
                     if (solutionIndex > 1)
                     {
-                        Console.WriteLine("\n----------------------------------------");
+                        Console.WriteLine("\n----------------------------------------\n");
                     }
-                    Console.WriteLine($"\nSolution: {solution.Name}");
+                    Console.WriteLine($"Solution: {solution.Name}");
                     Console.WriteLine($"    Path: {solutionFile}\n");
 
                     Console.WriteLine("Projects that use secrets:");
@@ -42,14 +46,13 @@ namespace VisualStudioSolutionSecrets.Commands
                     int i = 0;
                     foreach (var configFile in configFiles)
                     {
-                        Console.WriteLine($"   {++i,3}) {configFile.ProjectFileName}");
+                        Console.WriteLine($"   {++i,3}) [{configFile.SecretsId}] - {configFile.ProjectFileName} ");
                     }
                 }
             }
             Console.WriteLine();
-            return Task.CompletedTask;
+            return 0;
         }
 
     }
 }
-

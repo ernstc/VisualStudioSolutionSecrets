@@ -3,35 +3,59 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Repository;
-using static System.Net.WebRequestMethods;
-
 
 namespace VisualStudioSolutionSecrets.Commands
 {
 
-	internal class ChangeKeyCommand : EncryptionKeyCommand<ChangeKeyOptions>
+    [Command(Description = "Change the encryption key and encrypts all existing secrets with the new key.")]
+    [EncryptionKeyParametersValidation]
+    internal class ChangeKeyCommand : EncryptionKeyCommand
 	{
+        [Option("-p|--passphrase", Description = "Passphare for creating the encryption key.")]
+        public string? Passphrase { get; set; }
 
-        protected override async Task Execute(ChangeKeyOptions options)
+        [Option("-f|--keyfile <path>", Description = "Key file path to use for creating the encryption key.")]
+        [FileExists]
+        public string? KeyFile { get; set; }
+
+
+        public async Task<int> OnExecute(CommandLineApplication? app = null)
         {
+            Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
+
+            if (
+                Passphrase == null
+                && KeyFile == null
+                )
+            {
+                app?.ShowHelp();
+                return 1;
+            }
+
             if (!await CanSync())
             {
-                return;
+                return 1;
             }
 
-            string? keyFile = EnsureFullyQualifiedPath(options.KeyFile);
+            string? keyFile = KeyFile != null ? EnsureFullyQualifiedPath(KeyFile) : null;
 
-            if (!AreEncryptionKeyParametersValid(options.Passphrase, keyFile))
+            if (!AreEncryptionKeyParametersValid(Passphrase, keyFile))
             {
-                return;
+                return 1;
             }
 
-            await AuthenticateRepositoryAsync();
+            // Ensure authorization on the default repository
+            if (!await Context.Current.Repository.IsReady())
+            {
+                await Context.Current.Repository.AuthorizeAsync();
+            }
 
             Console.Write("Loading existing secrets... ");
-            var allSecrets = await Context.Repository.PullAllSecretsAsync();
+            ICollection<SolutionSettings> allSecrets = await Context.Current.Repository.PullAllSecretsAsync();
+
             Console.WriteLine("Done");
 
             if (allSecrets.Count == 0)
@@ -79,7 +103,7 @@ namespace VisualStudioSolutionSecrets.Commands
                             configFileName = "secrets.json";
                         }
 
-                        string? decryptedContent = Context.Cipher.Decrypt(secret.Value);
+                        var decryptedContent = Context.Current.Cipher.Decrypt(secret.Value);
                         if (decryptedContent == null)
                         {
                             decryptionSucceded = false;
@@ -93,10 +117,9 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 if (decryptionSucceded)
                 {
-                    successfulSolutionSecrets.Add(new SolutionSettings
+                    successfulSolutionSecrets.Add(new SolutionSettings(decryptedSettings)
                     {
-                        SolutionName = solutionSecrets.SolutionName,
-                        Settings = decryptedSettings
+                        Name = solutionSecrets.Name
                     });
                 }
             }
@@ -108,23 +131,23 @@ namespace VisualStudioSolutionSecrets.Commands
                 Console.WriteLine("    Only some solutions will be re-encrypted with the new key.\n");
                 if (!Confirm())
                 {
-                    return;
+                    return 1;
                 }
             }
 
-            GenerateEncryptionKey(options.Passphrase, keyFile);
+            GenerateEncryptionKey(Passphrase, keyFile);
 
             Console.WriteLine("Saving secrets with the new key...\n");
 
             foreach (var solutionSecrets in successfulSolutionSecrets)
             {
-                Console.Write($"- {solutionSecrets.SolutionName}... ");
+                Console.Write($"- {solutionSecrets.Name}... ");
                 
                 var headerFile = new HeaderFile
                 {
-                    visualStudioSolutionSecretsVersion = Context.VersionString!,
+                    visualStudioSolutionSecretsVersion = Versions.VersionString!,
                     lastUpload = DateTime.UtcNow,
-                    solutionFile = solutionSecrets.SolutionName
+                    solutionFile = solutionSecrets.Name
                 };
 
                 var files = new List<(string fileName, string? content)>
@@ -148,7 +171,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     var encryptedFiles = new Dictionary<string, string>();
                     foreach (var secret in secretFiles)
                     {
-                        string? encryptedContent = Context.Cipher.Encrypt(secret.Value);
+                        string? encryptedContent = Context.Current.Cipher.Encrypt(secret.Value);
                         if (encryptedContent == null)
                         {
                             failed = true;
@@ -175,8 +198,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 if (!failed)
                 {
-                    Context.Repository.SolutionName = solutionSecrets.SolutionName;
-                    if (!await Context.Repository.PushFilesAsync(files))
+                    if (!await Context.Current.Repository.PushFilesAsync(solutionSecrets, files))
                     {
                         failed = true;
                     }
@@ -186,6 +208,10 @@ namespace VisualStudioSolutionSecrets.Commands
             }
 
             Console.WriteLine("\nFinished.\n");
+
+            await Context.Current.Cipher.RefreshStatus();
+
+            return 0;
         }
 
     }

@@ -3,46 +3,61 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
-
+using VisualStudioSolutionSecrets.Repository;
 
 namespace VisualStudioSolutionSecrets.Commands
 {
 
-    internal class PullSecretsCommand : Command<PullSecretsOptions>
+    [Command(Description = "Pull solution secrets and decrypt them.")]
+    internal class PullCommand : CommandBaseWithPath
     {
 
-        protected override async Task Execute(PullSecretsOptions options)
+        [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
+        public bool All { get; set; }
+
+
+        public async Task<int> OnExecute()
         {
+            Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
+
             if (!await CanSync())
             {
-                return;
+                return 1;
             }
 
-            string? path = EnsureFullyQualifiedPath(options.Path);
-
-            string[] solutionFiles = GetSolutionFiles(path, options.All);
+            string[] solutionFiles = GetSolutionFiles(Path, All);
             if (solutionFiles.Length == 0)
             {
                 Console.WriteLine("Solution files not found.\n");
-                return;
+                return 1;
             }
-
-            await AuthenticateRepositoryAsync();
 
             foreach (var solutionFile in solutionFiles)
             {
-                SolutionFile solution = new SolutionFile(solutionFile, Context.Cipher);
+                SolutionFile solution = new SolutionFile(solutionFile);
 
-                var configFiles = solution.GetProjectsSecretConfigFiles();
-                if (configFiles.Count == 0)
+                ICollection<SecretFile> secretFiles = solution.GetProjectsSecretFiles();
+                if (secretFiles.Count == 0)
+                {
                     continue;
+                }
 
-                Context.Repository.SolutionName = solution.Name;
+                var synchronizationSettings = solution.CustomSynchronizationSettings;
+
+                // Select the repository for the curront solution
+                IRepository repository = Context.Current.GetRepository(synchronizationSettings) ?? Context.Current.Repository;
+
+                // Ensure authorization on the selected repository
+                if (!await repository.IsReady())
+                {
+                    await repository.AuthorizeAsync();
+                }
 
                 Console.Write($"Pulling secrets for solution: {solution.Name}... ");
 
-                var repositoryFiles = await Context.Repository.PullFilesAsync();
+                var repositoryFiles = await repository.PullFilesAsync(solution);
                 if (repositoryFiles.Count == 0)
                 {
                     Console.WriteLine("Failed, secrets not found");
@@ -55,14 +70,19 @@ namespace VisualStudioSolutionSecrets.Commands
                 {
                     if (file.name == "secrets" && file.content != null)
                     {
-                        header = JsonSerializer.Deserialize<HeaderFile>(file.content);
+                        try
+                        {
+                            header = JsonSerializer.Deserialize<HeaderFile>(file.content);
+                        }
+                        catch
+                        { }
                         break;
                     }
                 }
 
                 if (header == null)
                 {
-                    Console.WriteLine("\n    ERR: Header file not found");
+                    Console.WriteLine("\n    ERR: Header file not found or not valid");
                     continue;
                 }
 
@@ -84,41 +104,49 @@ namespace VisualStudioSolutionSecrets.Commands
                             continue;
                         }
 
-                        Dictionary<string, string>? secretFiles = null;
+                        Dictionary<string, string>? remoteSecretFiles = null;
+                        
                         try
                         {
-                            secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(repositoryFile.content);
+                            remoteSecretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(repositoryFile.content);
                         }
                         catch
                         {
-                            Console.Write($"\n    ERR: File content cannot be read: {repositoryFile.name}");
+                            Console.Write($"\n    ERR: Remote file content cannot be read: {repositoryFile.name}");
                         }
 
-                        if (secretFiles == null)
+                        if (remoteSecretFiles == null)
                         {
                             failed = true;
                             break;
                         }
 
-                        foreach (var secret in secretFiles)
+                        foreach (var remoteSecretFile in remoteSecretFiles)
                         {
-                            string configFileName = secret.Key;
+                            string secretFileName = remoteSecretFile.Key;
 
                             // This check is for compatibility with version 1.0.x
-                            if (configFileName == "content")
+                            if (secretFileName == "content")
                             {
-                                configFileName = "secrets.json";
+                                secretFileName = "secrets.json";
                             }
 
-                            foreach (var configFile in configFiles)
+                            foreach (var localSecretFile in secretFiles)
                             {
-                                if (configFile.GroupName == repositoryFile.name
-                                    && configFile.FileName == configFileName)
+                                if (localSecretFile.ContainerName == repositoryFile.name
+                                    && localSecretFile.Name == secretFileName)
                                 {
-                                    configFile.Content = secret.Value;
-                                    if (configFile.Decrypt())
+                                    localSecretFile.Content = remoteSecretFile.Value;
+
+                                    bool isFileOk = true;
+                                    if (repository.EncryptOnClient)
                                     {
-                                        solution.SaveConfigFile(configFile);
+                                        isFileOk = localSecretFile.Decrypt();
+                                    }
+
+                                    if (isFileOk)
+                                    {
+                                        solution.SaveSecretSettingsFile(localSecretFile);
                                     }
                                     else
                                     {
@@ -140,6 +168,7 @@ namespace VisualStudioSolutionSecrets.Commands
             }
 
             Console.WriteLine("\nFinished.\n");
+            return 0;
         }
 
     }

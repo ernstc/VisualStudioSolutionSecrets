@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using VisualStudioSolutionSecrets.Encryption;
 using VisualStudioSolutionSecrets.IO;
 using VisualStudioSolutionSecrets.Repository;
@@ -9,52 +11,89 @@ using VisualStudioSolutionSecrets.Repository;
 namespace VisualStudioSolutionSecrets
 {
 
-    public class ContextConfiguration
-    {
-        public IFileSystem? IO;
-        public ICipher? Cipher;
-        public IRepository? Repository;
-    }
-
-
-    public sealed class Context
+    public class Context
 	{
-        public string? VersionString { get; }
-        public Version? CurrentVersion { get; }
-
-        public IFileSystem IO { get; private set; } = new DefaultFileSystem();
-        public ICipher Cipher { get; private set; } = null!;
-        public IRepository Repository { get; private set; } = null!;
+        public IConsoleInput Input => GetService<IConsoleInput>()!;
+        public IFileSystem IO => GetService<IFileSystem>()!;
+        public ICipher Cipher => GetService<ICipher>()!;
+        public IRepository Repository => GetService<IRepository>()!;
 
 
         private static Context _current = null!;
-        public static Context Current => _current ?? new Context();
+        public static Context Current => _current ?? (_current = new Context());
 
-        
-        public static void Configure(Action<ContextConfiguration> configureAction)
-        {
-            if (configureAction == null)
-                throw new ArgumentNullException(nameof(configureAction));
 
-            ContextConfiguration configuration = new ContextConfiguration();
-            configureAction(configuration);
 
-            if (_current == null) _current = new Context();
-
-            if (configuration.IO != null) _current.IO = configuration.IO;
-            if (configuration.Cipher != null) _current.Cipher = configuration.Cipher;
-            if (configuration.Repository != null) _current.Repository = configuration.Repository;
-        }
+        private IDictionary<string, object> _services;
 
 
         private Context()
         {
-            string? version = this.GetType().Assembly?
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-                .InformationalVersion;
+            _services = new Dictionary<string, object>();
+            ResetToDefault();
+        }
 
-            VersionString = version != null ? version.Split('-')[0] : null;
-            CurrentVersion = string.IsNullOrEmpty(VersionString) ? new Version() : new Version(VersionString);
+
+        public void AddService<T>(T service, string? label = null) where T: class
+        {
+            if (service == null)
+                throw new ArgumentNullException(nameof(service));
+
+            var key = typeof(T).FullName;
+            if (key == null)
+                throw new InvalidOperationException("The service cannot be added as a dependency.");
+
+            if (!String.IsNullOrEmpty(label))
+            {
+                key += $"|{label}";
+            }
+
+            _services[key] = service;
+        }
+
+
+        public T? GetService<T>(string? label = null) where T: class
+        {
+            var key = typeof(T).FullName;
+            if (key != null)
+            {
+                if (!String.IsNullOrEmpty(label))
+                {
+                    key += $"|{label}";
+                }
+
+                if (_services.TryGetValue(key, out var service))
+                {
+                    return (T)service;
+                }
+            }
+            return null;
+        }
+
+
+        private static IConsoleInput defaultConsoleInput = new ConsoleInput();
+        private static IFileSystem defaultIO = new DefaultFileSystem();
+
+        public void ResetToDefault()
+        {
+            _services.Clear();
+            AddService(defaultConsoleInput);
+            AddService(defaultIO);
+        }
+
+
+        internal IRepository? GetRepository(SolutionSynchronizationSettings? settings)
+        {
+            if (settings != null)
+            {
+                var repository = GetService<IRepository>(settings.Repository.ToString());
+                if (repository != null && settings.Repository == RepositoryType.AzureKV)
+                {
+                    repository.RepositoryName = settings.AzureKeyVaultName;
+                }
+                return repository;
+            }
+            return null;
         }
 
     }

@@ -1,1 +1,3 @@
-﻿Solution files not found.
+﻿vs-secrets #.#.#
+
+Solution files not found.

@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
-using NuGet.Protocol.Core.Types;
-using VisualStudioSolutionSecrets.Encryption;
 using VisualStudioSolutionSecrets.IO;
-using VisualStudioSolutionSecrets.Repository;
+using Xunit;
+
 
 namespace VisualStudioSolutionSecrets.Tests
 {
@@ -44,10 +44,7 @@ namespace VisualStudioSolutionSecrets.Tests
                 .Setup(o => o.GetSecretsFolderPath())
                 .Returns(secretsFilesPath);
 
-            Context.Configure(context =>
-            {
-                context.IO = fileSystemMock.Object;
-            });
+            Context.Current.AddService<IFileSystem>(fileSystemMock.Object);
         }
 
 
@@ -59,15 +56,15 @@ namespace VisualStudioSolutionSecrets.Tests
             var solutionFilePath = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln");
             SolutionFile solutionFile = new SolutionFile(solutionFilePath);
 
-            var secretConfigFiles = solutionFile.GetProjectsSecretConfigFiles();
+            var secretConfigFiles = solutionFile.GetProjectsSecretFiles();
 
             Assert.NotNull(secretConfigFiles);
             Assert.Equal(2, secretConfigFiles.Count);
-            Assert.Contains(secretConfigFiles, item => item.FileName.EndsWith(".json"));
-            Assert.Contains(secretConfigFiles, item => item.FileName.EndsWith(".xml"));
+            Assert.Contains(secretConfigFiles, item => item.Name.EndsWith(".json"));
+            Assert.Contains(secretConfigFiles, item => item.Name.EndsWith(".xml"));
             Assert.Equal(
-                secretConfigFiles.ElementAt(0).GroupName,
-                secretConfigFiles.ElementAt(1).GroupName
+                secretConfigFiles.ElementAt(0).ContainerName,
+                secretConfigFiles.ElementAt(1).ContainerName
                 );
         }
 
@@ -81,7 +78,7 @@ namespace VisualStudioSolutionSecrets.Tests
             var solutionFilePath = Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln");
             SolutionFile solutionFile = new SolutionFile(solutionFilePath);
 
-            var secretConfigFiles = solutionFile.GetProjectsSecretConfigFiles();
+            var secretConfigFiles = solutionFile.GetProjectsSecretFiles();
             var configFile = secretConfigFiles.ElementAt(0);
 
             // Phase 2: Save the first config file found in a subfolder and check that the files has been saved.
@@ -89,9 +86,9 @@ namespace VisualStudioSolutionSecrets.Tests
 
             CreateContext(secretsSubFolderPath: TEST_SUBFOLDER_NAME);
 
-            solutionFile.SaveConfigFile(configFile);
+            solutionFile.SaveSecretSettingsFile(configFile);
 
-            string savedConfigFilePath = Path.Combine(Constants.SecretFilesPath, destinationSecretsFolderPath, configFile.FileName);
+            string savedConfigFilePath = Path.Combine(Constants.SecretFilesPath, destinationSecretsFolderPath, configFile.Name);
             Assert.True(File.Exists(savedConfigFilePath));
 
             string savedConfigFileContet = File.ReadAllText(savedConfigFilePath);

@@ -1,6 +1,9 @@
-vs-secrets 1.2.1
+vs-secrets #.#.#
 
 Checking status...
 
-             Ecryption key: OK
-  Repository authorization: OK
+                   Ecryption Key: OK
+Default Repository Authorization: OK
+
+Checking solutions synchronization status...
+... no solution found.

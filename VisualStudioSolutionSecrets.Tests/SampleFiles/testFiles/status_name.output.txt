@@ -1,0 +1,12 @@
+vs-secrets #.#.#
+
+Checking status...
+
+                   Ecryption Key: OK
+Default Repository Authorization: OK
+
+Checking solutions synchronization status...
+
+Solution                                    | Version | Last Update         | Repo    | Secrets Status
+--------------------------------------------|---------|---------------------|---------|---------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% | %%%%%%% | %%%%%%%%%%%%%%%%%%% | %%%%%%% | {status}

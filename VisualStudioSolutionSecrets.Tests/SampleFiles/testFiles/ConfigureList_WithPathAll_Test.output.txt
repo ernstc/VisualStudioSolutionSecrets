@@ -1,0 +1,7 @@
+﻿vs-secrets #.#.#
+
+Default repository: Mock Name
+
+Solutions with custom configuration...
+
+...none

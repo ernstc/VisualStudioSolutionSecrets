@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using VisualStudioSolutionSecrets.IO;
+using Xunit;
+
 
 namespace VisualStudioSolutionSecrets.Tests
 {
@@ -61,10 +64,7 @@ namespace VisualStudioSolutionSecrets.Tests
                 .Setup(o => o.GetApplicationDataFolderPath())
                 .Returns(Constants.ConfigFilesPath);
 
-            Context.Configure(context =>
-            {
-                context.IO = fileSystemMock.Object;
-            });
+            Context.Current.AddService<IFileSystem>(fileSystemMock.Object);
         }
 
 

@@ -1,15 +1,14 @@
 {
-  "IntValue": 1,
-  "StringValue": "string",
-  "DateTimeValue": "2022-09-16T16:00:01",
-  "DateTimeOffsetValue": "2022-09-16T16:00:01+02:00",
-  "BoolValue": true,
-  "IntArrayValue": [
+  "intValue": 1,
+  "stringValue": "string",
+  "dateTimeValue": "2022-09-16T16:00:01",
+  "dateTimeOffsetValue": "2022-09-16T16:00:01+02:00",
+  "boolValue": true,
+  "intArrayValue": [
     100,
     200
   ],
-  "ObjectValue": {
-    "IntValue": 2,
-    "StringValue": null
+  "objectValue": {
+    "intValue": 2
   }
 }

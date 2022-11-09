@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VisualStudioSolutionSecrets.Tests.Helpers;
+using Xunit;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class InitCommandTests : CommandTests, IDisposable
     {
 
@@ -30,21 +32,18 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task InitWithoutParametersTest()
+        public void InitWithoutParametersTest()
         {
-            await CallCommand.Init(new InitOptions());
+            RunCommand("init");
 
             Assert.False(File.Exists(_generatedFilePath));
         }
 
 
         [Fact]
-        public async Task InitWithPassphraseTest()
+        public void InitWithPassphraseTest()
         {
-            await CallCommand.Init(new InitOptions
-            {
-                Passphrase = Constants.PASSPHRASE
-            });
+            RunCommand($"init -p {Constants.PASSPHRASE}");
 
             Assert.True(File.Exists(_generatedFilePath));
             Assert.Equal(File.ReadAllLines(_sampleFilePath), File.ReadAllLines(_generatedFilePath));
@@ -52,12 +51,9 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task InitWithKeyFileTest()
+        public void InitWithKeyFileTest()
         {
-            await CallCommand.Init(new InitOptions
-            {
-                KeyFile = Path.Combine(Constants.TestFilesPath, "initFile.key")
-            });
+            RunCommand($"init -f '{Path.Combine(Constants.TestFilesPath, "initFile.key")}'");
 
             Assert.True(File.Exists(_generatedFilePath));
             Assert.Equal(File.ReadAllLines(_sampleFilePath), File.ReadAllLines(_generatedFilePath));
@@ -65,12 +61,9 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task InitWithKeyFileWithRelativePathTest()
+        public void InitWithKeyFileWithRelativePathTest()
         {
-            await CallCommand.Init(new InitOptions
-            {
-                KeyFile = Path.Combine("..", "testFiles", "initFile.key")
-            });
+            RunCommand($"init -f '{Path.Combine("..", "testFiles", "initFile.key")}'");
 
             Assert.True(File.Exists(_generatedFilePath));
             Assert.Equal(File.ReadAllLines(_sampleFilePath), File.ReadAllLines(_generatedFilePath));

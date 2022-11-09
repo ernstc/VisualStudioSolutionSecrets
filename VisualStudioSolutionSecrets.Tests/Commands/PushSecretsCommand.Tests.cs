@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Moq;
-using VisualStudioSolutionSecrets.Tests.Helpers;
+using Xunit;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class PushSecretsCommandTests : CommandTests, IDisposable
     {
 
@@ -47,7 +48,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             Assert.True(header.ContainsKey("lastUpload"));
             Assert.True(header.ContainsKey("solutionFile"));
 
-            Assert.Equal("1.2.1", header["visualStudioSolutionSecretsVersion"]);
+            Assert.Equal(Versions.VersionString, header["visualStudioSolutionSecretsVersion"]);
             Assert.Equal("SolutionSample.sln", header["solutionFile"]);
 
             var secrets = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(encryptedSecretsPath))!;
@@ -61,51 +62,30 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task PushPathTest()
+        public void PushPathTest()
         {
-            await CallCommand.Init(new InitOptions
-            {
-                Passphrase = Constants.PASSPHRASE
-            });
-
-            await CallCommand.Push(new PushSecretsOptions
-            {
-                Path = Constants.SolutionFilesPath
-            });
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Constants.SolutionFilesPath}'");
 
             VerifyTestResults();
         }
 
 
         [Fact]
-        public async Task PushRelativePathTest()
+        public void PushRelativePathTest()
         {
-            await CallCommand.Init(new InitOptions
-            {
-                Passphrase = Constants.PASSPHRASE
-            });
-
-            await CallCommand.Push(new PushSecretsOptions
-            {
-                Path = "."
-            });
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand("push .");
 
             VerifyTestResults();
         }
 
 
         [Fact]
-        public async Task PushPathWithoutSolutionTest()
+        public void PushPathWithoutSolutionTest()
         {
-            await CallCommand.Init(new InitOptions
-            {
-                Passphrase = Constants.PASSPHRASE
-            });
-
-            await CallCommand.Push(new PushSecretsOptions
-            {
-                Path = "unknown"
-            });
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand("push unknown");
 
             string headerPath = Path.Combine(Constants.RepositoryFilesPath, "secrets.json");
           
@@ -114,18 +94,10 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task PushAllWithinPathTest()
+        public void PushAllWithinPathTest()
         {
-            await CallCommand.Init(new InitOptions
-            {
-                Passphrase = Constants.PASSPHRASE
-            });
-
-            await CallCommand.Push(new PushSecretsOptions
-            {
-                Path = Constants.SampleFilesPath,
-                All = true
-            });
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push --all '{Constants.SampleFilesPath}'");
 
             VerifyTestResults();
         }

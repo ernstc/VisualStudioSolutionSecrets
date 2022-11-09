@@ -5,25 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
+using Xunit;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class EncryptionKeyCommandTests
     {
-
-        public class Options
-        {
-        }
-
-
-        private EncryptionKeyCommand<Options> _command;
-
-
-        public EncryptionKeyCommandTests()
-        {
-            _command = new Mock<EncryptionKeyCommand<Options>>().Object;
-        }
-
 
         [Theory]
         [InlineData("Password.1")]
@@ -32,7 +20,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [InlineData("More Words 3.")]
         public void ValidPassphraseTests(string passphrase)
         {
-            Assert.True(_command.ValidatePassphrase(passphrase));
+            Assert.True(EncryptionKeyCommand.ValidatePassphrase(passphrase));
         }
 
 
@@ -50,7 +38,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         [InlineData("!@#$%^&*()_+=[{]};:<>|./?,-")]
         public void NotValidPassphraseTests(string passphrase)
         {
-            Assert.False(_command.ValidatePassphrase(passphrase));
+            Assert.False(EncryptionKeyCommand.ValidatePassphrase(passphrase));
         }
 
     }

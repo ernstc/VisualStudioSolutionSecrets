@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using VisualStudioSolutionSecrets.IO;
-using VisualStudioSolutionSecrets.Tests.Helpers;
+using Xunit;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class ChangeKeyCommandTests : CommandTests, IDisposable
     {
 
@@ -56,10 +58,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 .Setup(o => o.GetCurrentDirectory())
                 .Returns(Constants.SolutionFilesPath);
 
-            Context.Configure(context =>
-            {
-                context.IO = fileSystemMock.Object;
-            });
+            Context.Current.AddService<IFileSystem>(fileSystemMock.Object);
         }
 
 
@@ -79,95 +78,67 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         }
 
 
-        private static async Task PrepareTest()
+        private void PrepareTest()
         {
-            await CallCommand.Init(new InitOptions
-            {
-                Passphrase = Constants.PASSPHRASE
-            });
-
-            await CallCommand.Push(new PushSecretsOptions
-            {
-                Path = Constants.SolutionFilesPath
-            });
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Constants.SolutionFilesPath}'");
         }
 
 
         [Fact]
-        public async Task ChangeKeyWithoutParameters()
+        public void ChangeKeyWithoutParameters()
         {
-            await CallCommand.Init(new InitOptions
-            {
-                Passphrase = Constants.PASSPHRASE
-            });
+            RunCommand($"init -p {Constants.PASSPHRASE}");
 
             string encryptionKeyFilePath = Path.Combine(Constants.ConfigFilesPath, "cipher.json");
             string encryptionKey = File.ReadAllText(encryptionKeyFilePath);
 
-            await CallCommand.ChangeKey(new ChangeKeyOptions());
+            RunCommand("change-key");
 
             Assert.Equal(encryptionKey, File.ReadAllText(encryptionKeyFilePath));
         }
 
 
         [Fact]
-        public async Task ChangeKeyWithPassphrase()
+        public void ChangeKeyWithPassphrase()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await CallCommand.ChangeKey(new ChangeKeyOptions
-            {
-                Passphrase = NEW_PASSPHRASE
-            });
+            RunCommand($"change-key -p {NEW_PASSPHRASE}");
 
             ChangeSecretsFilesPath();
 
-            await CallCommand.Pull(new PullSecretsOptions
-            {
-                Path = Constants.SolutionFilesPath
-            });
+            RunCommand($"pull '{Constants.SolutionFilesPath}'");
 
             VerifyTestResults();
         }
 
 
         [Fact]
-        public async Task ChangeKeyWithKeyFile()
+        public void ChangeKeyWithKeyFile()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await CallCommand.ChangeKey(new ChangeKeyOptions
-            {
-                KeyFile = Path.Combine(Constants.TestFilesPath, "initFile2.key")
-            });
+            RunCommand($"change-key -f '{Path.Combine(Constants.TestFilesPath, "initFile2.key")}'");
 
             ChangeSecretsFilesPath();
 
-            await CallCommand.Pull(new PullSecretsOptions
-            {
-                Path = Constants.SolutionFilesPath
-            });
+            RunCommand($"pull '{Constants.SolutionFilesPath}'");
 
             VerifyTestResults();
         }
 
 
         [Fact]
-        public async Task ChangeKeyWithKeyFileWithRelativePath()
+        public void ChangeKeyWithKeyFileWithRelativePath()
         {
-            await PrepareTest();
+            PrepareTest();
 
-            await CallCommand.ChangeKey(new ChangeKeyOptions
-            {
-                KeyFile = "initFile2.key"
-            });
+            RunCommand("change-key -f initFile2.key");
 
             ChangeSecretsFilesPath();
 
-            await CallCommand.Pull(new PullSecretsOptions
-            {
-                Path = Constants.SolutionFilesPath
-            });
+            RunCommand($"pull '{Constants.SolutionFilesPath}'");
 
             VerifyTestResults();
         }

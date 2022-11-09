@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VisualStudioSolutionSecrets.Tests.Helpers;
+using Xunit;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
+
     public class SearchCommandTests : CommandTests
     {
 
@@ -17,38 +18,27 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public async Task SearchTest()
+        public void SearchTest()
         {
-            await CallCommand.Search(new SearchSecretsOptions
-            {
-                Path = Constants.SolutionFilesPath
-            });
+            RunCommand($"search '{Constants.SolutionFilesPath}'");
 
             VerifyOutput();
         }
 
 
         [Fact]
-        public async Task SearchWithNoResultsTest()
+        public void SearchWithNoResultsTest()
         {
-            await CallCommand.Search(new SearchSecretsOptions
-            {
-                Path = Constants.SampleFilesPath,
-                All = false
-            });
+            RunCommand($"search '{Constants.SampleFilesPath}'");
 
             VerifyOutput();
         }
 
 
         [Fact]
-        public async Task SearchAllTest()
+        public void SearchAllTest()
         {
-            await CallCommand.Search(new SearchSecretsOptions
-            {
-                Path = Constants.SampleFilesPath,
-                All = true
-            });
+            RunCommand($"search --all '{Constants.SampleFilesPath}'");
 
             VerifyOutput();
         }
