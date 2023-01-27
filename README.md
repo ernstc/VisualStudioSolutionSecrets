@@ -127,8 +127,8 @@ vs-secrets init --keyfile <file-path>
 
 In case the encryption key is compromised you can change it. 
 ```shell
-vs-secrets changekey --passphrase <new-passphrase>
-vs-secrets changekey --keyfile <file-path>
+vs-secrets change-key --passphrase <new-passphrase>
+vs-secrets change-key --keyfile <file-path>
 ```
 When you change the encryption key with one of the above commands, any secret already encrypted on GitHub Gists is re-encrypted with the new key. In this way the compromised key becomes useless.
 
