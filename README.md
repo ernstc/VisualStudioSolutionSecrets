@@ -78,7 +78,7 @@ GitHub Gists is the default repository used by Visual Studio Solution Secrets fo
 
 GitHub Gists fits very well for personal use.
 
-![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/dev/media/github-flow.png)
+![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/main/media/github-flow.png)
 
 ## Azure Key Vault
 
@@ -92,7 +92,7 @@ Azure Key Vault fits better for enterprise use and **is the recommended way for 
 
 You can read the Azure Key Vault documentation [here](https://learn.microsoft.com/en-us/azure/key-vault/general/overview)
 
-![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/dev/media/azurekv-flow.png)
+![Concept](https://raw.githubusercontent.com/ernstc/VisualStudioSolutionSecrets/main/media/azurekv-flow.png)
 
 <br/>
 
