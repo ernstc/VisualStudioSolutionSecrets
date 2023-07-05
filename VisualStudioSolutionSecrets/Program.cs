@@ -57,19 +57,22 @@ namespace VisualStudioSolutionSecrets
         private static string GetVersion()
         {
             var assembly = typeof(Versions).Assembly;
-            var version = assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             var copyright = assembly?.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
             string platform;
 #if NET7_0
-            platform = " (.NET 7.0)";
+            platform = ".NET 7.0";
 #elif NET6_0
-            platform = " (.NET 6.0)";
+            platform = ".NET 6.0";
 #elif NETCOREAPP3_1
-            platform = " (.Net Core 3.1)";
+            platform = ".Net Core 3.1";
 #else
             platform = String.Empty;
 #endif
-            return $"vs-secrets {version}\n{copyright}{platform}";
+            string details = Versions.CommitHash != null 
+                ? $" ({platform}, commit {Versions.CommitHash})" 
+                : $" ({platform})";
+
+            return $"vs-secrets {Versions.CurrentVersion}{details}\n{copyright}";
         }
 
 

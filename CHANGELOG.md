@@ -1,3 +1,9 @@
+## July 2023 Release (version 2.0.1)
+
+This release fixes the vulnerability CVE-2023-29337.
+
+---
+
 ## October 2022 Release (version 2.0.0)
 
 This release enables the use of different kinds of repositories and enables to configure each solution to use a different kind of repository. 
