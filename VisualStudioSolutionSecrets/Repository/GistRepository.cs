@@ -498,10 +498,7 @@ namespace VisualStudioSolutionSecrets.Repository
             string? content = null;
             string cacheKey = $"{method} {uri}";
 
-            if (useCache && _requestsCache.ContainsKey(cacheKey))
-            {
-                content = _requestsCache[cacheKey];
-            }
+            _ = useCache && _requestsCache.TryGetValue(cacheKey, out content);
 
             if (content == null)
             {

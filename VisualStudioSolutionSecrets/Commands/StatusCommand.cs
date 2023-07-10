@@ -52,7 +52,6 @@ namespace VisualStudioSolutionSecrets.Commands
 
                     foreach (string solutionFile in solutionFiles)
                     {
-                        SolutionFile solution = new SolutionFile(solutionFile);
                         await GetSolutionStatus(solutionFile);
                     }
                 }

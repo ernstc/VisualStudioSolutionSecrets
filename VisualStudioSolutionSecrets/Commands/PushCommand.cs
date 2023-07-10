@@ -88,10 +88,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                         if (isFileOk)
                         {
-                            if (!secrets.ContainsKey(secretFile.ContainerName))
-                            {
-                                secrets.Add(secretFile.ContainerName, new Dictionary<string, string>());
-                            }
+                            secrets.TryAdd(secretFile.ContainerName, new Dictionary<string, string>());
                             secrets[secretFile.ContainerName].Add(secretFile.Name, secretFile.Content);
                         }
                         else

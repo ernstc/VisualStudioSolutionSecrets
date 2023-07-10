@@ -74,10 +74,12 @@ namespace VisualStudioSolutionSecrets.Encryption
         private void GenerateEncryptionKey(byte[] data)
         {
             byte[] result;
-
+#if NETCOREAPP3_1
             using var hashAlgorithm = SHA512.Create();
-            
             result = hashAlgorithm.ComputeHash(data);
+#else
+            result = SHA512.HashData(data);
+#endif
             _key = Convert.ToBase64String(result);
 
             AppData.SaveData(APP_DATA_FILENAME, new CipherAppData
