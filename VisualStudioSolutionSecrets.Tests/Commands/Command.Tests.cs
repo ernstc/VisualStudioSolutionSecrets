@@ -161,7 +161,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 .ReturnsAsync((ISolution solution) =>
                 {
                     List<(string name, string? content)> files = new List<(string name, string? content)>();
-                    string[] filesPath = Directory.GetFiles(Constants.RepositoryFilesPath, "*.json", SearchOption.AllDirectories);
+                    string[] filesPath = Directory.GetFiles(Constants.RepositoryFilesPath, "*.json", new EnumerationOptions
+                    {
+                        IgnoreInaccessible = true,
+                        ReturnSpecialDirectories = false,
+                        RecurseSubdirectories = true
+                    });
                     foreach (var filePath in filesPath)
                     {
                         string fileName = new FileInfo(filePath).Name;
@@ -200,7 +205,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                 {
 
                     List<(string name, string? content)> files = new List<(string name, string? content)>();
-                    string[] filesPath = Directory.GetFiles(Constants.RepositoryFilesPath, "*.json", SearchOption.AllDirectories);
+                    string[] filesPath = Directory.GetFiles(Constants.RepositoryFilesPath, "*.json", new EnumerationOptions
+                    {
+                        IgnoreInaccessible = true,
+                        ReturnSpecialDirectories = false,
+                        RecurseSubdirectories = true
+                    });
                     foreach (var filePath in filesPath)
                     {
                         string fileName = new FileInfo(filePath).Name;

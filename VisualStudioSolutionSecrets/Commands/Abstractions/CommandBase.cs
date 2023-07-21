@@ -56,7 +56,12 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
                     try
                     {
                         string localDir = Context.Current.IO.GetCurrentDirectory();
-                        var files = Directory.GetFiles(localDir, fileInfo.Name, SearchOption.AllDirectories);
+                        var files = Directory.GetFiles(localDir, fileInfo.Name, new EnumerationOptions
+                        {
+                            IgnoreInaccessible = true,
+                            ReturnSpecialDirectories = false,
+                            RecurseSubdirectories = true
+                        });
                         if (files.Length == 1)
                         {
                             return files;
@@ -78,7 +83,12 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             var directory = path ?? Context.Current.IO.GetCurrentDirectory();
             try
             {
-                var files = Directory.GetFiles(directory, "*.sln", all ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+                var files = Directory.GetFiles(directory, "*.sln", new EnumerationOptions
+                {
+                    IgnoreInaccessible = true,
+                    ReturnSpecialDirectories = false,
+                    RecurseSubdirectories = all
+                });
                 Array.Sort(files, StringComparer.Ordinal);
                 return files;
             }
