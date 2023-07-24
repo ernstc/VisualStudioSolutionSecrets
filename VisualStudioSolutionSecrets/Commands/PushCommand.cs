@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
+using NuGet.Protocol.Core.Types;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Repository;
 
@@ -22,11 +22,6 @@ namespace VisualStudioSolutionSecrets.Commands
         {
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
 
-            if (!await CanSync())
-            {
-                return 1;
-            }
-
             string[] solutionFiles = GetSolutionFiles(Path, All);
             if (solutionFiles.Length == 0)
             {
@@ -43,77 +38,105 @@ namespace VisualStudioSolutionSecrets.Commands
                 // Select the repository for the curront solution
                 IRepository repository = Context.Current.GetRepository(synchronizationSettings) ?? Context.Current.Repository;
 
-                // Ensure authorization on the selected repository
-                if (!await repository.IsReady())
+                try
                 {
-                    await repository.AuthorizeAsync();
-                }
-
-                var headerFile = new HeaderFile
-                {
-                    visualStudioSolutionSecretsVersion = Versions.VersionString!,
-                    lastUpload = DateTime.UtcNow,
-                    solutionFile = solution.Name,
-                    solutionGuid = solution.Uid
-                };
-
-                var files = new List<(string fileName, string? content)>
-                {
-                    ("secrets", JsonSerializer.Serialize(headerFile))
-                };
-
-                var secretFiles = solution.GetProjectsSecretFiles();
-                if (secretFiles.Count == 0)
-                {
-                    continue;
-                }
-
-                Console.Write($"Pushing secrets for solution: {solution.Name}... ");
-
-                var secrets = new Dictionary<string, Dictionary<string, string>>();
-
-                bool isEmpty = true;
-                bool failed = false;
-                foreach (var secretFile in secretFiles)
-                {
-                    if (secretFile.Content != null)
+                    var headerFile = new HeaderFile
                     {
-                        isEmpty = false;
-                        bool isFileOk = true;
+                        visualStudioSolutionSecretsVersion = Versions.VersionString!,
+                        lastUpload = DateTime.UtcNow,
+                        solutionFile = solution.Name,
+                        solutionGuid = solution.Uid
+                    };
 
-                        if (repository.EncryptOnClient)
-                        {
-                            isFileOk = secretFile.Encrypt();
-                        }
+                    var files = new List<(string fileName, string? content)>
+                    {
+                        ("secrets", JsonSerializer.Serialize(headerFile))
+                    };
 
-                        if (isFileOk)
+                    var secretFiles = solution.GetProjectsSecretFiles();
+                    if (secretFiles.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    Write($"Pushing secrets to {repository.RepositoryType} for solution: ");
+                    Write(solution.Name, ConsoleColor.White);
+                    Write("... ");
+
+                    // Ensure authorization on the selected repository
+                    if (!await repository.IsReady())
+                    {
+                        await repository.AuthorizeAsync(batchMode: true);
+                    }
+
+                    var secrets = new Dictionary<string, Dictionary<string, string>>();
+
+                    bool isEmpty = true;
+                    bool failed = false;
+                    foreach (var secretFile in secretFiles)
+                    {
+                        if (secretFile.Content != null)
                         {
-                            secrets.TryAdd(secretFile.ContainerName, new Dictionary<string, string>());
-                            secrets[secretFile.ContainerName].Add(secretFile.Name, secretFile.Content);
+                            isEmpty = false;
+                            bool isFileOk = true;
+
+                            if (repository.EncryptOnClient)
+                            {
+                                isFileOk = secretFile.Encrypt();
+                            }
+
+                            if (isFileOk)
+                            {
+                                secrets.TryAdd(secretFile.ContainerName, new Dictionary<string, string>());
+                                secrets[secretFile.ContainerName].Add(secretFile.Name, secretFile.Content);
+                            }
+                            else
+                            {
+                                failed = true;
+                                break;
+                            }
                         }
-                        else
+                    }
+
+                    foreach (var group in secrets)
+                    {
+                        string groupContent = JsonSerializer.Serialize(group.Value);
+                        files.Add((group.Key, groupContent));
+                    }
+
+                    if (!isEmpty && !failed)
+                    {
+                        if (!await repository.PushFilesAsync(solution, files))
                         {
                             failed = true;
-                            break;
                         }
                     }
-                }
 
-                foreach (var group in secrets)
-                {
-                    string groupContent = JsonSerializer.Serialize(group.Value);
-                    files.Add((group.Key, groupContent));
-                }
-
-                if (!isEmpty && !failed)
-                {
-                    if (!await repository.PushFilesAsync(solution, files))
+                    if (isEmpty)
                     {
-                        failed = true;
+                        WriteLine("Skipped.\n    Warning: Cannot find local secrets for this solution.\n", ConsoleColor.Yellow);
+                    }
+                    else if (failed)
+                    {
+                        WriteLine("Failed.", ConsoleColor.Red);
+                    }
+                    else
+                    {
+                        WriteLine("Done.", ConsoleColor.Green);
                     }
                 }
-
-                Console.WriteLine(isEmpty ? "Skipped.\n    Warning: Cannot find local secrets for this solution.\n" : failed ? "Failed." : "Done.");
+                catch (Azure.Identity.AuthenticationFailedException)
+                {
+                    WriteLine("Authentication failed", ConsoleColor.Red);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    WriteLine("Unauthorized access", ConsoleColor.Red);
+                }
+                catch (Exception)
+                {
+                    WriteLine("Error", ConsoleColor.Red);
+                }
             }
 
             Console.WriteLine("\nFinished.\n");

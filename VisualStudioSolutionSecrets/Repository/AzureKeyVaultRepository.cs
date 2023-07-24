@@ -92,7 +92,7 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        public async Task AuthorizeAsync()
+        public async Task AuthorizeAsync(bool batchMode = false)
         {
             if (_repositoryName != null)
             {

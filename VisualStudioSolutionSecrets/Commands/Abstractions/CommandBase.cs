@@ -100,15 +100,45 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         }
 
 
-        protected static async Task<bool> CanSync()
+        //protected static async Task<bool> CanSync()
+        //{
+        //    if (!await Context.Current.Cipher.IsReady())
+        //    {
+        //        Console.WriteLine("You need to create the encryption key before syncing secrets.");
+        //        Console.WriteLine("For generating the encryption key, use the command below:\n\n    vs-secrets init\n");
+        //        return false;
+        //    }
+        //    return true;
+        //}
+
+
+        protected static void Write(string message)
         {
-            if (!await Context.Current.Cipher.IsReady())
-            {
-                Console.WriteLine("You need to create the encryption key before syncing secrets.");
-                Console.WriteLine("For generating the encryption key, use the command below:\n\n    vs-secrets init\n");
-                return false;
-            }
-            return true;
+            Console.Write(message);
+        }
+
+
+        protected static void Write(string message, ConsoleColor color)
+        {
+            var currentColor = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+            Console.Write(message);
+            Console.ForegroundColor = currentColor;
+        }
+
+
+        protected static void WriteLine(string message)
+        {
+            Console.WriteLine(message);
+        }
+
+
+        protected static void WriteLine(string message, ConsoleColor color)
+        {
+            var currentColor = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+            Console.WriteLine(message);
+            Console.ForegroundColor = currentColor;
         }
 
     }

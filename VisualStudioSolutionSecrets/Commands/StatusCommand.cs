@@ -34,34 +34,29 @@ namespace VisualStudioSolutionSecrets.Commands
             bool isRepositoryReady = await Context.Current.Repository.IsReady();
 
             string encryptionKeyStatus = isCipherReady ? "OK" : "NOT DEFINED";
-            string repositoryAuthorizationStatus = isRepositoryReady ? "OK" : "NOT AUTHORIZED";
 
-            Console.WriteLine($"                   Ecryption Key: {encryptionKeyStatus}");
-            Console.WriteLine($"Default Repository Authorization: {repositoryAuthorizationStatus}\n");
+            Console.WriteLine($"Ecryption Key: {encryptionKeyStatus}\n");
 
-            if (isCipherReady && isRepositoryReady)
+            Console.WriteLine("Checking solutions synchronization status...");
+
+            string[] solutionFiles = GetSolutionFiles(Path, All);
+            if (solutionFiles.Length > 0)
             {
-                Console.WriteLine("Checking solutions synchronization status...");
-
-                string[] solutionFiles = GetSolutionFiles(Path, All);
-                if (solutionFiles.Length > 0)
-                {
-                    Console.WriteLine();
-                    Console.WriteLine("Solution                                    | Version | Last Update         | Repo    | Secrets Status");
-                    Console.WriteLine("--------------------------------------------|---------|---------------------|---------|---------------------------------");
-
-                    foreach (string solutionFile in solutionFiles)
-                    {
-                        await GetSolutionStatus(solutionFile);
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("... no solution found.");
-                }
                 Console.WriteLine();
+                Console.WriteLine("Solution                                    | Version | Last Update         | Repo    | Secrets Status");
+                Console.WriteLine("--------------------------------------------|---------|---------------------|---------|---------------------------------");
+
+                foreach (string solutionFile in solutionFiles)
+                {
+                    await GetSolutionStatus(solutionFile);
+                }
+            }
+            else
+            {
+                Console.WriteLine("... no solution found.");
             }
 
+            Console.WriteLine();
             return 0;
         }
 
@@ -79,27 +74,31 @@ namespace VisualStudioSolutionSecrets.Commands
             NotSynchronized = 0x40,
             InvalidKey = 0x80,
             CannotLoadStatus = 0x200,
-            Unmanaged = 0x400
+            AuthenticationFailed = 0x400,
+            Unauthorized = 0x800,
+            Unmanaged = 0x1000
         }
 
 
         /*
-       *  
-       *  Possible SyncStatus values and description:
-       *  
-       *  Synchronized                  Local and remote settings are synchronized
-       *  NoSecretsFound                The solution uses user secrets but they are not setted.
-       *  HeaderError                   Found errors in the header file
-       *  ContentError                  Remote file is empty or it is not in the corret format.
-       *  LocalOnly                     Settings found only on the local machine.
-       *  CloudOnly                     Settings found only on the remote repository.
-       *  CloudOnly | Invalid Key       Settings found only on the remote repository, they cannot be read decrypted.
-       *  NotSynchronized               Local and remote settings are not synchronized.
-       *  InvalidKey                    Local settings cannot be compared with remote settings because they cannot be decrypted.
-       *  CannotLoadStatus              It is not possible to determine the synchronization status.
-       *  Unmanaged                     The solution does not manage user secrets.
-       * 
-       */
+        *  
+        *  Possible SyncStatus values and description:
+        *  
+        *  Synchronized                  Local and remote settings are synchronized
+        *  NoSecretsFound                The solution uses user secrets but they are not setted.
+        *  HeaderError                   Found errors in the header file
+        *  ContentError                  Remote file is empty or it is not in the corret format.
+        *  LocalOnly                     Settings found only on the local machine.
+        *  CloudOnly                     Settings found only on the remote repository.
+        *  CloudOnly | Invalid Key       Settings found only on the remote repository, they cannot be read decrypted.
+        *  NotSynchronized               Local and remote settings are not synchronized.
+        *  InvalidKey                    Local settings cannot be compared with remote settings because they cannot be decrypted.
+        *  CannotLoadStatus              It is not possible to determine the synchronization status.
+        *  AuthenticationFailed          User authentication has failed or user has canceled authentication.
+        *  Unauthorized                  User credentials are missing or not valid.
+        *  Unmanaged                     The solution does not manage user secrets.
+        * 
+        */
 
         private static void WriteStatus(SyncStatus status, ConsoleColor defaultColor)
         {
@@ -157,6 +156,16 @@ namespace VisualStudioSolutionSecrets.Commands
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Write("Invalid key");
             }
+            else if ((status & SyncStatus.AuthenticationFailed) == SyncStatus.AuthenticationFailed)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("ERROR: Authentication failed");
+            }
+            else if ((status & SyncStatus.Unauthorized) == SyncStatus.Unauthorized)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("ERROR: Unauthorized");
+            }
             else if ((status & SyncStatus.CannotLoadStatus) == SyncStatus.CannotLoadStatus)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -199,12 +208,13 @@ namespace VisualStudioSolutionSecrets.Commands
                     IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
                     repository ??= Context.Current.Repository;
 
+                    repositoryType = repository.RepositoryType;
                     bool tryToDecrypt = repository.EncryptOnClient;
 
                     // Ensure authorization on the selected repository
                     if (!await repository.IsReady())
                     {
-                        await repository.AuthorizeAsync();
+                        await repository.AuthorizeAsync(batchMode: true);
                     }
 
                     var remoteFiles = await repository.PullFilesAsync(solution);
@@ -220,7 +230,6 @@ namespace VisualStudioSolutionSecrets.Commands
                             {
                                 version = header.visualStudioSolutionSecretsVersion ?? String.Empty;
                                 lastUpdate = header.lastUpload.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture.DateTimeFormat) ?? String.Empty;
-                                repositoryType = repository.RepositoryType;
                             }
                         }
                     }
@@ -384,6 +393,16 @@ namespace VisualStudioSolutionSecrets.Commands
                     }
                 }
             }
+            catch (Azure.Identity.AuthenticationFailedException)
+            {
+                status = SyncStatus.AuthenticationFailed;
+                foundContentError = true;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                status = SyncStatus.Unauthorized;
+                foundContentError = true;
+            }
             catch
             {
                 status = SyncStatus.CannotLoadStatus;
@@ -396,34 +415,16 @@ namespace VisualStudioSolutionSecrets.Commands
                 solutionColor = ConsoleColor.White;
             }
 
-            Console.ForegroundColor = solutionColor;
-            Console.Write($"{solutionName,-(MAX_SOLUTION_LENGTH + 3)}");
-
-            Console.ForegroundColor = color;
-            Console.Write(" | ");
-
-            Console.ForegroundColor = solutionColor;
-            Console.Write($"{version,-7}");
-
-            Console.ForegroundColor = color;
-            Console.Write(" | ");
-
-            Console.ForegroundColor = solutionColor;
-            Console.Write($"{lastUpdate,-19}");
-
-            Console.ForegroundColor = color;
-            Console.Write(" | ");
-
-            Console.ForegroundColor = solutionColor;
-            Console.Write($"{repositoryType,-7}");
-
-            Console.ForegroundColor = color;
-            Console.Write(" | ");
-
+            Write($"{solutionName,-(MAX_SOLUTION_LENGTH + 3)}", solutionColor);
+            Write(" | ", color);
+            Write($"{version,-7}", solutionColor);
+            Write(" | ", color);
+            Write($"{lastUpdate,-19}", solutionColor);
+            Write(" | ", color);
+            Write($"{repositoryType,-7}", solutionColor);
+            Write(" | ", color);
             WriteStatus(status, color);
-            Console.Write(statusDetails);
-
-            Console.WriteLine();
+            Write($"{statusDetails}\n");
 
             Console.ForegroundColor = color;
         }

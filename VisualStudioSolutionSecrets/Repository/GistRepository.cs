@@ -122,8 +122,13 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        public async Task AuthorizeAsync()
+        public async Task AuthorizeAsync(bool batchMode = false)
         {
+            if (batchMode)
+            {
+                throw new UnauthorizedAccessException($"{nameof(GistRepository)} does not support authorization during batch operations.");
+            }
+
             _deviceFlowResponse = await SendRequest<DeviceFlowResponse>(HttpMethod.Post, $"https://github.com/login/device/code?client_id={CLIENT_ID}&scope={SCOPE}");
             if (_deviceFlowResponse == null)
             {
