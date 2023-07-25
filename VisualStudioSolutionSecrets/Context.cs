@@ -16,20 +16,22 @@ namespace VisualStudioSolutionSecrets
         public IConsoleInput Input => GetService<IConsoleInput>()!;
         public IFileSystem IO => GetService<IFileSystem>()!;
         public ICipher Cipher => GetService<ICipher>()!;
-        public IRepository Repository => GetService<IRepository>()!;
+        public IRepository Repository => GetRepository(SyncConfiguration.Default) ?? GetService<IRepository>()!;
 
 
         private static Context _current = null!;
-        public static Context Current => _current ?? (_current = new Context());
+        public static Context Current => _current ??= new Context();
 
 
 
         private IDictionary<string, object> _services;
+        private IDictionary<Type, ISet<object>> _servicesByType;
 
 
         private Context()
         {
             _services = new Dictionary<string, object>();
+            _servicesByType = new Dictionary<Type, ISet<object>>();
             ResetToDefault();
         }
 
@@ -39,7 +41,8 @@ namespace VisualStudioSolutionSecrets
             if (service == null)
                 throw new ArgumentNullException(nameof(service));
 
-            var key = typeof(T).FullName;
+            var type = typeof(T);
+            var key = type.FullName;
             if (key == null)
                 throw new InvalidOperationException("The service cannot be added as a dependency.");
 
@@ -49,6 +52,14 @@ namespace VisualStudioSolutionSecrets
             }
 
             _services[key] = service;
+
+            ISet<object>? servicesByType;
+            if (!_servicesByType.TryGetValue(type, out servicesByType))
+            {
+                servicesByType = new HashSet<object>();
+                _servicesByType[type] = servicesByType;
+            }
+            servicesByType.Add(service);
         }
 
 
@@ -68,6 +79,21 @@ namespace VisualStudioSolutionSecrets
                 }
             }
             return null;
+        }
+
+
+        public ISet<T> GetServices<T>() where T: class
+        {
+            var type = typeof(T);
+            var services = new HashSet<T>();
+            if (_servicesByType.TryGetValue(type, out var servicesForType))
+            {
+                foreach (var service in servicesForType)
+                {
+                    services.Add((T)service);
+                }
+            }
+            return services;
         }
 
 

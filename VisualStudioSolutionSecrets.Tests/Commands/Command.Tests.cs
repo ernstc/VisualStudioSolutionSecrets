@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using Moq;
 using VisualStudioSolutionSecrets.Encryption;
@@ -16,7 +14,7 @@ using Xunit;
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
 
-    public class CommandTests
+    public class CommandTests : TestsBase
     {
 
         protected bool UseRepositoryEncryption { get; set; } = true;
@@ -37,13 +35,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             // Suppress output on standart out
             Console.SetOut(new StringWriter(_consoleOutput));
 
-            // Temp folder setup
-            var tempFolder = new DirectoryInfo(Path.Combine(Constants.TempFolderPath));
-            if (tempFolder.Exists)
-            {
-                tempFolder.Delete(true);
-            }
-            tempFolder.Create();
+            SetupTempFolder();
 
             // Mock dependencies
             MockConsoleInput();
@@ -51,16 +43,6 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             MockRepository();
 
             SyncConfiguration.Refresh();
-        }
-
-
-        protected void DisposeTempFolder()
-        {
-            var tempFolder = new DirectoryInfo(Path.Combine(Constants.TempFolderPath));
-            if (tempFolder.Exists)
-            {
-                tempFolder.Delete(true);
-            }
         }
 
 

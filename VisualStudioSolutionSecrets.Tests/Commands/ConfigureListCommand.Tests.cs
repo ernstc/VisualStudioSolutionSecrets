@@ -10,6 +10,7 @@ using Xunit;
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
 
+    [Collection("vs-secrets Tests")]
     public class ConfigureListCommandTests : CommandTests, IDisposable
     {
         private const string KEY_VAULT_NAME = "keyvault-name";

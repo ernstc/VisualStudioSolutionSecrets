@@ -29,31 +29,17 @@ namespace VisualStudioSolutionSecrets
         {
             CheckForUpdates().Wait();
 
+            // Register cipher
             var cipher = new Cipher();
             cipher.RefreshStatus().Wait();
             Context.Current.AddService<ICipher>(cipher);
 
-            IRepository defaultRepository;
+            // Register GitHub repository
+            var gistRepository = new GistRepository();
+            Context.Current.AddService<IRepository>(gistRepository);
+            Context.Current.AddService<IRepository>(gistRepository, nameof(RepositoryType.GitHub));
 
-            var defaultSettings = SyncConfiguration.Default;
-            if (defaultSettings.Repository == RepositoryType.GitHub)
-            {
-                defaultRepository = new GistRepository();
-            }
-            else if (defaultSettings.Repository == RepositoryType.AzureKV)
-            {
-                defaultRepository = new AzureKeyVaultRepository()
-                {
-                    RepositoryName = defaultSettings.AzureKeyVaultName
-                };
-            }
-            else
-            {
-                defaultRepository = new GistRepository();
-            }
-
-            Context.Current.AddService<IRepository>(defaultRepository);
-            Context.Current.AddService<IRepository>(defaultRepository, nameof(RepositoryType.GitHub));
+            // Register Azure Key Vault repository
             Context.Current.AddService<IRepository>(new AzureKeyVaultRepository(), nameof(RepositoryType.AzureKV));
 
             CommandLineApplication.Execute<Program>(args);
