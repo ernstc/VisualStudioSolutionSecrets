@@ -100,18 +100,6 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         }
 
 
-        //protected static async Task<bool> CanSync()
-        //{
-        //    if (!await Context.Current.Cipher.IsReady())
-        //    {
-        //        Console.WriteLine("You need to create the encryption key before syncing secrets.");
-        //        Console.WriteLine("For generating the encryption key, use the command below:\n\n    vs-secrets init\n");
-        //        return false;
-        //    }
-        //    return true;
-        //}
-
-
         protected static void Write(string message)
         {
             Console.Write(message);

@@ -48,6 +48,11 @@ namespace VisualStudioSolutionSecrets.Commands
                 return 1;
             }
 
+
+            var repositories = Context.Current.GetServices<IRepository>();
+
+
+
             IRepository repository = Context.Current.Repository;
 
             // Read the existing secrets if the repository encrypts on the client
