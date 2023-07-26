@@ -9,6 +9,7 @@ using Xunit;
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
 
+    [Collection("vs-secrets Tests")]
     public class InitCommandTests : CommandTests, IDisposable
     {
 

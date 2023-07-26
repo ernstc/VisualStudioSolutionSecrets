@@ -8,6 +8,7 @@ using Xunit;
 
 namespace VisualStudioSolutionSecrets.Tests
 {
+    [Collection("vs-secrets Tests")]
     public class HeaderFileTests
     {
 
