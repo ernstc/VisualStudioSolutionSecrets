@@ -18,9 +18,10 @@ namespace VisualStudioSolutionSecrets.Commands
     {
 
         const int MAX_SOLUTION_LENGTH = 40;
-        const char CHAR_UP = '\u2191';
-        const char CHAR_DOWN = '\u2193';
-        const char CHAR_DIFF = '\u2260';
+
+        internal const char CHAR_UP = '\u2191';
+        internal const char CHAR_DOWN = '\u2193';
+        internal const char CHAR_DIFF = '\u2260';
 
 
         [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]

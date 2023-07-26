@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using VisualStudioSolutionSecrets.Commands;
 using Xunit;
 
 namespace VisualStudioSolutionSecrets.Tests.Commands
@@ -294,7 +295,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
-            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized 2↔"));
+            VerifyOutput("status_name", l => l.Replace("{status}", $"Not synchronized 2{StatusCommand.CHAR_DIFF}"));
         }
 
 
@@ -319,7 +320,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
-            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized 1↓"));
+            VerifyOutput("status_name", l => l.Replace("{status}", $"Not synchronized 1{StatusCommand.CHAR_DOWN}"));
         }
 
 
@@ -338,7 +339,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
-            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized 2↓"));
+            VerifyOutput("status_name", l => l.Replace("{status}", $"Not synchronized 2{StatusCommand.CHAR_DOWN}"));
         }
 
 
@@ -365,7 +366,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
-            VerifyOutput("status_name", l => l.Replace("{status}", "Not synchronized 1↑"));
+            VerifyOutput("status_name", l => l.Replace("{status}", $"Not synchronized 1{StatusCommand.CHAR_UP}"));
         }
 
     }
