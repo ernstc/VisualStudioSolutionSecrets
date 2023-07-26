@@ -37,6 +37,8 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             SetupTempFolder();
 
+            Context.Current.Clear();
+
             // Mock dependencies
             MockConsoleInput();
             MockFileSystem();

@@ -97,12 +97,19 @@ namespace VisualStudioSolutionSecrets
         }
 
 
+        public void Clear()
+        {
+            _services.Clear();
+            _servicesByType.Clear();
+        }
+
+
         private static IConsoleInput defaultConsoleInput = new ConsoleInput();
         private static IFileSystem defaultIO = new DefaultFileSystem();
 
         public void ResetToDefault()
         {
-            _services.Clear();
+            Clear();
             AddService(defaultConsoleInput);
             AddService(defaultIO);
         }
