@@ -66,6 +66,10 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
                         {
                             return files;
                         }
+                        else if (files.Length > 1 && all)
+                        {
+                            return files;
+                        }
                     }
                     catch (Exception ex)
                     {
