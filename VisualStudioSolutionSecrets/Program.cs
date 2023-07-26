@@ -27,6 +27,9 @@ namespace VisualStudioSolutionSecrets
 
         static void Main(string[] args)
         {
+            // Set the output to use UTF8 encoding.
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+
             CheckForUpdates().Wait();
 
             // Register cipher

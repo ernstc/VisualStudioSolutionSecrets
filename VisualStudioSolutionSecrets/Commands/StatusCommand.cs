@@ -18,6 +18,9 @@ namespace VisualStudioSolutionSecrets.Commands
     {
 
         const int MAX_SOLUTION_LENGTH = 40;
+        const char CHAR_UP = '\u2191';
+        const char CHAR_DOWN = '\u2193';
+        const char CHAR_DIFF = '\u2260';
 
 
         [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
@@ -382,9 +385,9 @@ namespace VisualStudioSolutionSecrets.Commands
                                         || countDifferences != 0)
                                     {
                                         status = SyncStatus.NotSynchronized;
-                                        if (countLocalOnly != 0) statusDetails += $" {countLocalOnly}↓";
-                                        if (countRemoteOnly != 0) statusDetails += $" {countRemoteOnly}↑";
-                                        if (countDifferences != 0) statusDetails += $" {countDifferences}↔";
+                                        if (countLocalOnly != 0) statusDetails += $" {countLocalOnly}{CHAR_DOWN}";
+                                        if (countRemoteOnly != 0) statusDetails += $" {countRemoteOnly}{CHAR_UP}";
+                                        if (countDifferences != 0) statusDetails += $" {countDifferences}{CHAR_DIFF}";
                                     }
                                 }
 
