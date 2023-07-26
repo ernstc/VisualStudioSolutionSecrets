@@ -1,17 +1,17 @@
 ﻿vs-secrets #.#.#
 
 Solution: SolutionSample-WithEmptySecrets.sln
-    Path: *\solutionFiles\SolutionSample-WithEmptySecrets.sln
+    Path: *\solutionFiles
 
 Projects that use secrets:
-     1) [6030c231-73da-4823-adb8-5b919180a7ac] - NetCore-Sample-WithEmptySecrets\NetCore-Sample-WithEmptySecrets.csproj
-     2) [6030c231-73da-4823-adb8-5b919180a7ac] - NetFramework-Sample-WithEmptySecrets\NetFramework-Sample-WithEmptySecrets.csproj
+  1) 6030c231-73da-4823-adb8-5b919180a7ac - NetCore-Sample-WithEmptySecrets\NetCore-Sample-WithEmptySecrets.csproj
+  2) 6030c231-73da-4823-adb8-5b919180a7ac - NetFramework-Sample-WithEmptySecrets\NetFramework-Sample-WithEmptySecrets.csproj
 
-----------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 Solution: SolutionSample.sln
-    Path: *\solutionFiles\SolutionSample.sln
+    Path: *\solutionFiles
 
 Projects that use secrets:
-     1) [c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99] - NetCore-Sample\NetCore-Sample.csproj
-     2) [c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99] - NetFramework-Sample\NetFramework-Sample.csproj
+  1) c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99 - NetCore-Sample\NetCore-Sample.csproj
+  2) c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99 - NetFramework-Sample\NetFramework-Sample.csproj

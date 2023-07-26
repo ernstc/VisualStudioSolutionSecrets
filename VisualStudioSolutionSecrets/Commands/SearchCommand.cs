@@ -36,17 +36,37 @@ namespace VisualStudioSolutionSecrets.Commands
                     solutionIndex++;
                     if (solutionIndex > 1)
                     {
-                        Console.WriteLine("\n----------------------------------------\n");
+                        Console.WriteLine("\n------------------------------------------------------------------------------------------------------------------------\n");
                     }
-                    Console.WriteLine($"Solution: {solution.Name}");
-                    Console.WriteLine($"    Path: {solutionFile}\n");
+                    
+                    Write("Solution: "); WriteLine(solution.Name, ConsoleColor.White);
 
-                    Console.WriteLine("Projects that use secrets:");
+                    string path = solutionFile;
+                    if (path.EndsWith(solution.Name, StringComparison.OrdinalIgnoreCase)) path = path.Substring(0, path.Length - solution.Name.Length - 1);
+                    Write("    Path: "); WriteLine(path, ConsoleColor.DarkGray);
+
+                    Console.WriteLine("\nProjects that use secrets:");
 
                     int i = 0;
                     foreach (var configFile in configFiles)
                     {
-                        Console.WriteLine($"   {++i,3}) [{configFile.SecretsId}] - {configFile.ProjectFileName} ");
+                        string projectFileName = configFile.ProjectFileName!;
+                        string projectRelativePath = String.Empty;
+                        string projectName = projectFileName;
+
+                        int separator = projectFileName.LastIndexOf("\\");
+                        if (separator  > 0)
+                        {
+                            projectRelativePath = projectFileName.Substring(0, separator + 1);
+                            projectName = projectFileName.Substring(separator + 1);
+                        }
+
+                        Write($"{++i,3}) ");
+                        Write($"{configFile.SecretsId}", ConsoleColor.DarkGray);
+                        Write($" - {projectRelativePath}", ConsoleColor.DarkGray);
+                        WriteLine(projectName);
+
+                        //Console.WriteLine($"{++i,3}) {configFile.SecretsId} - {configFile.ProjectFileName} ");
                     }
                 }
             }
