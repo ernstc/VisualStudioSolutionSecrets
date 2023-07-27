@@ -71,8 +71,15 @@ namespace VisualStudioSolutionSecrets
         }
 
 
+        private ICollection<SecretFile>? _projectsSecretFiles;
+
         public ICollection<SecretFile> GetProjectsSecretFiles()
         {
+            if (_projectsSecretFiles != null) 
+            {
+                return _projectsSecretFiles; 
+            }
+
             Dictionary<string, SecretFile> configFiles = new Dictionary<string, SecretFile>();
 
             string[] lines = File.ReadAllLines(_filePath);
@@ -129,7 +136,21 @@ namespace VisualStudioSolutionSecrets
                     }
                 }
             }
-            return configFiles.Values;
+
+            return _projectsSecretFiles = configFiles.Values;
+        }
+
+
+        public string GetSolutionCompositeKey()
+        {
+            var secretFiles = GetProjectsSecretFiles();
+            StringBuilder sb = new StringBuilder();
+            sb.Append(_uid.ToString("D", CultureInfo.InvariantCulture));
+            foreach (var secretFile in secretFiles)
+            {
+                sb.Append(secretFile.SecretsId);
+            }
+            return sb.ToString();
         }
 
 

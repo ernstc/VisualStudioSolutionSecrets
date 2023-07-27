@@ -18,6 +18,7 @@ namespace VisualStudioSolutionSecrets.Commands
     {
 
         const int MAX_SOLUTION_LENGTH = 40;
+        const string SOLUTION_WITHOUT_UID = "00000000-0000-0000-0000-000000000000";
 
         internal const char CHAR_UP = '\u2191';
         internal const char CHAR_DOWN = '\u2193';
@@ -49,9 +50,19 @@ namespace VisualStudioSolutionSecrets.Commands
                 Console.WriteLine("Solution                                    | Version | Last Update         | Repo    | Secrets Status");
                 Console.WriteLine("--------------------------------------------|---------|---------------------|---------|---------------------------------");
 
+                List<string> processedSolutions = new List<string>();
                 foreach (string solutionFile in solutionFiles)
                 {
-                    await GetSolutionStatus(solutionFile);
+                    SolutionFile solution = new SolutionFile(solutionFile);
+                    string solutionCompositeKey = solution.GetSolutionCompositeKey();
+                    if (
+                        //solutionCompositeKey == SOLUTION_WITHOUT_UID || 
+                        !processedSolutions.Contains(solutionCompositeKey)
+                        )
+                    {
+                        processedSolutions.Add(solutionCompositeKey);
+                        await GetSolutionStatus(solution);
+                    }
                 }
             }
             else
@@ -177,7 +188,7 @@ namespace VisualStudioSolutionSecrets.Commands
         }
 
 
-        private static async Task GetSolutionStatus(string solutionFile)
+        private static async Task GetSolutionStatus(SolutionFile solution)
         {
             string version = String.Empty;
             string lastUpdate = String.Empty;
@@ -189,8 +200,6 @@ namespace VisualStudioSolutionSecrets.Commands
 
             var color = Console.ForegroundColor;
             ConsoleColor solutionColor = color;
-
-            SolutionFile solution = new SolutionFile(solutionFile);
 
             string solutionName = solution.Name;
             if (solutionName.Length > (MAX_SOLUTION_LENGTH + 3)) solutionName = solutionName[..MAX_SOLUTION_LENGTH] + "...";
