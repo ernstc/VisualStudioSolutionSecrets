@@ -206,6 +206,10 @@ namespace VisualStudioSolutionSecrets.Commands
 
             try
             {
+                var synchronizationSettings = solution.CustomSynchronizationSettings;
+                IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
+                repositoryType = repository?.RepositoryType ?? String.Empty;
+
                 var secretFiles = solution.GetProjectsSecretFiles();
                 if (secretFiles.Count == 0)
                 {
@@ -215,9 +219,6 @@ namespace VisualStudioSolutionSecrets.Commands
                 }
                 else
                 {
-                    var synchronizationSettings = solution.CustomSynchronizationSettings;
-
-                    IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
                     repository ??= Context.Current.Repository;
 
                     repositoryType = repository.RepositoryType;
