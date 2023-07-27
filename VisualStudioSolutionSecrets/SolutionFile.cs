@@ -156,6 +156,7 @@ namespace VisualStudioSolutionSecrets
           
             foreach (var secretFile in GetProjectsSecretFiles())
             {
+                sb.Append('|');
                 sb.Append(secretFile.SecretsId);
             }
 

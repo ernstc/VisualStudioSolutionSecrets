@@ -9,3 +9,9 @@ Checking solutions synchronization status...
 Solution                                    | Version | Last Update         | Repo    | Secrets Status
 --------------------------------------------|---------|---------------------|---------|---------------------------------
 SolutionSample.sln                          | #.#.#   | ####-##-## ##:##:## | Mock    | Synchronized
+
+------------------------------------------------------------------------------------------------------------------------
+% = % projects with secrects only on the cloud
+% = % projects with secrects only on the local
+% = % projects with secrects with differences between cloud and local
+% = % projects with secrects, but secrets not setted

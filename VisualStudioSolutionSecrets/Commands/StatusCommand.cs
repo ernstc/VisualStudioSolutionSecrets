@@ -22,6 +22,8 @@ namespace VisualStudioSolutionSecrets.Commands
         internal const char CHAR_UP = '\u2191';
         internal const char CHAR_DOWN = '\u2193';
         internal const char CHAR_DIFF = '\u2260';
+        internal const char CHAR_NOT_SETTED = '?';
+
 
 
         [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
@@ -66,6 +68,13 @@ namespace VisualStudioSolutionSecrets.Commands
                         await GetSolutionStatus(solution);
                     }
                 }
+
+                Console.WriteLine();
+                Console.WriteLine("------------------------------------------------------------------------------------------------------------------------");
+                Write($"{CHAR_UP} ", ConsoleColor.Blue); WriteLine("= # projects with secrects only on the cloud", ConsoleColor.DarkGray);
+                Write($"{CHAR_DOWN} ", ConsoleColor.Blue); WriteLine("= # projects with secrects only on the local", ConsoleColor.DarkGray);
+                Write($"{CHAR_DIFF} ", ConsoleColor.Blue); WriteLine("= # projects with secrects with differences between cloud and local", ConsoleColor.DarkGray);
+                Write($"{CHAR_NOT_SETTED} ", ConsoleColor.Blue); WriteLine("= # projects with secrects, but secrets not setted", ConsoleColor.DarkGray);
             }
             else
             {
