@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
+using VisualStudioSolutionSecrets.Repository;
 
 namespace VisualStudioSolutionSecrets.Commands
 {
@@ -21,29 +25,46 @@ namespace VisualStudioSolutionSecrets.Commands
         {
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
 
-            if (
-                Passphrase == null
-                && KeyFile == null
-                )
+            bool isCipherReady = await Context.Current.Cipher.IsReady();
+            
+            if (!isCipherReady)
             {
-                app?.ShowHelp();
-                return 1;
-            }
-
-            string? keyFile = KeyFile != null ? EnsureFullyQualifiedPath(KeyFile) : null;
-
-			if (AreEncryptionKeyParametersValid(Passphrase, keyFile))
-			{
-				GenerateEncryptionKey(Passphrase, keyFile);
-
-                // Ensure authorization on the default repository
-                if (!await Context.Current.Repository.IsReady())
+                string? keyFile = KeyFile != null ? EnsureFullyQualifiedPath(KeyFile) : null;
+            
+                if (AreEncryptionKeyParametersValid(Passphrase, keyFile))
                 {
-                    await Context.Current.Repository.AuthorizeAsync();
+                    GenerateEncryptionKey(Passphrase, keyFile);
+                    await Context.Current.Cipher.RefreshStatus();
+                    isCipherReady = await Context.Current.Cipher.IsReady();
                 }
             }
+            else
+            {
+                Console.WriteLine($"The encryption key is already defined. For changing the encryption key, use the command \"change-key\".");
+            }
 
-            await Context.Current.Cipher.RefreshStatus();
+            if (isCipherReady)
+            {
+                // Check if any repositories that needs encryption on the client need to be authorized.
+                IEnumerable<IRepository> repositories = Context.Current.GetServices<IRepository>().Where(r => r.EncryptOnClient);
+                foreach (IRepository repository in repositories)
+                {
+                    if (!await repository.IsReady())
+                    {
+                        Console.WriteLine($"\nAccess to {repository.GetFriendlyName()} needs be authorized.");
+                        if (Confirm())
+                        {
+                            await repository.AuthorizeAsync();
+                            await repository.RefreshStatus();
+
+                            if (await repository.IsReady())
+                            {
+                                Console.WriteLine($"Authorization to {repository.GetFriendlyName()} succeeded.");
+                            }
+                        }
+                    }
+                }
+            }
 
             return 0;
         }
