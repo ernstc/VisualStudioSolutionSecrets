@@ -86,7 +86,7 @@ namespace VisualStudioSolutionSecrets.Repository
             cloudDomain = cloudDomain[cloudDomain.IndexOf(".vault.", StringComparison.Ordinal)..];
 
             if (_clouds.TryGetValue(cloudDomain, out var cloud))
-                return $"{cloud} ({name})";
+                return $"{name} ({cloud})";
             else
                 return _repositoryName;
         }

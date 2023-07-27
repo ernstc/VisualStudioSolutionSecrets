@@ -36,20 +36,17 @@ namespace VisualStudioSolutionSecrets.Commands
             var repository = Context.Current.GetRepository(SyncConfiguration.Default);
             if (repository != null)
             {
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.Write(repository.RepositoryType);
+                Write(repository.RepositoryType, ConsoleColor.White);
                 if (!String.IsNullOrEmpty(repository.RepositoryName))
                 {
-                    Console.ForegroundColor = ConsoleColor.Cyan;
-                    Console.Write($" {repository.RepositoryName}");
+                    Write($" {repository.RepositoryName}", ConsoleColor.Cyan);
                 }
             }
             else
             {
                 Console.Write("None");
             }
-            Console.ForegroundColor = color;
-            Console.WriteLine("\n");
+            WriteLine("\n", color);
 
             string[] solutionFiles = GetSolutionFiles(Path, All);
 
@@ -77,7 +74,7 @@ namespace VisualStudioSolutionSecrets.Commands
             {
                 _renderedTableHeader = true;
 
-                Console.WriteLine("Solution                                    | Uid                                  | Repo    | Cloud / Name");
+                Console.WriteLine("Solution                                    | Uid                                  | Repo    | Name / Cloud");
                 Console.WriteLine("--------------------------------------------|--------------------------------------|---------|--------------------------");
             }
         }
@@ -99,48 +96,19 @@ namespace VisualStudioSolutionSecrets.Commands
             }
 
             IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
-
-            string repoName;
-            ConsoleColor solutionColor;
-
-            if (repository == null)
-            {
-                repoName = "";
-                solutionColor = ConsoleColor.DarkGray;
-            }
-            else
-            {
-                repoName = repository.RepositoryName ?? String.Empty;
-                solutionColor = ConsoleColor.White;
-            }
-
-            if (repoName.Length > 50) repoName = repoName[..47] + "...";
+            ConsoleColor solutionColor = repository == null ? ConsoleColor.DarkGray : ConsoleColor.White;
 
             ShowHeader();
 
-            Console.ForegroundColor = solutionColor;
-            Console.Write($"{solutionName,-(MAX_SOLUTION_LENGTH + 3)}");
-
-            Console.ForegroundColor = color;
-            Console.Write(" | ");
-
-            Console.ForegroundColor = solutionColor;
-            Console.Write($"{solution.Uid,-36}");
-
-            Console.ForegroundColor = color;
-            Console.Write(" | ");
-
-            Console.ForegroundColor = solutionColor;
-            Console.Write($"{repository?.RepositoryType ?? String.Empty,-7}");
-
-            Console.ForegroundColor = color;
-            Console.Write(" | ");
-
-            Console.ForegroundColor = solutionColor;
-            Console.Write($"{repository?.GetFriendlyName() ?? String.Empty}");
+            Write($"{solutionName,-(MAX_SOLUTION_LENGTH + 3)}", solutionColor);
+            Write(" | ", color);
+            Write($"{solution.Uid,-36}", solutionColor);
+            Write(" | ", color);
+            Write($"{repository?.RepositoryType ?? String.Empty,-7}", solutionColor);
+            Write(" | ", color);
+            Write($"{repository?.GetFriendlyName() ?? String.Empty}", solutionColor);
 
             Console.WriteLine();
-
             Console.ForegroundColor = color;
         }
 

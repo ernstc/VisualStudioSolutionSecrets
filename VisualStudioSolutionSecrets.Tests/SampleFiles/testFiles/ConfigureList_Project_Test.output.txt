@@ -4,6 +4,6 @@ Default repository: Mock Name
 
 Solutions with custom configuration...
 
-Solution                                    | Uid                                  | Repo    | Cloud / Name
+Solution                                    | Uid                                  | Repo    | Name / Cloud
 --------------------------------------------|--------------------------------------|---------|--------------------------
 SolutionSample.sln                          | d16e70f9-e206-4047-8a33-01710ebd0eeb | Mock    | Name
