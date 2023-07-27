@@ -18,7 +18,6 @@ namespace VisualStudioSolutionSecrets.Commands
     {
 
         const int MAX_SOLUTION_LENGTH = 40;
-        const string SOLUTION_WITHOUT_UID = "00000000-0000-0000-0000-000000000000";
 
         internal const char CHAR_UP = '\u2191';
         internal const char CHAR_DOWN = '\u2193';
@@ -27,6 +26,9 @@ namespace VisualStudioSolutionSecrets.Commands
 
         [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
         public bool All { get; set; }
+
+        [Option("-d|--duplicates", Description = "When true, shows also duplicate solutions.")]
+        public bool ShowDuplicates { get; set; }
 
 
         public async Task<int> OnExecute()
@@ -56,8 +58,8 @@ namespace VisualStudioSolutionSecrets.Commands
                     SolutionFile solution = new SolutionFile(solutionFile);
                     string solutionCompositeKey = solution.GetSolutionCompositeKey();
                     if (
-                        //solutionCompositeKey == SOLUTION_WITHOUT_UID || 
-                        !processedSolutions.Contains(solutionCompositeKey)
+                        ShowDuplicates
+                        || !processedSolutions.Contains(solutionCompositeKey)
                         )
                     {
                         processedSolutions.Add(solutionCompositeKey);
