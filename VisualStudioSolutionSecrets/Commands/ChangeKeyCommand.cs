@@ -10,7 +10,7 @@ using VisualStudioSolutionSecrets.Repository;
 namespace VisualStudioSolutionSecrets.Commands
 {
 
-    [Command(Description = "Change the encryption key and encrypts all existing secrets with the new key.")]
+    [Command(Description = "Change the encryption key. By default re-encrypts all existing secrets with the new key.")]
     [EncryptionKeyParametersValidation]
     internal class ChangeKeyCommand : EncryptionKeyCommand
     {
@@ -20,6 +20,10 @@ namespace VisualStudioSolutionSecrets.Commands
         [Option("-f|--keyfile <path>", Description = "Key file path to use for creating the encryption key.")]
         [FileExists]
         public string? KeyFile { get; set; }
+
+        [Option("-s|--skipencryption", Description = "Skip the re-encryption of secrets encrypted with the old key.")]
+        public bool SkipEncryption { get; set; }
+
 
 
         public async Task<int> OnExecute(CommandLineApplication? app = null)
@@ -49,117 +53,120 @@ namespace VisualStudioSolutionSecrets.Commands
                 return 1;
             }
 
-            IEnumerable<IRepository> repositories = Context.Current.GetServices<IRepository>().Where(r => r.EncryptOnClient);
             var successfulSolutionSecretsByRepository = new Dictionary<IRepository, IList<SolutionSettings>>();
 
-            bool canDecryptAllSecrets = true;
-
-            // Read the existing secrets if the repository encrypts on the client
-            foreach (IRepository repository in repositories)
+            if (!SkipEncryption)
             {
-                try
+                bool canDecryptAllSecrets = true;
+                IEnumerable<IRepository> repositories = Context.Current.GetServices<IRepository>().Where(r => r.EncryptOnClient);
+
+                // Read the existing secrets if the repository encrypts on the client
+                foreach (IRepository repository in repositories)
                 {
-                    // Ensure authorization on the default repository
-                    if (!await repository.IsReady())
+                    try
                     {
-                        await repository.AuthorizeAsync();
-                    }
-
-                    Console.Write("Loading existing secrets... ");
-                    ICollection<SolutionSettings> allSecrets = await repository.PullAllSecretsAsync();
-
-                    Console.WriteLine("Done");
-
-                    if (allSecrets.Count == 0)
-                    {
-                        Console.WriteLine("\nThere are no solution settings that need to be encrypted with the new key.");
-                    }
-
-                    var successfulSolutionSecrets = new List<SolutionSettings>();
-
-                    foreach (var solutionSecrets in allSecrets)
-                    {
-                        bool decryptionSucceded = true;
-                        var decryptedSettings = new List<(string name, string? content)>();
-
-                        foreach (var settings in solutionSecrets.Settings)
+                        // Ensure authorization on the default repository
+                        if (!await repository.IsReady())
                         {
-                            if (settings.content == null)
-                            {
-                                continue;
-                            }
+                            await repository.AuthorizeAsync();
+                        }
 
-                            Dictionary<string, string>? secretFiles = null;
-                            try
-                            {
-                                secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(settings.content);
-                            }
-                            catch
-                            {
-                                Console.Write($"\n    ERR: File content cannot be read: {settings.name}");
-                            }
+                        Console.Write("Loading existing secrets... ");
+                        ICollection<SolutionSettings> allSecrets = await repository.PullAllSecretsAsync();
 
-                            if (secretFiles == null)
-                            {
-                                break;
-                            }
+                        Console.WriteLine("Done");
 
-                            var decryptedFiles = new Dictionary<string, string>();
-                            foreach (var secret in secretFiles)
-                            {
-                                string configFileName = secret.Key;
+                        if (allSecrets.Count == 0)
+                        {
+                            Console.WriteLine("\nThere are no solution settings that need to be encrypted with the new key.");
+                        }
 
-                                // This check is for compatibility with version 1.0.x
-                                if (configFileName == "content")
+                        var successfulSolutionSecrets = new List<SolutionSettings>();
+
+                        foreach (var solutionSecrets in allSecrets)
+                        {
+                            bool decryptionSucceded = true;
+                            var decryptedSettings = new List<(string name, string? content)>();
+
+                            foreach (var settings in solutionSecrets.Settings)
+                            {
+                                if (settings.content == null)
                                 {
-                                    configFileName = "secrets.json";
+                                    continue;
                                 }
 
-                                var decryptedContent = Context.Current.Cipher.Decrypt(secret.Value);
-                                if (decryptedContent == null)
+                                Dictionary<string, string>? secretFiles = null;
+                                try
                                 {
-                                    decryptionSucceded = false;
+                                    secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(settings.content);
+                                }
+                                catch
+                                {
+                                    Console.Write($"\n    ERR: File content cannot be read: {settings.name}");
+                                }
+
+                                if (secretFiles == null)
+                                {
                                     break;
                                 }
-                                decryptedFiles.Add(secret.Key, decryptedContent);
+
+                                var decryptedFiles = new Dictionary<string, string>();
+                                foreach (var secret in secretFiles)
+                                {
+                                    string configFileName = secret.Key;
+
+                                    // This check is for compatibility with version 1.0.x
+                                    if (configFileName == "content")
+                                    {
+                                        configFileName = "secrets.json";
+                                    }
+
+                                    var decryptedContent = Context.Current.Cipher.Decrypt(secret.Value);
+                                    if (decryptedContent == null)
+                                    {
+                                        decryptionSucceded = false;
+                                        break;
+                                    }
+                                    decryptedFiles.Add(secret.Key, decryptedContent);
+                                }
+
+                                decryptedSettings.Add((settings.name, JsonSerializer.Serialize(decryptedFiles)));
                             }
 
-                            decryptedSettings.Add((settings.name, JsonSerializer.Serialize(decryptedFiles)));
-                        }
-
-                        if (decryptionSucceded)
-                        {
-                            successfulSolutionSecrets.Add(new SolutionSettings(decryptedSettings)
+                            if (decryptionSucceded)
                             {
-                                Name = solutionSecrets.Name
-                            });
+                                successfulSolutionSecrets.Add(new SolutionSettings(decryptedSettings)
+                                {
+                                    Name = solutionSecrets.Name
+                                });
+                            }
+                        }
+
+                        if (successfulSolutionSecrets.Count != allSecrets.Count)
+                        {
+                            canDecryptAllSecrets = false;
+                        }
+
+                        if (successfulSolutionSecrets.Count > 0)
+                        {
+                            successfulSolutionSecretsByRepository.Add(repository, successfulSolutionSecrets);
                         }
                     }
-
-                    if (successfulSolutionSecrets.Count != allSecrets.Count)
+                    catch (Exception ex)
                     {
-                        canDecryptAllSecrets = false;
-                    }
-
-                    if (successfulSolutionSecrets.Count > 0)
-                    {
-                        successfulSolutionSecretsByRepository.Add(repository, successfulSolutionSecrets);
+                        Console.WriteLine($"Error: {ex.Message}");
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error: {ex.Message}");
-                }
-            }
 
-            if (!canDecryptAllSecrets)
-            {
-                Console.WriteLine("\n    Attention!");
-                Console.WriteLine("    Some solution settings cannot be decrypted with the current encryption key.");
-                Console.WriteLine("    Only some solutions will be re-encrypted with the new key.\n");
-                if (!Confirm())
+                if (!canDecryptAllSecrets)
                 {
-                    return 1;
+                    Console.WriteLine("\n    Attention!");
+                    Console.WriteLine("    Some solution settings cannot be decrypted with the current encryption key.");
+                    Console.WriteLine("    Only some solutions will be re-encrypted with the new key.\n");
+                    if (!Confirm())
+                    {
+                        return 1;
+                    }
                 }
             }
 
@@ -188,9 +195,9 @@ namespace VisualStudioSolutionSecrets.Commands
                         };
 
                         var files = new List<(string fileName, string? content)>
-                        {
-                            ("secrets", JsonSerializer.Serialize(headerFile))
-                        };
+                    {
+                        ("secrets", JsonSerializer.Serialize(headerFile))
+                    };
 
                         bool failed = false;
                         foreach (var settings in solutionSecrets.Settings)
