@@ -28,6 +28,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
                 Console.Write("    Do you want to continue? [Y] Yes, [N] No : ");
                 var key = Context.Current.Input.ReadKey();
                 Console.WriteLine();
+                Console.WriteLine();
                 if (key.Key == ConsoleKey.Y)
                 {
                     return true;

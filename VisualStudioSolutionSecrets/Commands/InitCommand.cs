@@ -10,7 +10,7 @@ using VisualStudioSolutionSecrets.Repository;
 namespace VisualStudioSolutionSecrets.Commands
 {
 
-    [Command(Description = "Create the encryption key.")]
+    [Command(Description = "Create the encryption key and setup all needed authorizations to remote repositories.")]
     [EncryptionKeyParametersValidation]
     internal class InitCommand : EncryptionKeyCommand
 	{
@@ -37,10 +37,15 @@ namespace VisualStudioSolutionSecrets.Commands
                     await Context.Current.Cipher.RefreshStatus();
                     isCipherReady = await Context.Current.Cipher.IsReady();
                 }
+                else
+                {
+                    app?.ShowHint();
+                    return 1;
+                }
             }
             else
             {
-                Console.WriteLine($"The encryption key is already defined. For changing the encryption key, use the command \"change-key\".");
+                Console.WriteLine($"The encryption key is already defined. For changing the encryption key, use the command \"change-key\".\n");
             }
 
             if (isCipherReady)
@@ -49,9 +54,13 @@ namespace VisualStudioSolutionSecrets.Commands
                 IEnumerable<IRepository> repositories = Context.Current.GetServices<IRepository>().Where(r => r.EncryptOnClient);
                 foreach (IRepository repository in repositories)
                 {
-                    if (!await repository.IsReady())
+                    if (await repository.IsReady())
                     {
-                        Console.WriteLine($"\nAccess to {repository.GetFriendlyName()} needs be authorized.");
+                        Console.WriteLine($"Access to {repository.GetFriendlyName()} is authorized.\n");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Access to {repository.GetFriendlyName()} needs be authorized.");
                         if (Confirm())
                         {
                             await repository.AuthorizeAsync();

@@ -64,19 +64,19 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
         {
             if (string.IsNullOrEmpty(passphrase) && string.IsNullOrEmpty(keyFile))
             {
-                Console.WriteLine("\nYou must specify a passphrase or key file to create the encryption key.");
+                Console.WriteLine("You must specify a passphrase or key file to create the encryption key.\n");
                 return false;
             }
             if (!string.IsNullOrEmpty(passphrase))
             {
                 if (!string.IsNullOrEmpty(keyFile))
                 {
-                    Console.WriteLine("\n    WARN: You have specified passphrase and key file, but only passphrase will be used.");
+                    Console.WriteLine("    WARN: You have specified passphrase and key file, but only passphrase will be used.");
                 }
 
                 if (!ValidatePassphrase(passphrase))
                 {
-                    Console.WriteLine("\n    WARN: The passphrase is weak. It should contains at least 8 characters in upper and lower case, at least one digit and at least one symbol between !@#$%^&*()_+=[{]};:<>|./?,-\n");
+                    Console.WriteLine("    WARN: The passphrase is weak. It should contains at least 8 characters in upper and lower case, at least one digit and at least one symbol between !@#$%^&*()_+=[{]};:<>|./?,-\n");
                     if (!Confirm())
                     {
                         return false;
@@ -87,7 +87,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             {
                 if (!File.Exists(keyFile))
                 {
-                    Console.WriteLine("\n    ERR: Cannot create the encryption key. Key file not found.");
+                    Console.WriteLine("    ERR: Cannot create the encryption key. Key file not found.");
                     return false;
                 }
             }
@@ -97,7 +97,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
         protected static void GenerateEncryptionKey(string? passphrase, string? keyFile)
         {
-            Console.Write("\nGenerating encryption key... ");
+            Console.Write("Generating encryption key... ");
             if (!string.IsNullOrEmpty(passphrase))
             {
                 Context.Current.Cipher.Init(passphrase);
