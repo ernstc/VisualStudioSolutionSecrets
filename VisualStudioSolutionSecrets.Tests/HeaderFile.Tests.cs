@@ -21,7 +21,7 @@ namespace VisualStudioSolutionSecrets.Tests
         [InlineData("1.9.1.1")]
         [InlineData("2.0.0")]
 
-        public void IsVersionSupportedTests(string version)
+        public void IsVersionSupported_Tests(string version)
         {
             HeaderFile headerFile = new HeaderFile();
             headerFile.visualStudioSolutionSecretsVersion = version;
@@ -37,7 +37,7 @@ namespace VisualStudioSolutionSecrets.Tests
         [InlineData("1.9.1.1.1")]
         [InlineData("3.0.0")]
 
-        public void IsVersionNotSupportedTests(string version)
+        public void IsVersionNotSupported_Tests(string version)
         {
             HeaderFile headerFile = new HeaderFile();
             headerFile.visualStudioSolutionSecretsVersion = version;

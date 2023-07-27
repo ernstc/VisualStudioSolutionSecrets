@@ -38,7 +38,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void StatusTest()
+        public void Status_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
             RunCommand($"push '{Constants.SolutionFilesPath}'");
@@ -52,7 +52,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void StatusWithSolutionsPathTest()
+        public void Status_WithSolutionsPath_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
             RunCommand($"push '{Constants.SolutionFilesPath}'");
@@ -66,7 +66,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void StatusWithSolutionsFilePathTest()
+        public void Status_WithSolutionsFilePath_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
             RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
@@ -80,7 +80,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void StatusWithSolutionsPathAllTest()
+        public void Status_WithSolutionsPathAll_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
             RunCommand($"push '{Constants.SolutionFilesPath}'");
@@ -89,12 +89,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status --all '{Constants.SampleFilesPath}'");
 
-            VerifyOutput("StatusTest", s => s);
+            VerifyOutput("Status_Test", s => s);
         }
 
 
         [Fact]
-        public void StatusWithSolutionsRelativePathTest()
+        public void Status_WithSolutionsRelativePath_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
             RunCommand($"push '{Constants.SolutionFilesPath}'");
@@ -103,7 +103,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status . --all");
 
-            VerifyOutput("StatusTest", s => s);
+            VerifyOutput("Status_Test", s => s);
         }
 
 

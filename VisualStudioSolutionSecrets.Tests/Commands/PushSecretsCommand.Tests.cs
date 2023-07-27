@@ -63,7 +63,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void PushPathTest()
+        public void Push_Path_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
             RunCommand($"push '{Constants.SolutionFilesPath}'");
@@ -73,7 +73,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void PushRelativePathTest()
+        public void Push_RelativePath_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
             RunCommand("push .");
@@ -83,7 +83,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void PushPathWithoutSolutionTest()
+        public void Push_PathWithoutSolution_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
             RunCommand("push unknown");
@@ -95,7 +95,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void PushAllWithinPathTest()
+        public void Push_AllWithinPath_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
             RunCommand($"push --all '{Constants.SampleFilesPath}'");

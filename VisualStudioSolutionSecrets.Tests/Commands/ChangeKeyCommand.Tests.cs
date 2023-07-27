@@ -87,7 +87,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void ChangeKeyWithoutParameters()
+        public void ChangeKey_WithoutParameters_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
 
@@ -101,7 +101,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void ChangeKeyWithPassphrase()
+        public void ChangeKey_WithPassphrase_Test()
         {
             PrepareTest();
 
@@ -116,7 +116,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void ChangeKeyWithKeyFile()
+        public void ChangeKey_WithKeyFile_Test()
         {
             PrepareTest();
 
@@ -131,7 +131,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void ChangeKeyWithKeyFileWithRelativePath()
+        public void ChangeKey_WithKeyFileWithRelativePath_Test()
         {
             PrepareTest();
 

@@ -50,7 +50,7 @@ namespace VisualStudioSolutionSecrets.Tests
 
 
         [Fact]
-        public void GetProjectsSecretConfigFiles()
+        public void GetProjectsSecretConfigFiles_Test()
         {
             CreateContext(secretsSubFolderPath: null);
 
@@ -71,7 +71,7 @@ namespace VisualStudioSolutionSecrets.Tests
 
 
         [Fact]
-        public void SaveConfigFile()
+        public void SaveConfigFile_Test()
         {
             // Phase 1: Load config files.
             CreateContext(secretsSubFolderPath: null);

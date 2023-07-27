@@ -43,7 +43,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void ClearTest()
+        public void Clear_Test()
         {
             const string secretId = "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99";
             CopySecretsToTempFolder(secretId);

@@ -80,7 +80,7 @@ namespace VisualStudioSolutionSecrets.Tests
 
 
         [Fact]
-        public void SaveDataTest()
+        public void SaveData_Test()
         {
             SampleData data = GetSampleData();
 
@@ -99,7 +99,7 @@ namespace VisualStudioSolutionSecrets.Tests
 
 
         [Fact]
-        public void LoadDataTest()
+        public void LoadData_Test()
         {
             SampleData data = GetSampleData();
 

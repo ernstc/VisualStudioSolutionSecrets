@@ -47,7 +47,7 @@ namespace VisualStudioSolutionSecrets.Tests.Encryption
 
 
         [Fact]
-        public void InitWithPassphrase()
+        public void InitWithPassphrase_Test()
         {
             var cipher = new Cipher();
             cipher.Init(Constants.PASSPHRASE);
@@ -58,7 +58,7 @@ namespace VisualStudioSolutionSecrets.Tests.Encryption
 
 
         [Fact]
-        public void InitWithFile()
+        public void InitWithFile_Test()
         {
             var cipher = new Cipher();
 
@@ -71,7 +71,7 @@ namespace VisualStudioSolutionSecrets.Tests.Encryption
 
 
         [Fact]
-        public void EncryptionTest()
+        public void Encryption_Test()
         {
             var cipher = new Cipher();
             cipher.Init(Constants.PASSPHRASE);
@@ -84,7 +84,7 @@ namespace VisualStudioSolutionSecrets.Tests.Encryption
 
 
         [Fact]
-        public void DecryptionTest()
+        public void Decryption_Test()
         {
             var cipher = new Cipher();
             cipher.Init(Constants.PASSPHRASE);

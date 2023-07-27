@@ -19,7 +19,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void SearchTest()
+        public void Search_Test()
         {
             RunCommand($"search '{Constants.SolutionFilesPath}'");
 
@@ -28,7 +28,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void SearchWithNoResultsTest()
+        public void Search_WithNoResults_Test()
         {
             RunCommand($"search '{Constants.SampleFilesPath}'");
 
@@ -37,7 +37,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void SearchAllTest()
+        public void Search_All_Test()
         {
             RunCommand($"search --all '{Constants.SampleFilesPath}'");
 

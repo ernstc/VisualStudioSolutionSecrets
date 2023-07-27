@@ -33,7 +33,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void InitWithoutParametersTest()
+        public void Init_WithoutParameters_Test()
         {
             RunCommand("init");
 
@@ -42,7 +42,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void InitWithPassphraseTest()
+        public void Init_WithPassphrase_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
 
@@ -52,7 +52,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void InitWithKeyFileTest()
+        public void Init_WithKeyFile_Test()
         {
             RunCommand($"init -f '{Path.Combine(Constants.TestFilesPath, "initFile.key")}'");
 
@@ -62,7 +62,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void InitWithKeyFileWithRelativePathTest()
+        public void Init_WithKeyFileWithRelativePath_Test()
         {
             RunCommand($"init -f '{Path.Combine("..", "testFiles", "initFile.key")}'");
 
@@ -72,7 +72,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void InitWithAlreadyExistingKeyTest()
+        public void Init_WithAlreadyExistingKey_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
             ClearOutput();

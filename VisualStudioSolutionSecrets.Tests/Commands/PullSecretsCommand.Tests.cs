@@ -88,7 +88,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void PullPathTest()
+        public void Pull_Path_Test()
         {
             PrepareTest();
 
@@ -99,7 +99,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void PullRelativePathTest()
+        public void Pull_RelativePath_Test()
         {
             PrepareTest();
 
@@ -110,7 +110,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void PullPathWithoutSolutionTest()
+        public void Pull_PathWithoutSolution_Test()
         {
             PrepareTest();
 
@@ -125,7 +125,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void PullAllWithinPathTest()
+        public void Pull_AllWithinPath_Test()
         {
             PrepareTest();
 
