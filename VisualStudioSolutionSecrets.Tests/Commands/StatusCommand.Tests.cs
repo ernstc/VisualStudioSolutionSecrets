@@ -251,7 +251,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             MockFileSystem(secretsFolder: Constants.TempFolderPath);
 
             // Invalidate the key
-            RunCommand($"init -p New{Constants.PASSPHRASE}");
+            RunCommand($"change-key -s -p New{Constants.PASSPHRASE}");
 
             ClearOutput();
 
@@ -266,7 +266,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
             RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
-            RunCommand($"init -p New{Constants.PASSPHRASE}");
+            RunCommand($"change-key -s -p New{Constants.PASSPHRASE}");
 
             ClearOutput();
 
