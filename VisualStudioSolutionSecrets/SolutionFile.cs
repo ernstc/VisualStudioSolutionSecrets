@@ -143,13 +143,22 @@ namespace VisualStudioSolutionSecrets
 
         public string GetSolutionCompositeKey()
         {
-            var secretFiles = GetProjectsSecretFiles();
+            var synchronizationSettings = CustomSynchronizationSettings;
+            var repository = Context.Current.GetRepository(synchronizationSettings);
+            string repositoryKey = 
+                repository?.RepositoryType ?? string.Empty +
+                repository?.RepositoryName ?? string.Empty;
+
             StringBuilder sb = new StringBuilder();
+            sb.Append(repositoryKey);
+            sb.Append('|');
             sb.Append(_uid.ToString("D", CultureInfo.InvariantCulture));
-            foreach (var secretFile in secretFiles)
+          
+            foreach (var secretFile in GetProjectsSecretFiles())
             {
                 sb.Append(secretFile.SecretsId);
             }
+
             return sb.ToString();
         }
 
