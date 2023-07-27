@@ -49,7 +49,6 @@ namespace VisualStudioSolutionSecrets.Commands
                 return 1;
             }
 
-
             IEnumerable<IRepository> repositories = Context.Current.GetServices<IRepository>().Where(r => r.EncryptOnClient);
             var successfulSolutionSecretsByRepository = new Dictionary<IRepository, IList<SolutionSettings>>();
 

@@ -2,7 +2,7 @@ vs-secrets #.#.#
 
 Checking status...
 
-Ecryption Key: OK
+Encryption Key: OK
 
 Checking solutions synchronization status...
 ... no solution found.

@@ -7,7 +7,7 @@ Projects that use secrets:
   1) 6030c231-73da-4823-adb8-5b919180a7ac - NetCore-Sample-WithEmptySecrets\NetCore-Sample-WithEmptySecrets.csproj
   2) 6030c231-73da-4823-adb8-5b919180a7ac - NetFramework-Sample-WithEmptySecrets\NetFramework-Sample-WithEmptySecrets.csproj
 
-------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
 
 Solution: SolutionSample.sln
     Path: *\solutionFiles

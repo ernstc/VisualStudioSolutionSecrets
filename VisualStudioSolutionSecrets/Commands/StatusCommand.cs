@@ -35,11 +35,10 @@ namespace VisualStudioSolutionSecrets.Commands
             Console.WriteLine("Checking status...\n");
 
             bool isCipherReady = await Context.Current.Cipher.IsReady();
-            bool isRepositoryReady = await Context.Current.Repository.IsReady();
 
             string encryptionKeyStatus = isCipherReady ? "OK" : "NOT DEFINED";
 
-            Console.WriteLine($"Ecryption Key: {encryptionKeyStatus}\n");
+            Console.WriteLine($"Encryption Key: {encryptionKeyStatus}\n");
 
             Console.WriteLine("Checking solutions synchronization status...");
 

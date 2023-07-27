@@ -36,7 +36,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     solutionIndex++;
                     if (solutionIndex > 1)
                     {
-                        Console.WriteLine("\n------------------------------------------------------------------------------------------------------------------------\n");
+                        Console.WriteLine("\n-----------------------------------------------------------------------------------------------------------------------\n");
                     }
                     
                     Write("Solution: "); WriteLine(solution.Name, ConsoleColor.White);
@@ -54,7 +54,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         string projectRelativePath = String.Empty;
                         string projectName = projectFileName;
 
-                        int separator = projectFileName.LastIndexOf("\\");
+                        int separator = projectFileName.LastIndexOf("\\", StringComparison.Ordinal);
                         if (separator  > 0)
                         {
                             projectRelativePath = projectFileName.Substring(0, separator + 1);
@@ -65,8 +65,6 @@ namespace VisualStudioSolutionSecrets.Commands
                         Write($"{configFile.SecretsId}", ConsoleColor.DarkGray);
                         Write($" - {projectRelativePath}", ConsoleColor.DarkGray);
                         WriteLine(projectName);
-
-                        //Console.WriteLine($"{++i,3}) {configFile.SecretsId} - {configFile.ProjectFileName} ");
                     }
                 }
             }
