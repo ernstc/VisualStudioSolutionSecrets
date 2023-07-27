@@ -69,6 +69,16 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             Assert.True(File.Exists(_generatedFilePath));
             Assert.Equal(File.ReadAllLines(_sampleFilePath), File.ReadAllLines(_generatedFilePath));
         }
-        
+
+
+        [Fact]
+        public void InitWithAlreadyExistingKeyTest()
+        {
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            ClearOutput();
+            RunCommand($"init -p New{Constants.PASSPHRASE}");
+            VerifyOutput();
+        }
+
     }
 }

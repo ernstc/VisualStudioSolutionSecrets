@@ -1,0 +1,3 @@
+vs-secrets #.#.#
+
+The encryption key is already defined. For changing the encryption key, use the command "change-key".
