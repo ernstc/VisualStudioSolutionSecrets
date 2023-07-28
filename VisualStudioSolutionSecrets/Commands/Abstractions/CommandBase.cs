@@ -82,8 +82,13 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
             path = EnsureFullyQualifiedPath(path) ?? Context.Current.IO.GetCurrentDirectory();
 
-            if (path.EndsWith(".sln", StringComparison.OrdinalIgnoreCase) && File.Exists(path))
-                return new string[] { path };
+            if (path.EndsWith(".sln", StringComparison.OrdinalIgnoreCase))
+            {
+                if (File.Exists(path))
+                    return new string[] { path };
+                else
+                    return Array.Empty<string>();
+            }
 
             var directory = path ?? Context.Current.IO.GetCurrentDirectory();
             try
