@@ -125,42 +125,43 @@ namespace VisualStudioSolutionSecrets.Commands
         * 
         */
 
-        private static void WriteStatus(SyncStatus status, ConsoleColor defaultColor)
+        private static string WriteStatus(SyncStatus status, ConsoleColor defaultColor)
         {
+            string statusText = String.Empty;
             if ((status & SyncStatus.Synchronized) == SyncStatus.Synchronized)
             {
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.Write("Synchronized");
+                Console.Write(statusText = "Synchronized");
             }
             else if ((status & SyncStatus.Unmanaged) == SyncStatus.Unmanaged)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.Write("Unmanaged");
+                Console.Write(statusText = "Unmanaged");
             }
             else if ((status & SyncStatus.NoSecretsFound) == SyncStatus.NoSecretsFound)
             {
                 Console.ForegroundColor = ConsoleColor.DarkCyan;
-                Console.Write("Secrets not setted");
+                Console.Write(statusText = "Secrets not setted");
             }
             else if ((status & SyncStatus.HeaderError) == SyncStatus.HeaderError)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("ERROR: Header");
+                Console.Write(statusText = "ERROR: Header");
             }
             else if ((status & SyncStatus.ContentError) == SyncStatus.ContentError)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("ERROR: Content");
+                Console.Write(statusText = "ERROR: Content");
             }
             else if ((status & SyncStatus.LocalOnly) == SyncStatus.LocalOnly)
             {
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
-                Console.Write("Local only");
+                Console.Write(statusText = "Local only");
             }
             else if ((status & SyncStatus.CloudOnly) == SyncStatus.CloudOnly)
             {
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
-                Console.Write("Cloud only");
+                Console.Write(statusText = "Cloud only");
 
                 if ((status & SyncStatus.InvalidKey) == SyncStatus.InvalidKey)
                 {
@@ -169,33 +170,36 @@ namespace VisualStudioSolutionSecrets.Commands
 
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write("Invalid key");
+
+                    statusText += " / Invalid key";
                 }
             }
             else if ((status & SyncStatus.NotSynchronized) == SyncStatus.NotSynchronized)
             {
                 Console.ForegroundColor = ConsoleColor.DarkCyan;
-                Console.Write("Not synchronized");
+                Console.Write(statusText = "Not synchronized");
             }
             else if ((status & SyncStatus.InvalidKey) == SyncStatus.InvalidKey)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("Invalid key");
+                Console.Write(statusText = "Invalid key");
             }
             else if ((status & SyncStatus.AuthenticationFailed) == SyncStatus.AuthenticationFailed)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("ERROR: Authentication failed");
+                Console.Write(statusText = "ERROR: Authentication failed");
             }
             else if ((status & SyncStatus.Unauthorized) == SyncStatus.Unauthorized)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("ERROR: Unauthorized");
+                Console.Write(statusText = "ERROR: Unauthorized");
             }
             else if ((status & SyncStatus.CannotLoadStatus) == SyncStatus.CannotLoadStatus)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("ERROR: Cannot load status");
+                Console.Write(statusText = "ERROR: Cannot load status");
             }
+            return statusText;
         }
 
 
@@ -381,6 +385,11 @@ namespace VisualStudioSolutionSecrets.Commands
                                     int countLocalOnly = localNames.Count(n => !remoteNames.Contains(n));
                                     int countRemoteOnly = remoteNames.Count(n => !localNames.Contains(n));
                                     int countDifferences = 0;
+                                    int countUnmanaged = secretFiles.Where(f =>
+                                        !String.IsNullOrEmpty(f.SecretsId)
+                                        && !localNames.Any(x => x.Contains(f.SecretsId, StringComparison.OrdinalIgnoreCase))
+                                        && !remoteNames.Any(x => x.Contains(f.SecretsId, StringComparison.OrdinalIgnoreCase))
+                                        ).Count();
 
                                     foreach (var remoteFile in remoteSecretFiles)
                                     {
@@ -406,9 +415,14 @@ namespace VisualStudioSolutionSecrets.Commands
                                         || countDifferences != 0)
                                     {
                                         status = SyncStatus.NotSynchronized;
+                                    }
+
+                                    if (status == SyncStatus.NotSynchronized || countUnmanaged != 0)
+                                    {
                                         if (countLocalOnly != 0) statusDetails += $" {countLocalOnly}{CHAR_DOWN}";
                                         if (countRemoteOnly != 0) statusDetails += $" {countRemoteOnly}{CHAR_UP}";
                                         if (countDifferences != 0) statusDetails += $" {countDifferences}{CHAR_DIFF}";
+                                        if (countUnmanaged != 0) statusDetails += $" {countUnmanaged}{CHAR_NOT_SETTED}";
                                     }
                                 }
 
@@ -439,16 +453,19 @@ namespace VisualStudioSolutionSecrets.Commands
                 solutionColor = ConsoleColor.White;
             }
 
-            Write($"{solutionName,-(MAX_SOLUTION_LENGTH + 3)}", solutionColor);
+            Write($"{solutionName, -(MAX_SOLUTION_LENGTH + 3)}", solutionColor);
             Write(" | ", color);
-            Write($"{version,-7}", solutionColor);
+            Write($"{version, -7}", solutionColor);
             Write(" | ", color);
-            Write($"{lastUpdate,-19}", solutionColor);
+            Write($"{lastUpdate, -19}", solutionColor);
             Write(" | ", color);
-            Write($"{repositoryType,-7}", solutionColor);
+            Write($"{repositoryType, -7}", solutionColor);
             Write(" | ", color);
-            WriteStatus(status, color);
-            Write($"{statusDetails}\n");
+            string statusText = WriteStatus(status, color);
+
+            int totalWidth = 32 - statusText.Length;
+            if (totalWidth < 0) totalWidth = 0;
+            Write($"{statusDetails.PadLeft(totalWidth)}\n", ConsoleColor.Blue);
 
             Console.ForegroundColor = color;
         }

@@ -44,6 +44,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     string path = solutionFile;
                     if (path.EndsWith(solution.Name, StringComparison.OrdinalIgnoreCase)) path = path.Substring(0, path.Length - solution.Name.Length - 1);
                     Write("    Path: "); WriteLine(path, ConsoleColor.DarkGray);
+                    Write("     Uid: "); WriteLine(solution.Uid != Guid.Empty ? solution.Uid.ToString("D") : "", ConsoleColor.DarkGray);
 
                     Console.WriteLine("\nProjects that use secrets:");
 
