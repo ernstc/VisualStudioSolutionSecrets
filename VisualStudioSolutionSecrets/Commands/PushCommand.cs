@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
@@ -16,6 +17,9 @@ namespace VisualStudioSolutionSecrets.Commands
 
         [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
         public bool All { get; set; }
+
+        [Option("-o|--overwrite", Description = "Does not merge remote secrets with local ones, but overwrites them with locals.")]
+        public bool Overwrite { get; set; }
 
 
         public async Task<int> OnExecute()
@@ -48,7 +52,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         solutionGuid = solution.Uid
                     };
 
-                    var files = new List<(string fileName, string? content)>
+                    var files = new List<(string name, string? content)>
                     {
                         ("secrets", JsonSerializer.Serialize(headerFile))
                     };
@@ -68,6 +72,8 @@ namespace VisualStudioSolutionSecrets.Commands
                     {
                         await repository.AuthorizeAsync(batchMode: true);
                     }
+
+                    var repositoryFiles = await repository.PullFilesAsync(solution);
 
                     var secrets = new Dictionary<string, Dictionary<string, string>>();
 
@@ -104,12 +110,17 @@ namespace VisualStudioSolutionSecrets.Commands
                         files.Add((group.Key, groupContent));
                     }
 
-                    if (!isEmpty && !failed)
+                    if (!Overwrite)
                     {
-                        if (!await repository.PushFilesAsync(solution, files))
-                        {
-                            failed = true;
-                        }
+                        // Merge remote files with local ones. Local files have priority.
+                        files.AddRange(
+                            repositoryFiles.Where(rf => !files.Any(f => f.name == rf.name))
+                            );
+                    }
+
+                    if (!isEmpty && !failed && !await repository.PushFilesAsync(solution, files))
+                    {
+                        failed = true;
                     }
 
                     if (isEmpty)
