@@ -22,6 +22,7 @@ namespace VisualStudioSolutionSecrets.Commands
         internal const char CHAR_UP = '\u2191';
         internal const char CHAR_DOWN = '\u2193';
         internal const char CHAR_DIFF = '\u2260';
+        internal const char CHAR_EQUAL = '=';
         internal const char CHAR_NOT_SETTED = '?';
 
 
@@ -73,6 +74,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 Console.WriteLine("------------------------------------------------------------------------------------------------------------------------");
                 Write($"{CHAR_UP} ", ConsoleColor.Blue); WriteLine("= # projects with secrects only on the cloud", ConsoleColor.DarkGray);
                 Write($"{CHAR_DOWN} ", ConsoleColor.Blue); WriteLine("= # projects with secrects only on the local", ConsoleColor.DarkGray);
+                Write($"{CHAR_EQUAL} ", ConsoleColor.Blue); WriteLine("= # projects with same secrects on the cloud and local", ConsoleColor.DarkGray);
                 Write($"{CHAR_DIFF} ", ConsoleColor.Blue); WriteLine("= # projects with secrects with differences between cloud and local", ConsoleColor.DarkGray);
                 Write($"{CHAR_NOT_SETTED} ", ConsoleColor.Blue); WriteLine("= # projects with secrects, but secrets not setted", ConsoleColor.DarkGray);
             }
@@ -210,6 +212,11 @@ namespace VisualStudioSolutionSecrets.Commands
             string repositoryType = String.Empty;
             SyncStatus status = SyncStatus.Unknown;
             string statusDetails = String.Empty;
+            int countLocalOnly = 0;
+            int countRemoteOnly = 0;
+            int countDifferences = 0;
+            int countEquals = 0;
+            int countUnmanaged = 0;
 
             bool foundContentError = false;
 
@@ -264,6 +271,14 @@ namespace VisualStudioSolutionSecrets.Commands
                     catch
                     { }
 
+                    remoteFiles = remoteFiles.Where(f =>
+                        f.name == "secrets"
+                        || secretFiles.Any(
+                            sf => sf.SecretsId != null
+                            && f.name.Contains(sf.SecretsId, StringComparison.OrdinalIgnoreCase)
+                            )
+                        ).ToList();
+
                     int remoteSecretsCount = remoteFiles.Count(item => !String.Equals("secrets", item.name, StringComparison.OrdinalIgnoreCase));
 
                     bool hasRemoteSecrets = remoteSecretsCount > 0;
@@ -288,7 +303,7 @@ namespace VisualStudioSolutionSecrets.Commands
                     {
                         solutionColor = ConsoleColor.White;
 
-                        if (configFiles.Count > 0 && remoteFiles.Count == 0)
+                        if (configFiles.Count > 0 && remoteSecretsCount == 0)
                         {
                             status = SyncStatus.LocalOnly;
                         }
@@ -382,10 +397,10 @@ namespace VisualStudioSolutionSecrets.Commands
                                     HashSet<string> localNames = new HashSet<string>(configFiles.Select(f => $"{f.ContainerName}-{f.Name}"));
                                     HashSet<string> remoteNames = new HashSet<string>(remoteSecretFiles.Select(f => $"{f.ContainerName}-{f.Name}"));
 
-                                    int countLocalOnly = localNames.Count(n => !remoteNames.Contains(n));
-                                    int countRemoteOnly = remoteNames.Count(n => !localNames.Contains(n));
-                                    int countDifferences = 0;
-                                    int countUnmanaged = secretFiles.Where(f =>
+                                    countLocalOnly = localNames.Count(n => !remoteNames.Contains(n));
+                                    countRemoteOnly = remoteNames.Count(n => !localNames.Contains(n));
+                                    countDifferences = 0;
+                                    countUnmanaged = secretFiles.Where(f =>
                                         !String.IsNullOrEmpty(f.SecretsId)
                                         && !localNames.Any(x => x.Contains(f.SecretsId, StringComparison.OrdinalIgnoreCase))
                                         && !remoteNames.Any(x => x.Contains(f.SecretsId, StringComparison.OrdinalIgnoreCase))
@@ -406,6 +421,10 @@ namespace VisualStudioSolutionSecrets.Commands
                                                 {
                                                     countDifferences++;
                                                 }
+                                                else
+                                                {
+                                                    countEquals++;
+                                                }
                                             }
                                         }
                                     }
@@ -416,19 +435,20 @@ namespace VisualStudioSolutionSecrets.Commands
                                     {
                                         status = SyncStatus.NotSynchronized;
                                     }
-
-                                    if (status == SyncStatus.NotSynchronized || countUnmanaged != 0)
-                                    {
-                                        if (countLocalOnly != 0) statusDetails += $" {countLocalOnly}{CHAR_DOWN}";
-                                        if (countRemoteOnly != 0) statusDetails += $" {countRemoteOnly}{CHAR_UP}";
-                                        if (countDifferences != 0) statusDetails += $" {countDifferences}{CHAR_DIFF}";
-                                        if (countUnmanaged != 0) statusDetails += $" {countUnmanaged}{CHAR_NOT_SETTED}";
-                                    }
                                 }
 
                             }
                         }
                     }
+                }
+
+                //if (status == SyncStatus.NotSynchronized || countUnmanaged != 0)
+                {
+                    if (countLocalOnly != 0) statusDetails += $" {countLocalOnly}{CHAR_DOWN}";
+                    if (countRemoteOnly != 0) statusDetails += $" {countRemoteOnly}{CHAR_UP}";
+                    if (countEquals != 0) statusDetails += $" {countEquals}{CHAR_EQUAL}";
+                    if (countDifferences != 0) statusDetails += $" {countDifferences}{CHAR_DIFF}";
+                    if (countUnmanaged != 0) statusDetails += $" {countUnmanaged}{CHAR_NOT_SETTED}";
                 }
             }
             catch (Azure.Identity.AuthenticationFailedException)
