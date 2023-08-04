@@ -30,22 +30,26 @@ namespace VisualStudioSolutionSecrets.Repository
         public bool EncryptOnClient => false;
         public string RepositoryType => "AzureKV";
 
+        private Uri? _repositoryUri;
         private string? _repositoryName;
 
         public string? RepositoryName
         {
             get => _repositoryName;
-            set
-            {
+            set {
                 if (value == null)
                 {
                     _repositoryName = null;
+                    _repositoryUri = null;
                 }
                 else
                 {
                     string loweredValue = value.ToLowerInvariant();
                     if (Uri.TryCreate(loweredValue, UriKind.Absolute, out Uri? repositoryUri) && repositoryUri != null)
                     {
+                        _repositoryName = null;
+                        _repositoryUri = null;
+
                         int vaultIndex = loweredValue.IndexOf(".vault.", StringComparison.Ordinal);
                         if (vaultIndex >= 0)
                         {
@@ -53,22 +57,64 @@ namespace VisualStudioSolutionSecrets.Repository
                             if (_clouds.ContainsKey(cloudDomain))
                             {
                                 _repositoryName = repositoryUri.Scheme.Equals("https", StringComparison.Ordinal) ? loweredValue : null;
-                                return;
+                                _repositoryUri = _repositoryName != null ? new Uri(_repositoryName) : null;
                             }
                         }
-                        _repositoryName = null;
                     }
                     else
                     {
                         _repositoryName = $"https://{loweredValue}{DEFAULT_CLOUD}";
+                        _repositoryUri = new Uri(_repositoryName);
                     }
+                }
+
+                if (_client != null && _client.VaultUri != _repositoryUri)
+                {
+                    // If the vault URI has changed, we need to re-authorize the client.
+                    _client = null;
                 }
             }
         }
 
 
+        // Credentials settings
+
+        private static readonly TokenCachePersistenceOptions _tokenCachePersistenceOptions = 
+            new TokenCachePersistenceOptions
+            {
+                Name = "vs-secrets",
+                UnsafeAllowUnencryptedStorage = false
+            };
+
+        private static readonly InteractiveBrowserCredentialOptions _interactiveBrowserCredentialOptions = 
+            new InteractiveBrowserCredentialOptions
+            {
+                TokenCachePersistenceOptions = _tokenCachePersistenceOptions,
+                AdditionallyAllowedTenants = { "*" }
+            };
+
+
+        // Credential selected for accessing to any Azure Key Vault repository
+        private static ChainedTokenCredential? _credential;
+
+        // Current client
         private SecretClient? _client;
 
+
+
+        private static async Task<ChainedTokenCredential?> GetCredential()
+        {
+            if (_credential == null)
+            {
+                _credential = new ChainedTokenCredential(
+                    new SharedTokenCacheCredential(new SharedTokenCacheCredentialOptions(_tokenCachePersistenceOptions)),
+                    new InteractiveBrowserCredential(_interactiveBrowserCredentialOptions)
+                );
+
+                await _credential.GetTokenAsync(new TokenRequestContext(/*scopes: new string[] { "https://vault.azure.net/.default" }*/));
+            }
+            return _credential;
+        }
 
 
         public string? GetFriendlyName()
@@ -94,28 +140,11 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public async Task AuthorizeAsync(bool batchMode = false)
         {
-            if (_repositoryName != null)
+            if (_repositoryUri != null)
             {
-                var tokenCachePersistenceOptions = new TokenCachePersistenceOptions
-                {
-                    Name = "vs-secrets",
-                    UnsafeAllowUnencryptedStorage = false
-                };
-
-                var interactiveBrowserCredentialOptions = new InteractiveBrowserCredentialOptions();
-                interactiveBrowserCredentialOptions.TokenCachePersistenceOptions = tokenCachePersistenceOptions;
-                interactiveBrowserCredentialOptions.AdditionallyAllowedTenants.Add("*");
-
                 async Task AuthorizeClientAsync()
                 {
-                    var credential = new ChainedTokenCredential(
-                        new SharedTokenCacheCredential(new SharedTokenCacheCredentialOptions(tokenCachePersistenceOptions)),
-                        new InteractiveBrowserCredential(interactiveBrowserCredentialOptions)
-                    );
-
-                    var accessToken = await credential.GetTokenAsync(new TokenRequestContext(/*scopes: new string[] { "https://vault.azure.net/.default" }*/));
-
-                    _client = new SecretClient(new Uri(_repositoryName!), credential);
+                    _client = new SecretClient(_repositoryUri, await GetCredential());
                 }
 
                 await AuthorizeClientAsync();
