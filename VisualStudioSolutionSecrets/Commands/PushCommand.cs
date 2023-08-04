@@ -118,7 +118,45 @@ namespace VisualStudioSolutionSecrets.Commands
                             );
                     }
 
-                    if (!isEmpty && !failed && !await repository.PushFilesAsync(solution, files))
+                    bool isChanged = false;
+                    if (!isEmpty)
+                    {
+                        if (files.Count != repositoryFiles.Count)
+                        {
+                            isChanged = true;
+                        }
+                        else
+                        {
+                            foreach (var file in files)
+                            {
+                                if (file.name == "secrets")
+                                {
+                                    continue;
+                                }
+
+                                var fileContent = JsonSerializer.Deserialize<Dictionary<string, string>>(file.content!);
+                                foreach (var repositoryFile in repositoryFiles)
+                                {
+                                    if (repositoryFile.name == file.name)
+                                    {
+                                        var repositoryFileContent = JsonSerializer.Deserialize<Dictionary<string, string>>(repositoryFile.content!);
+                                        foreach (var secret in repositoryFileContent)
+                                        {
+                                            if (!fileContent.ContainsKey(secret.Key)
+                                                || fileContent[secret.Key] != secret.Value)
+                                            {
+                                                isChanged = true;
+                                                goto exitChangeCheck;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        exitChangeCheck:;
+                        }
+                    }
+
+                    if (!isEmpty && isChanged && !failed && !await repository.PushFilesAsync(solution, files))
                     {
                         failed = true;
                     }
@@ -126,6 +164,10 @@ namespace VisualStudioSolutionSecrets.Commands
                     if (isEmpty)
                     {
                         WriteLine("Skipped.\n    Warning: Cannot find local secrets for this solution.\n", ConsoleColor.Yellow);
+                    }
+                    else if (!isChanged)
+                    {
+                        WriteLine("Already updated.", ConsoleColor.Cyan);
                     }
                     else if (failed)
                     {
