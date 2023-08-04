@@ -152,10 +152,6 @@ namespace VisualStudioSolutionSecrets.Repository
                 {
                     var _ = await _client!.GetSecretAsync("vs-secrets-fake");
                 }
-                catch (Azure.Identity.AuthenticationFailedException)
-                {
-                    await AuthorizeClientAsync();
-                }
                 catch
                 { }
             }
