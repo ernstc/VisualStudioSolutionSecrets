@@ -11,10 +11,11 @@ Solution                                    | Version | Last Update         | Re
 ReallySuperVeryVeryVeryLongNameForSoluti... |         |                     |         | Unmanaged
 SolutionSample-WithEmptySecrets.sln         |         |                     | Mock    | Secrets not setted
 SolutionSample-WithoutGuid.sln              |         |                     |         | Unmanaged
-SolutionSample.sln                          | #.#.#   | ####-##-## ##:##:## | Mock    | Synchronized
+SolutionSample.sln                          | #.#.#   | ####-##-## ##:##:## | Mock    | Synchronized                  2=
 
 ------------------------------------------------------------------------------------------------------------------------
 % = % projects with secrects only on the cloud
 % = % projects with secrects only on the local
+% = % projects with same secrects on the cloud and local
 % = % projects with secrects with differences between cloud and local
 % = % projects with secrects, but secrets not setted

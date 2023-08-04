@@ -2,6 +2,7 @@
 
 Solution: SolutionSample-WithEmptySecrets.sln
     Path: *\solutionFiles
+     Uid: 3d97aec2-bc5c-45f5-b260-022ca0032f8c
 
 Projects that use secrets:
   1) 6030c231-73da-4823-adb8-5b919180a7ac - NetCore-Sample-WithEmptySecrets\NetCore-Sample-WithEmptySecrets.csproj
@@ -11,6 +12,7 @@ Projects that use secrets:
 
 Solution: SolutionSample.sln
     Path: *\solutionFiles
+     Uid: d16e70f9-e206-4047-8a33-01710ebd0eeb
 
 Projects that use secrets:
   1) c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99 - NetCore-Sample\NetCore-Sample.csproj

@@ -119,7 +119,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
-            VerifyOutput("status_name", l => l.Replace("{status}", "Synchronized"));
+            VerifyOutput("status_name", l => l.Replace("{status}", $"Synchronized                  2{StatusCommand.CHAR_EQUAL}"));
         }
 
 
@@ -212,7 +212,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
 
         [Fact]
-        public void Status_LocalOnly_Test()
+        public void Status_LocalOnly_1_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
 
@@ -221,6 +221,25 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             VerifyOutput("status_name", l => l.Replace("{status}", "Local only"));
+        }
+
+
+        [Fact]
+        public void Status_LocalOnly_2_Test()
+        {
+            RunCommand($"init -p {Constants.PASSPHRASE}");
+            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
+
+            string filePath = Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json");
+            File.Delete(filePath);
+
+            ClearOutput();
+
+            // The repository contains only the header file but not the configuration files.
+
+            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
+
+            VerifyOutput("status_name", l => l.Replace("{status}", $"Local only"));
         }
 
 
@@ -295,7 +314,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
-            VerifyOutput("status_name", l => l.Replace("{status}", $"Not synchronized 2{StatusCommand.CHAR_DIFF}"));
+            VerifyOutput("status_name", l => l.Replace("{status}", $"Not synchronized              2{StatusCommand.CHAR_DIFF}"));
         }
 
 
@@ -320,31 +339,12 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
-            VerifyOutput("status_name", l => l.Replace("{status}", $"Not synchronized 1{StatusCommand.CHAR_DOWN}"));
+            VerifyOutput("status_name", l => l.Replace("{status}", $"Not synchronized           1{StatusCommand.CHAR_DOWN} 1{StatusCommand.CHAR_EQUAL}"));
         }
 
 
         [Fact]
         public void Status_NotSynchronized_3_Test()
-        {
-            RunCommand($"init -p {Constants.PASSPHRASE}");
-            RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
-
-            string filePath = Path.Combine(Constants.RepositoryFilesPath, "secrets", "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99.json");
-            File.Delete(filePath);
-
-            ClearOutput();
-
-            // The repository contains only the header file but not the configuration files.
-
-            RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
-
-            VerifyOutput("status_name", l => l.Replace("{status}", $"Not synchronized 2{StatusCommand.CHAR_DOWN}"));
-        }
-
-
-        [Fact]
-        public void Status_NotSynchronized_4_Test()
         {
             RunCommand($"init -p {Constants.PASSPHRASE}");
             RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
@@ -366,7 +366,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
-            VerifyOutput("status_name", l => l.Replace("{status}", $"Not synchronized 1{StatusCommand.CHAR_UP}"));
+            VerifyOutput("status_name", l => l.Replace("{status}", $"Not synchronized           1{StatusCommand.CHAR_UP} 1{StatusCommand.CHAR_EQUAL}"));
         }
 
     }
