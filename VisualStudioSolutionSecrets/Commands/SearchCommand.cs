@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
@@ -55,7 +56,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         string projectRelativePath = String.Empty;
                         string projectName = projectFileName;
 
-                        int separator = projectFileName.LastIndexOf("\\", StringComparison.Ordinal);
+                        int separator = projectFileName.LastIndexOf(System.IO.Path.DirectorySeparatorChar);
                         if (separator  > 0)
                         {
                             projectRelativePath = projectFileName.Substring(0, separator + 1);
