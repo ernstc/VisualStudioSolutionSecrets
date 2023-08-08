@@ -1,3 +1,36 @@
+## July 2023 Release (version 2.1.0)
+
+This release fixes several issues in **vs-secrets** and removes the need to create the encryption key and GitHub authorization in case you need to work only with Azure Key Vaults.
+
+### Changes
+
+* The **init** command can be used for regenerating the GitHub authorization in case it is missing or not valid.
+* It the encryption key already exists, the **init** command cannot be used for creating a new encryption key. Now a warning is displayed saying tha you should use the **change-key** command.
+* The **change-key** command has the new parameter -s (or --skipencryption) for skipping the re-encryption of secrets encrypted with the old key.
+* The **status** command show the number of projects in the solution that support secrets, but the secrets have not been setted.
+* The **status** command, by default will not show anymore solution duplicates. Two solutions are considered duplicates if they share the same secrets and the same secrets repository configuration.
+* The **status** command has the new parameter -d (or --duplicates) for showing also solution duplicates.
+* Improved output for the commands **configure list**, **pull**, **push**, **search**.
+
+### Fixes
+
+* Fixed behaviour in case the user want to use only Azure Key Vault. The absence of the the encryption key and the GitHub authorization does not block anymore the commands **status**, **push**, **pull** and **change-key**.
+* In some scenario the default repository used to be always GitHub. From this release the default repository is the one defined with the **configure --default** command. The GitHub repository remains the default in case no default repository has been defined with the command **configure --default**.
+* Fixed UTF8 encoded text output.
+* Fixed Azure Key Vault repository for when you use the --all parameter with the commands that support it.
+
+---
+
+## July 2023 Release (version 2.0.2)
+
+This is a bug fixing release for the tool **vs-secrets**
+
+### Fixes
+
+* Fixed directory scanning in case one directory is inaccessible.
+
+---
+
 ## July 2023 Release (version 2.0.1)
 
 This release fixes the vulnerability CVE-2023-29337.
