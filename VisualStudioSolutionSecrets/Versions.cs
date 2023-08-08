@@ -19,7 +19,7 @@ namespace VisualStudioSolutionSecrets
 
         public static string? VersionString { get; }
         public static string? CommitHash { get; }
-        public static Version? CurrentVersion { get; }
+        public static Version CurrentVersion { get; }
 
 
         static Versions()
