@@ -38,26 +38,30 @@ namespace VisualStudioSolutionSecrets
 
         public static async Task<Version> CheckForNewVersion()
         {
+            Version lastVersion = new Version();
             ILogger logger = NullLogger.Instance;
             CancellationToken cancellationToken = CancellationToken.None;
-            using SourceCacheContext cache = new SourceCacheContext();
-            SourceRepository repository = NuGet.Protocol.Core.Types.Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
-            FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>();
-            IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
-                "vs-secrets",
-                cache,
-                logger,
-                cancellationToken);
-
-            Version lastVersion = new Version();
-
-            foreach (NuGetVersion version in versions)
+            try
             {
-                if (version.Version > lastVersion)
-                    lastVersion = version.Version;
+                using SourceCacheContext cache = new SourceCacheContext();
+                SourceRepository repository = NuGet.Protocol.Core.Types.Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
+                FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>();
+                IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
+                    "vs-secrets",
+                    cache,
+                    logger,
+                    cancellationToken);
+
+                foreach (NuGetVersion version in versions)
+                {
+                    if (version.Version > lastVersion)
+                        lastVersion = version.Version;
+                }
             }
+            catch
+            { }
             return lastVersion;
         }
 
-	}
+    }
 }
