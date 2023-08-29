@@ -79,14 +79,14 @@ namespace VisualStudioSolutionSecrets.Repository
 
         // Credentials settings
 
-        private static readonly TokenCachePersistenceOptions _tokenCachePersistenceOptions = 
+        private static readonly TokenCachePersistenceOptions _tokenCachePersistenceOptions =
             new TokenCachePersistenceOptions
             {
                 Name = "vs-secrets",
                 UnsafeAllowUnencryptedStorage = false
             };
 
-        private static readonly InteractiveBrowserCredentialOptions _interactiveBrowserCredentialOptions = 
+        private static readonly InteractiveBrowserCredentialOptions _interactiveBrowserCredentialOptions =
             new InteractiveBrowserCredentialOptions
             {
                 TokenCachePersistenceOptions = _tokenCachePersistenceOptions,
@@ -151,6 +151,14 @@ namespace VisualStudioSolutionSecrets.Repository
                 try
                 {
                     var _ = await _client!.GetSecretAsync("vs-secrets-fake");
+                }
+                catch (Azure.RequestFailedException ex)
+                {
+                    if (ex.Status == 401)
+                    {
+                        _client = null;
+                        throw new UnauthorizedAccessException(ex.ErrorCode, ex);
+                    }
                 }
                 catch
                 { }
