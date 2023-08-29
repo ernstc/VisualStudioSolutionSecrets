@@ -1,3 +1,13 @@
+## August 2023 Release (version 2.1.1)
+
+This is a maintenance release.
+
+### Fixes
+
+* Fixed minor issues in exception handling.
+
+---
+
 ## August 2023 Release (version 2.1.0)
 
 This release fixes several issues in **vs-secrets** and removes the need to create the encryption key and GitHub authorization in case you need to work only with Azure Key Vaults.
