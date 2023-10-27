@@ -1,3 +1,14 @@
+## October 2023 Release (version 2.1.2)
+
+This is a maintenance release.
+
+### Fixes
+
+* Updated dependencies for fixing security vulnerability CVE-2023-29337.
+
+
+---
+
 ## August 2023 Release (version 2.1.1)
 
 This is a maintenance release.
