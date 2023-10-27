@@ -4,7 +4,7 @@ This is a maintenance release.
 
 ### Fixes
 
-* Updated dependencies for fixing security vulnerability CVE-2023-29337.
+* Updated dependencies for fixing security vulnerability CVE-2023-36414.
 
 
 ---
