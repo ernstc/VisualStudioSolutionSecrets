@@ -23,9 +23,8 @@ namespace VisualStudioSolutionSecrets
         public static Context Current => _current ??= new Context();
 
 
-
-        private IDictionary<string, object> _services;
-        private IDictionary<Type, ISet<object>> _servicesByType;
+        private readonly Dictionary<string, object> _services;
+        private readonly Dictionary<Type, ISet<object>> _servicesByType;
 
 
         private Context()
@@ -38,9 +37,6 @@ namespace VisualStudioSolutionSecrets
 
         public void AddService<T>(T service, string? label = null) where T: class
         {
-            if (service == null)
-                throw new ArgumentNullException(nameof(service));
-
             var type = typeof(T);
             var key = type.FullName;
             if (key == null)
@@ -51,7 +47,7 @@ namespace VisualStudioSolutionSecrets
                 key += $"|{label}";
             }
 
-            _services[key] = service;
+            _services[key] = service ?? throw new ArgumentNullException(nameof(service));
 
             ISet<object>? servicesByType;
             if (!_servicesByType.TryGetValue(type, out servicesByType))

@@ -38,6 +38,9 @@ namespace VisualStudioSolutionSecrets.Repository
         public string? GetFriendlyName() => RepositoryType;
 
 
+        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+
+
 
         #region GitHub Gists data model
 
@@ -255,8 +258,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public async Task<ICollection<(string name, string? content)>> PullFilesAsync(ISolution solution)
         {
-            if (solution == null)
-                throw new ArgumentNullException(nameof(solution));
+            ArgumentNullException.ThrowIfNull(solution);
 
             var files = new List<(string name, string? content)>();
             var gist = await GetGistAsync(solution);
@@ -285,11 +287,8 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public async Task<bool> PushFilesAsync(ISolution solution, ICollection<(string name, string? content)> files)
         {
-            if (solution == null)
-                throw new ArgumentNullException(nameof(solution));
-
-            if (files == null)
-                throw new ArgumentNullException(nameof(files));
+            ArgumentNullException.ThrowIfNull(solution);
+            ArgumentNullException.ThrowIfNull(files);
 
             var gist = await GetGistAsync(solution);
             if (gist != null)
@@ -334,11 +333,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
             try
             {
-#if NET5_0_OR_GREATER
-                string payloadJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
-#else
-                string payloadJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { IgnoreNullValues = true });
-#endif
+                string payloadJson = JsonSerializer.Serialize(payload, _jsonOptions);
                 request.Content = new StringContent(payloadJson, Encoding.UTF8, "application/json");
 
                 Debug.WriteLine($"{request.Method} {request.RequestUri}");
@@ -420,8 +415,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
         private async Task<bool> DeleteGist(Gist gist)
         {
-            if (gist == null)
-                throw new ArgumentNullException(nameof(gist));
+            ArgumentNullException.ThrowIfNull(gist);
 
             using var httpHandler = new HttpClientHandler()
             {

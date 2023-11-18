@@ -25,6 +25,13 @@ namespace VisualStudioSolutionSecrets
         public string? SecretsId { get; set; }
 
 
+        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        {
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip
+        };
+
+
 
         public SecretFile()
         {
@@ -47,12 +54,7 @@ namespace VisualStudioSolutionSecrets
                     try
                     {
                         // Check if the file does not contains an empty JSON object.
-                        var contentTest = JsonSerializer.Deserialize<Dictionary<string, object?>>(content, new JsonSerializerOptions
-                        {
-                            AllowTrailingCommas = true,
-                            ReadCommentHandling = JsonCommentHandling.Skip
-                        });
-
+                        var contentTest = JsonSerializer.Deserialize<Dictionary<string, object?>>(content, _jsonOptions);
                         if (contentTest?.Count > 0)
                         {
                             Content = content;

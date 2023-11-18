@@ -135,18 +135,23 @@ namespace VisualStudioSolutionSecrets.Commands
                                 }
 
                                 var fileContent = JsonSerializer.Deserialize<Dictionary<string, string>>(file.content!);
-                                foreach (var repositoryFile in repositoryFiles)
+                                if (fileContent != null)
                                 {
-                                    if (repositoryFile.name == file.name)
+                                    foreach (var repositoryFile in repositoryFiles)
                                     {
-                                        var repositoryFileContent = JsonSerializer.Deserialize<Dictionary<string, string>>(repositoryFile.content!);
-                                        foreach (var secret in repositoryFileContent)
+                                        if (repositoryFile.name == file.name)
                                         {
-                                            if (!fileContent.ContainsKey(secret.Key)
-                                                || fileContent[secret.Key] != secret.Value)
+                                            var repositoryFileContent = JsonSerializer.Deserialize<Dictionary<string, string>>(repositoryFile.content!);
+                                            if (repositoryFileContent != null)
                                             {
-                                                isChanged = true;
-                                                goto exitChangeCheck;
+                                                foreach (var secret in repositoryFileContent)
+                                                {
+                                                    if (!fileContent.TryGetValue(secret.Key, out string? value) || value != secret.Value)
+                                                    {
+                                                        isChanged = true;
+                                                        goto exitChangeCheck;
+                                                    }
+                                                }
                                             }
                                         }
                                     }

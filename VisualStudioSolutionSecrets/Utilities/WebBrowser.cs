@@ -12,8 +12,7 @@ namespace VisualStudioSolutionSecrets.Utilities
     {
         public static void OpenUrl(Uri uri)
         {
-            if (uri == null)
-                throw new ArgumentNullException(nameof(uri));
+            ArgumentNullException.ThrowIfNull(uri);
 
             string url = uri.ToString();
 

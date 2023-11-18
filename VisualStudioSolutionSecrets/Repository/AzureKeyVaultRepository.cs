@@ -16,7 +16,7 @@ namespace VisualStudioSolutionSecrets.Repository
     public class AzureKeyVaultRepository : IRepository
     {
 
-        private readonly IDictionary<string, string> _clouds = new Dictionary<string, string>
+        private readonly Dictionary<string, string> _clouds = new Dictionary<string, string>
         {
             {".vault.azure.net",            "AzureCloud"},
             {".vault.azure.cn",             "AzureChinaCloud" },
@@ -181,8 +181,7 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public async Task<ICollection<(string name, string? content)>> PullFilesAsync(ISolution solution)
         {
-            if (solution == null)
-                throw new ArgumentNullException(nameof(solution));
+            ArgumentNullException.ThrowIfNull(solution);
 
             var files = new List<(string name, string? content)>();
 
@@ -230,11 +229,8 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public async Task<bool> PushFilesAsync(ISolution solution, ICollection<(string name, string? content)> files)
         {
-            if (solution == null)
-                throw new ArgumentNullException(nameof(solution));
-
-            if (files == null)
-                throw new ArgumentNullException(nameof(files));
+            ArgumentNullException.ThrowIfNull(solution);
+            ArgumentNullException.ThrowIfNull(files);
 
             if (_client == null)
             {

@@ -242,8 +242,7 @@ namespace VisualStudioSolutionSecrets
 
         public void SaveSecretSettingsFile(SecretFile configFile)
         {
-            if (configFile == null)
-                throw new ArgumentNullException(nameof(configFile));
+            ArgumentNullException.ThrowIfNull(configFile);
 
             string secretsId = configFile.ContainerName.Substring(8, 36);
             string filePath = GetSecretsFilePath(secretsId, configFile.Name);
