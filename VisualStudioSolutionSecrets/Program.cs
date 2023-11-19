@@ -66,12 +66,10 @@ namespace VisualStudioSolutionSecrets
             var assembly = typeof(Versions).Assembly;
             var copyright = assembly?.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
             string platform;
-#if NET7_0
-            platform = ".NET 7.0";
+#if NET8_0
+            platform = ".NET 8.0";
 #elif NET6_0
             platform = ".NET 6.0";
-#elif NETCOREAPP3_1
-            platform = ".Net Core 3.1";
 #else
             platform = String.Empty;
 #endif
