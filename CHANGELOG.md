@@ -2,6 +2,8 @@
 
 Added target .NET 8 and removed targets .Net Core 3.1 and .NET 7.
 
+---
+
 ## October 2023 Release (version 2.1.2)
 
 This is a maintenance release.
@@ -9,7 +11,6 @@ This is a maintenance release.
 ### Fixes
 
 * Updated dependencies for fixing security vulnerability CVE-2023-36414.
-
 
 ---
 
