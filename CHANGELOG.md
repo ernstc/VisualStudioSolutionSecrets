@@ -1,3 +1,7 @@
+## November 2023 Release (version 2.2.0)
+
+Added target .NET 8 and removed targets .Net Core 3.1 and .NET 7.
+
 ## October 2023 Release (version 2.1.2)
 
 This is a maintenance release.
