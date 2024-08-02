@@ -1,3 +1,8 @@
+## August 2024 Release (version 2.2.1)
+
+* Updated dependencies with vulnerabilities.
+
+---
 ## November 2023 Release (version 2.2.0)
 
 ### Changes
