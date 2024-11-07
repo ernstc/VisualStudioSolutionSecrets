@@ -30,7 +30,19 @@ namespace VisualStudioSolutionSecrets
             // Set the output to use UTF8 encoding.
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            CheckForUpdates().Wait();
+            try
+            {
+                var checkForUpdatesTask = CheckForUpdates();
+                Task.WhenAny(
+                    checkForUpdatesTask,
+                    Task.Delay(3000)
+                    )
+                    .Wait();
+            }
+            catch
+            {
+                Console.WriteLine("\nError checking for updates.\n");
+            }
 
             // Register cipher
             var cipher = new Cipher();
@@ -73,8 +85,8 @@ namespace VisualStudioSolutionSecrets
 #else
             platform = String.Empty;
 #endif
-            string details = Versions.CommitHash != null 
-                ? $" ({platform}, commit {Versions.CommitHash})" 
+            string details = Versions.CommitHash != null
+                ? $" ({platform}, commit {Versions.CommitHash})"
                 : $" ({platform})";
 
             return $"vs-secrets {Versions.CurrentVersion}{details}\n{copyright}";
