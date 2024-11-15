@@ -1,3 +1,13 @@
+## November 2024 Release (version 2.3.0)
+
+* Added support for .NET 9.
+* Updated dependecies.
+
+### Fixes
+
+* Fixed storage of huge secrets in Azure Key Vault #11
+
+---
 ## August 2024 Release (version 2.2.1)
 
 * Updated dependencies with vulnerabilities.

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
-using NuGet.Protocol.Core.Types;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Repository;
 
@@ -33,31 +32,31 @@ namespace VisualStudioSolutionSecrets.Commands
                 return 1;
             }
 
-            foreach (var solutionFile in solutionFiles)
+            foreach (string solutionFile in solutionFiles)
             {
-                SolutionFile solution = new SolutionFile(solutionFile);
+                SolutionFile solution = new(solutionFile);
 
-                var synchronizationSettings = solution.CustomSynchronizationSettings;
+                SolutionSynchronizationSettings? synchronizationSettings = solution.CustomSynchronizationSettings;
 
-                // Select the repository for the curront solution
+                // Select the repository for the current solution
                 IRepository repository = Context.Current.GetRepository(synchronizationSettings) ?? Context.Current.Repository;
 
                 try
                 {
-                    var headerFile = new HeaderFile
+                    HeaderFile headerFile = new()
                     {
-                        visualStudioSolutionSecretsVersion = Versions.CurrentVersion.ToString(),
-                        lastUpload = DateTime.UtcNow,
-                        solutionFile = solution.Name,
-                        solutionGuid = solution.Uid
+                        VisualStudioSolutionSecretsVersion = Versions.CurrentVersion.ToString(),
+                        LastUpload = DateTime.UtcNow,
+                        SolutionFile = solution.Name,
+                        SolutionGuid = solution.Uid
                     };
 
-                    var files = new List<(string name, string? content)>
+                    List<(string name, string? content)> files = new()
                     {
                         ("secrets", JsonSerializer.Serialize(headerFile))
                     };
 
-                    var secretFiles = solution.GetProjectsSecretFiles();
+                    ICollection<SecretFile> secretFiles = solution.GetProjectsSecretFiles();
                     if (secretFiles.Count == 0)
                     {
                         continue;
@@ -73,13 +72,13 @@ namespace VisualStudioSolutionSecrets.Commands
                         await repository.AuthorizeAsync(batchMode: true);
                     }
 
-                    var repositoryFiles = await repository.PullFilesAsync(solution);
+                    ICollection<(string name, string? content)> repositoryFiles = await repository.PullFilesAsync(solution);
 
-                    var secrets = new Dictionary<string, Dictionary<string, string>>();
+                    Dictionary<string, Dictionary<string, string>> secrets = new();
 
                     bool isEmpty = true;
                     bool failed = false;
-                    foreach (var secretFile in secretFiles)
+                    foreach (SecretFile secretFile in secretFiles)
                     {
                         if (secretFile.Content != null)
                         {
@@ -93,7 +92,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                             if (isFileOk)
                             {
-                                secrets.TryAdd(secretFile.ContainerName, new Dictionary<string, string>());
+                                _ = secrets.TryAdd(secretFile.ContainerName, new Dictionary<string, string>());
                                 secrets[secretFile.ContainerName].Add(secretFile.Name, secretFile.Content);
                             }
                             else
@@ -104,7 +103,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         }
                     }
 
-                    foreach (var group in secrets)
+                    foreach (KeyValuePair<string, Dictionary<string, string>> group in secrets)
                     {
                         string groupContent = JsonSerializer.Serialize(group.Value);
                         files.Add((group.Key, groupContent));
@@ -112,9 +111,9 @@ namespace VisualStudioSolutionSecrets.Commands
 
                     if (!Overwrite)
                     {
-                        // Merge remote files with local ones. Local files have priority.
+                        // Merge remote Files with local ones. Local Files have priority.
                         files.AddRange(
-                            repositoryFiles.Where(rf => !files.Any(f => f.name == rf.name))
+                            repositoryFiles.Where(rf => !files.Exists(f => f.name == rf.name))
                             );
                     }
 
@@ -127,37 +126,38 @@ namespace VisualStudioSolutionSecrets.Commands
                         }
                         else
                         {
-                            foreach (var file in files)
+                            foreach ((string name, string? content) file in files)
                             {
                                 if (file.name == "secrets")
                                 {
                                     continue;
                                 }
 
-                                var fileContent = JsonSerializer.Deserialize<Dictionary<string, string>>(file.content!);
+                                Dictionary<string, string>? fileContent = JsonSerializer.Deserialize<Dictionary<string, string>>(file.content!);
                                 if (fileContent != null)
                                 {
-                                    foreach (var repositoryFile in repositoryFiles)
+                                    foreach ((string name, string? content) repositoryFile in repositoryFiles)
                                     {
                                         if (repositoryFile.name == file.name)
                                         {
-                                            var repositoryFileContent = JsonSerializer.Deserialize<Dictionary<string, string>>(repositoryFile.content!);
+                                            Dictionary<string, string>? repositoryFileContent = JsonSerializer.Deserialize<Dictionary<string, string>>(repositoryFile.content!);
                                             if (repositoryFileContent != null)
                                             {
-                                                foreach (var secret in repositoryFileContent)
+                                                bool contentChanged = repositoryFileContent.Any(secret => !fileContent.TryGetValue(secret.Key, out string? value) || value != secret.Value);
+                                                if (contentChanged)
                                                 {
-                                                    if (!fileContent.TryGetValue(secret.Key, out string? value) || value != secret.Value)
-                                                    {
-                                                        isChanged = true;
-                                                        goto exitChangeCheck;
-                                                    }
+                                                    isChanged = true;
+                                                    break;
                                                 }
                                             }
                                         }
                                     }
+                                    if (isChanged)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
-                        exitChangeCheck:;
                         }
                     }
 

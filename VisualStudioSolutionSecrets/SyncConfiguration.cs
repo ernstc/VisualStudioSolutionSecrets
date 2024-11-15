@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using VisualStudioSolutionSecrets.Repository;
 
 
 namespace VisualStudioSolutionSecrets
 {
 
-    public class SolutionSynchronizationSettings
+    internal class SolutionSynchronizationSettings
     {
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public RepositoryType Repository { get; set; }
@@ -18,10 +15,10 @@ namespace VisualStudioSolutionSecrets
     }
 
 
-    public class SyncConfiguration : Dictionary<string, SolutionSynchronizationSettings>
+    internal class SyncConfiguration : Dictionary<string, SolutionSynchronizationSettings>
     {
 
-        const string APP_DATA_FILENAME = "configuration.json";
+        private const string APP_DATA_FILENAME = "configuration.json";
 
 
         private SyncConfiguration() { }
@@ -37,17 +34,9 @@ namespace VisualStudioSolutionSecrets
         [JsonIgnore]
         public static SolutionSynchronizationSettings Default
         {
-            get
-            {
-                if (Current.TryGetValue("default", out var settings))
-                {
-                    return settings;
-                }
-                else
-                {
-                    return DefaultSettings;
-                }
-            }
+            get => Current.TryGetValue("default", out SolutionSynchronizationSettings? settings)
+                    ? settings
+                    : DefaultSettings;
             set
             {
                 if (value != null)
@@ -61,14 +50,9 @@ namespace VisualStudioSolutionSecrets
         public static SolutionSynchronizationSettings? GetCustomSynchronizationSettings(Guid solutionGuid)
         {
             string key = solutionGuid.ToString();
-            if (Current.TryGetValue(key, out SolutionSynchronizationSettings? value))
-            {
-                return value;
-            }
-            else
-            {
-                return null;
-            }
+            return Current.TryGetValue(key, out SolutionSynchronizationSettings? value)
+                ? value
+                : null;
         }
 
 
@@ -81,7 +65,7 @@ namespace VisualStudioSolutionSecrets
             }
             else
             {
-                Current.Remove(key);
+                _ = Current.Remove(key);
             }
         }
 
@@ -96,7 +80,7 @@ namespace VisualStudioSolutionSecrets
                 {
                     _current = new SyncConfiguration();
 
-                    var loadedConfiguration = AppData.LoadData<Dictionary<string, SolutionSynchronizationSettings>>(APP_DATA_FILENAME);
+                    Dictionary<string, SolutionSynchronizationSettings>? loadedConfiguration = AppData.LoadData<Dictionary<string, SolutionSynchronizationSettings>>(APP_DATA_FILENAME);
                     if (loadedConfiguration == null)
                     {
                         Default = SyncConfiguration.DefaultSettings;
@@ -104,7 +88,7 @@ namespace VisualStudioSolutionSecrets
                     }
                     else
                     {
-                        foreach (var item in loadedConfiguration)
+                        foreach (KeyValuePair<string, SolutionSynchronizationSettings> item in loadedConfiguration)
                         {
                             _current.Add(item.Key, item.Value);
                         }

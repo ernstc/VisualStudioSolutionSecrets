@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using VisualStudioSolutionSecrets.Encryption;
 using VisualStudioSolutionSecrets.IO;
 using VisualStudioSolutionSecrets.Repository;
@@ -11,8 +8,8 @@ using VisualStudioSolutionSecrets.Repository;
 namespace VisualStudioSolutionSecrets
 {
 
-    public class Context
-	{
+    internal class Context
+    {
         public IConsoleInput Input => GetService<IConsoleInput>()!;
         public IFileSystem IO => GetService<IFileSystem>()!;
         public ICipher Cipher => GetService<ICipher>()!;
@@ -35,12 +32,11 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public void AddService<T>(T service, string? label = null) where T: class
+        public void AddService<T>(T service, string? label = null) where T : class
         {
-            var type = typeof(T);
-            var key = type.FullName;
-            if (key == null)
-                throw new InvalidOperationException("The service cannot be added as a dependency.");
+            Type type = typeof(T);
+
+            string? key = type.FullName ?? throw new InvalidOperationException("The service cannot be added as a dependency.");
 
             if (!String.IsNullOrEmpty(label))
             {
@@ -49,19 +45,18 @@ namespace VisualStudioSolutionSecrets
 
             _services[key] = service ?? throw new ArgumentNullException(nameof(service));
 
-            ISet<object>? servicesByType;
-            if (!_servicesByType.TryGetValue(type, out servicesByType))
+            if (!_servicesByType.TryGetValue(type, out ISet<object>? servicesByType))
             {
                 servicesByType = new HashSet<object>();
                 _servicesByType[type] = servicesByType;
             }
-            servicesByType.Add(service);
+            _ = servicesByType.Add(service);
         }
 
 
-        public T? GetService<T>(string? label = null) where T: class
+        public T? GetService<T>(string? label = null) where T : class
         {
-            var key = typeof(T).FullName;
+            string? key = typeof(T).FullName;
             if (key != null)
             {
                 if (!String.IsNullOrEmpty(label))
@@ -69,7 +64,7 @@ namespace VisualStudioSolutionSecrets
                     key += $"|{label}";
                 }
 
-                if (_services.TryGetValue(key, out var service))
+                if (_services.TryGetValue(key, out object? service))
                 {
                     return (T)service;
                 }
@@ -78,15 +73,15 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public ISet<T> GetServices<T>() where T: class
+        public ISet<T> GetServices<T>() where T : class
         {
-            var type = typeof(T);
-            var services = new HashSet<T>();
-            if (_servicesByType.TryGetValue(type, out var servicesForType))
+            Type type = typeof(T);
+            HashSet<T> services = new();
+            if (_servicesByType.TryGetValue(type, out ISet<object>? servicesForType))
             {
-                foreach (var service in servicesForType)
+                foreach (object service in servicesForType)
                 {
-                    services.Add((T)service);
+                    _ = services.Add((T)service);
                 }
             }
             return services;
@@ -100,8 +95,8 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        private static IConsoleInput defaultConsoleInput = new ConsoleInput();
-        private static IFileSystem defaultIO = new DefaultFileSystem();
+        private static readonly IConsoleInput defaultConsoleInput = new ConsoleInput();
+        private static readonly IFileSystem defaultIO = new DefaultFileSystem();
 
         public void ResetToDefault()
         {
@@ -115,7 +110,7 @@ namespace VisualStudioSolutionSecrets
         {
             if (settings != null)
             {
-                var repository = GetService<IRepository>(settings.Repository.ToString());
+                IRepository? repository = GetService<IRepository>(settings.Repository.ToString());
                 if (repository != null && settings.Repository == RepositoryType.AzureKV)
                 {
                     repository.RepositoryName = settings.AzureKeyVaultName;

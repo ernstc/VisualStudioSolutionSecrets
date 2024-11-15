@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 
@@ -27,9 +24,9 @@ namespace VisualStudioSolutionSecrets.Commands
             }
 
             int solutionIndex = 0;
-            foreach (var solutionFile in solutionFiles)
+            foreach (string solutionFile in solutionFiles)
             {
-                SolutionFile solution = new SolutionFile(solutionFile);
+                SolutionFile solution = new(solutionFile);
 
                 ICollection<SecretFile> secretFiles = solution.GetProjectsSecretFiles();
                 if (secretFiles.Count > 0)
@@ -48,11 +45,11 @@ namespace VisualStudioSolutionSecrets.Commands
                         Console.WriteLine("\nClearing secrets for projects:");
 
                         int i = 0;
-                        foreach (var secretFile in secretFiles)
+                        foreach (SecretFile secretFile in secretFiles)
                         {
                             if (File.Exists(secretFile.Path))
                             {
-                                var fileInfo = new FileInfo(secretFile.Path);
+                                FileInfo fileInfo = new(secretFile.Path);
                                 if (fileInfo.Extension.Equals(".json", StringComparison.OrdinalIgnoreCase))
                                 {
                                     File.WriteAllText(secretFile.Path, "{ }");

@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace VisualStudioSolutionSecrets.IO
+﻿namespace VisualStudioSolutionSecrets.IO
 {
-    public interface IFileSystem
+    internal interface IFileSystem
     {
         string GetApplicationDataFolderPath();
         string GetCurrentDirectory();

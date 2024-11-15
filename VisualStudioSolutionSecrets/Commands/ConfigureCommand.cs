@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Repository;
@@ -13,7 +9,7 @@ namespace VisualStudioSolutionSecrets.Commands
 {
 
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class ConfigureCommandValidationAttribute : ValidationAttribute
+    internal sealed class ConfigureCommandValidationAttribute : ValidationAttribute
     {
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
@@ -53,7 +49,7 @@ namespace VisualStudioSolutionSecrets.Commands
                             return new ValidationResult("\nFor repository of type \"azurekv\" you need to specify the option -n|--name.\n");
                         }
 
-                        var repository = new AzureKeyVaultRepository
+                        AzureKeyVaultRepository repository = new()
                         {
                             RepositoryName = command.RepositoryName
                         };
@@ -176,7 +172,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
         private int ConfigureSolution(string solutionFilePath)
         {
-            SolutionFile solution = new SolutionFile(solutionFilePath);
+            SolutionFile solution = new(solutionFilePath);
 
             if (solution.Uid == Guid.Empty)
             {
@@ -196,7 +192,7 @@ namespace VisualStudioSolutionSecrets.Commands
             {
                 if (string.Equals(nameof(Repository.RepositoryType.GitHub), RepositoryType, StringComparison.OrdinalIgnoreCase))
                 {
-                    var settings = new SolutionSynchronizationSettings
+                    SolutionSynchronizationSettings settings = new()
                     {
                         Repository = Repository.RepositoryType.GitHub,
                         AzureKeyVaultName = null
@@ -209,7 +205,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 }
                 else if (string.Equals(nameof(Repository.RepositoryType.AzureKV), RepositoryType, StringComparison.OrdinalIgnoreCase))
                 {
-                    var settings = new SolutionSynchronizationSettings
+                    SolutionSynchronizationSettings settings = new()
                     {
                         Repository = Repository.RepositoryType.AzureKV,
                         AzureKeyVaultName = RepositoryName

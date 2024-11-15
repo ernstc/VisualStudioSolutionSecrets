@@ -1,19 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
-using System.Globalization;
 
 namespace VisualStudioSolutionSecrets.Repository
 {
-    public class AzureKeyVaultRepository : IRepository
+    internal class AzureKeyVaultRepository : IRepository
     {
 
         private readonly Dictionary<string, string> _clouds = new Dictionary<string, string>
@@ -36,7 +30,8 @@ namespace VisualStudioSolutionSecrets.Repository
         public string? RepositoryName
         {
             get => _repositoryName;
-            set {
+            set
+            {
                 if (value == null)
                 {
                     _repositoryName = null;
@@ -45,7 +40,7 @@ namespace VisualStudioSolutionSecrets.Repository
                 else
                 {
                     string loweredValue = value.ToLowerInvariant();
-                    if (Uri.TryCreate(loweredValue, UriKind.Absolute, out Uri? repositoryUri) && repositoryUri != null)
+                    if (Uri.TryCreate(loweredValue, UriKind.Absolute, out Uri? repositoryUri))
                     {
                         _repositoryName = null;
                         _repositoryUri = null;
@@ -111,7 +106,7 @@ namespace VisualStudioSolutionSecrets.Repository
                     new InteractiveBrowserCredential(_interactiveBrowserCredentialOptions)
                 );
 
-                await _credential.GetTokenAsync(new TokenRequestContext(/*scopes: new string[] { "https://vault.azure.net/.default" }*/));
+                _ = await _credential.GetTokenAsync(new TokenRequestContext(/*scopes: new string[] { "https://vault.azure.net/.default" }*/));
             }
             return _credential;
         }
@@ -131,10 +126,9 @@ namespace VisualStudioSolutionSecrets.Repository
             string cloudDomain = _repositoryName;
             cloudDomain = cloudDomain[cloudDomain.IndexOf(".vault.", StringComparison.Ordinal)..];
 
-            if (_clouds.TryGetValue(cloudDomain, out var cloud))
-                return $"{name} ({cloud})";
-            else
-                return _repositoryName;
+            return _clouds.TryGetValue(cloudDomain, out string? cloud)
+                ? $"{name} ({cloud})"
+                : _repositoryName;
         }
 
 
@@ -150,7 +144,7 @@ namespace VisualStudioSolutionSecrets.Repository
                 await AuthorizeClientAsync();
                 try
                 {
-                    var _ = await _client!.GetSecretAsync("vs-secrets-fake");
+                    _ = await _client!.GetSecretAsync("vs-secrets-fake");
                 }
                 catch (Azure.RequestFailedException ex)
                 {
@@ -161,7 +155,9 @@ namespace VisualStudioSolutionSecrets.Repository
                     }
                 }
                 catch
-                { }
+                {
+                    // ignored
+                }
             }
         }
 
@@ -183,7 +179,7 @@ namespace VisualStudioSolutionSecrets.Repository
         {
             ArgumentNullException.ThrowIfNull(solution);
 
-            var files = new List<(string name, string? content)>();
+            List<(string name, string? content)> files = new List<(string name, string? content)>();
 
             if (_client == null)
             {
@@ -195,7 +191,7 @@ namespace VisualStudioSolutionSecrets.Repository
                 $"{SECRET_PREFIX}{solution.Name}--";
 
             List<string> solutionSecretsName = new List<string>();
-            await foreach (var secretProperties in _client.GetPropertiesOfSecretsAsync())
+            await foreach (SecretProperties secretProperties in _client.GetPropertiesOfSecretsAsync())
             {
                 if (secretProperties.Enabled == true && secretProperties.Name.StartsWith(prefix, StringComparison.Ordinal))
                 {
@@ -203,10 +199,10 @@ namespace VisualStudioSolutionSecrets.Repository
                 }
             }
 
-            foreach (var secretName in solutionSecretsName)
+            foreach (string secretName in solutionSecretsName)
             {
-                var response = await _client.GetSecretAsync(secretName);
-                var secret = response?.Value;
+                Azure.Response<KeyVaultSecret> response = await _client.GetSecretAsync(secretName);
+                KeyVaultSecret? secret = response?.Value;
                 if (secret == null)
                 {
                     continue;
@@ -237,7 +233,7 @@ namespace VisualStudioSolutionSecrets.Repository
                 return false;
             }
 
-            foreach (var (name, content) in files)
+            foreach ((string name, string? content) in files)
             {
                 string fileName = name;
                 if (fileName.Contains('\\', StringComparison.Ordinal))
@@ -259,20 +255,22 @@ namespace VisualStudioSolutionSecrets.Repository
                         try
                         {
                             // Read the current secret
-                            var response = await _client.GetSecretAsync(secretName);
-                            var secret = response?.Value;
+                            Azure.Response<KeyVaultSecret> response = await _client.GetSecretAsync(secretName);
+                            KeyVaultSecret? secret = response?.Value;
                             if (secret?.Value == content)
                             {
                                 break;
                             }
                         }
                         catch
-                        { }
+                        {
+                            // ignored
+                        }
                     }
 
                     try
                     {
-                        await _client.SetSecretAsync(secretName, content);
+                        _ = await _client.SetSecretAsync(secretName, content);
                     }
                     catch (Azure.RequestFailedException aex)
                     {
@@ -281,7 +279,7 @@ namespace VisualStudioSolutionSecrets.Repository
                             // Try to purge eventually deleted secret
                             try
                             {
-                                await _client.PurgeDeletedSecretAsync(secretName);
+                                _ = await _client.PurgeDeletedSecretAsync(secretName);
                             }
                             catch (Azure.RequestFailedException aex2)
                             {
@@ -329,7 +327,9 @@ namespace VisualStudioSolutionSecrets.Repository
         }
 
 
-        public bool IsValid() => _repositoryName != null;
-
+        public bool IsValid()
+        {
+            return _repositoryName != null;
+        }
     }
 }

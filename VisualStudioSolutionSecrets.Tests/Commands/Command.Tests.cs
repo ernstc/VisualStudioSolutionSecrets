@@ -167,7 +167,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
                             catch
                             { }
 
-                            if (header != null && header.solutionFile != solution.Name)
+                            if (header != null && header.SolutionFile != solution.Name)
                             {
                                 files.Clear();
                                 break;

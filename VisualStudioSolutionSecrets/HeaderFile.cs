@@ -1,24 +1,32 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 
 
 namespace VisualStudioSolutionSecrets
 {
 
-    public class HeaderFile
+    internal class HeaderFile
     {
-        public string visualStudioSolutionSecretsVersion { get; set; } = null!;
-        public DateTime lastUpload { get; set; }
-        public string solutionFile { get; set; } = null!;
-        public Guid? solutionGuid { get; set; }
+        [JsonPropertyName("visualStudioSolutionSecretsVersion")]
+        public string VisualStudioSolutionSecretsVersion { get; set; } = null!;
+
+        [JsonPropertyName("lastUpload")]
+        public DateTime LastUpload { get; set; }
+
+        [JsonPropertyName("solutionFile")]
+        public string SolutionFile { get; set; } = null!;
+
+        [JsonPropertyName("solutionGuid")]
+        public Guid? SolutionGuid { get; set; }
 
 
         public bool IsVersionSupported()
         {
             try
             {
-                Version headerVersion = new Version(visualStudioSolutionSecretsVersion);
-                Version minVersion = new Version(Versions.MinFileFormatSupported);
-                Version maxVersion = new Version(Versions.MaxFileFormatSupported);
+                Version headerVersion = new(VisualStudioSolutionSecretsVersion);
+                Version minVersion = new(Versions.MinFileFormatSupported);
+                Version maxVersion = new(Versions.MaxFileFormatSupported);
 
                 return minVersion.Major <= headerVersion.Major && headerVersion.Major <= maxVersion.Major;
             }

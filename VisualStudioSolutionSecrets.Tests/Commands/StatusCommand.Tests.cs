@@ -115,7 +115,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            // Configuration files are both equal.
+            // Configuration Files are both equal.
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
@@ -235,7 +235,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            // The repository contains only the header file but not the configuration files.
+            // The repository contains only the header file but not the configuration Files.
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
@@ -269,7 +269,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             // Fake file system for hiding local settings
             MockFileSystem(secretsFolder: Constants.TempFolderPath);
 
-            // Invalidate the key
+            // Invalidate the Key
             RunCommand($"change-key -s -p New{Constants.PASSPHRASE}");
 
             ClearOutput();
@@ -310,7 +310,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             ClearOutput();
 
-            // Configuration files are both different.
+            // Configuration Files are both different.
 
             RunCommand($"status '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 

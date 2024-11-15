@@ -28,13 +28,13 @@ namespace VisualStudioSolutionSecrets.Commands
                 return 1;
             }
 
-            foreach (var solutionFile in solutionFiles)
+            foreach (string solutionFile in solutionFiles)
             {
-                SolutionFile solution = new SolutionFile(solutionFile);
+                SolutionFile solution = new(solutionFile);
 
-                var synchronizationSettings = solution.CustomSynchronizationSettings;
+                SolutionSynchronizationSettings? synchronizationSettings = solution.CustomSynchronizationSettings;
 
-                // Select the repository for the curront solution
+                // Select the repository for the current solution
                 IRepository repository = Context.Current.GetRepository(synchronizationSettings) ?? Context.Current.Repository;
 
                 try
@@ -55,7 +55,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         await repository.AuthorizeAsync(batchMode: true);
                     }
 
-                    var repositoryFiles = await repository.PullFilesAsync(solution);
+                    ICollection<(string name, string? content)> repositoryFiles = await repository.PullFilesAsync(solution);
                     if (repositoryFiles.Count == 0)
                     {
                         Console.WriteLine("Failed, secrets not found");
@@ -64,16 +64,18 @@ namespace VisualStudioSolutionSecrets.Commands
 
                     // Validate header file
                     HeaderFile? header = null;
-                    foreach (var file in repositoryFiles)
+                    foreach ((string name, string? content) in repositoryFiles)
                     {
-                        if (file.name == "secrets" && file.content != null)
+                        if (name == "secrets" && content != null)
                         {
                             try
                             {
-                                header = JsonSerializer.Deserialize<HeaderFile>(file.content);
+                                header = JsonSerializer.Deserialize<HeaderFile>(content);
                             }
                             catch
-                            { }
+                            {
+                                // ignored
+                            }
                             break;
                         }
                     }
@@ -86,19 +88,19 @@ namespace VisualStudioSolutionSecrets.Commands
 
                     if (!header.IsVersionSupported())
                     {
-                        Console.WriteLine($"\n    ERR: Header file has incompatible version {header.visualStudioSolutionSecretsVersion}");
+                        Console.WriteLine($"\n    ERR: Header file has incompatible version {header.VisualStudioSolutionSecretsVersion}");
                         Console.WriteLine("\n         Consider to install an updated version of this tool.");
                         continue;
                     }
 
                     bool failed = false;
-                    foreach (var repositoryFile in repositoryFiles)
+                    foreach ((string name, string? content) in repositoryFiles)
                     {
-                        if (repositoryFile.name != "secrets")
+                        if (name != "secrets")
                         {
-                            if (repositoryFile.content == null)
+                            if (content == null)
                             {
-                                Console.Write($"\n    ERR: File has no content: {repositoryFile.name}");
+                                Console.Write($"\n    ERR: File has no content: {name}");
                                 continue;
                             }
 
@@ -106,11 +108,11 @@ namespace VisualStudioSolutionSecrets.Commands
 
                             try
                             {
-                                remoteSecretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(repositoryFile.content);
+                                remoteSecretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(content);
                             }
                             catch
                             {
-                                Console.Write($"\n    ERR: Remote file content cannot be read: {repositoryFile.name}");
+                                Console.Write($"\n    ERR: Remote file content cannot be read: {name}");
                             }
 
                             if (remoteSecretFiles == null)
@@ -119,7 +121,7 @@ namespace VisualStudioSolutionSecrets.Commands
                                 break;
                             }
 
-                            foreach (var remoteSecretFile in remoteSecretFiles)
+                            foreach (KeyValuePair<string, string> remoteSecretFile in remoteSecretFiles)
                             {
                                 string secretFileName = remoteSecretFile.Key;
 
@@ -129,9 +131,9 @@ namespace VisualStudioSolutionSecrets.Commands
                                     secretFileName = "secrets.json";
                                 }
 
-                                foreach (var localSecretFile in secretFiles)
+                                foreach (SecretFile localSecretFile in secretFiles)
                                 {
-                                    if (localSecretFile.ContainerName == repositoryFile.name
+                                    if (localSecretFile.ContainerName == name
                                         && localSecretFile.Name == secretFileName)
                                     {
                                         localSecretFile.Content = remoteSecretFile.Value;

@@ -25,14 +25,14 @@ namespace VisualStudioSolutionSecrets
     internal class Program
     {
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             // Set the output to use UTF8 encoding.
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
             try
             {
-                var checkForUpdatesTask = CheckForUpdates();
+                Task checkForUpdatesTask = CheckForUpdates();
                 Task.WhenAny(
                     checkForUpdatesTask,
                     Task.Delay(3000)
@@ -45,23 +45,23 @@ namespace VisualStudioSolutionSecrets
             }
 
             // Register cipher
-            var cipher = new Cipher();
+            Cipher cipher = new();
             cipher.RefreshStatus().Wait();
             Context.Current.AddService<ICipher>(cipher);
 
             // Register GitHub repository
-            var gistRepository = new GistRepository();
+            GistRepository gistRepository = new();
             Context.Current.AddService<IRepository>(gistRepository);
             Context.Current.AddService<IRepository>(gistRepository, nameof(RepositoryType.GitHub));
 
             // Register Azure Key Vault repository
             Context.Current.AddService<IRepository>(new AzureKeyVaultRepository(), nameof(RepositoryType.AzureKV));
 
-            CommandLineApplication.Execute<Program>(args);
+            _ = CommandLineApplication.Execute<Program>(args);
         }
 
 
-#pragma warning disable CA1822
+#pragma warning disable CA1822, S2325
 
         protected int OnExecute(CommandLineApplication app)
         {
@@ -70,15 +70,17 @@ namespace VisualStudioSolutionSecrets
             return 0;
         }
 
-#pragma warning restore CA1822
+#pragma warning restore CA1822, S2325
 
 
         private static string GetVersion()
         {
-            var assembly = typeof(Versions).Assembly;
-            var copyright = assembly?.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
+            Assembly assembly = typeof(Versions).Assembly;
+            string? copyright = assembly?.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
             string platform;
-#if NET8_0
+#if NET9_0_OR_GREATER
+            platform = ".NET 9.0";
+#elif NET8_0
             platform = ".NET 8.0";
 #elif NET6_0
             platform = ".NET 6.0";
@@ -96,7 +98,11 @@ namespace VisualStudioSolutionSecrets
         private static bool _showedLogo;
         private static void ShowLogo()
         {
-            if (_showedLogo) return;
+            if (_showedLogo)
+            {
+                return;
+            }
+
             _showedLogo = true;
             Console.WriteLine(
                             @"
@@ -118,11 +124,11 @@ namespace VisualStudioSolutionSecrets
         {
             if (Versions.CurrentVersion != null)
             {
-                var lastVersion = await Versions.CheckForNewVersion();
-                var currentVersion = Versions.CurrentVersion;
+                Version lastVersion = await Versions.CheckForNewVersion();
+                Version currentVersion = Versions.CurrentVersion;
 
-                var v1 = new Version(lastVersion.Major, lastVersion.Minor, lastVersion.Build);
-                var v2 = new Version(currentVersion.Major, currentVersion.Minor, currentVersion.Build);
+                Version v1 = new Version(lastVersion.Major, lastVersion.Minor, lastVersion.Build);
+                Version v2 = new Version(currentVersion.Major, currentVersion.Minor, currentVersion.Build);
 
                 if (v1 > v2)
                 {

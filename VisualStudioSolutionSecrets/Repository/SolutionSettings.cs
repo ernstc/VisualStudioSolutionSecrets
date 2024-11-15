@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace VisualStudioSolutionSecrets.Repository
 {
-    public class SolutionSettings : ISolution
+    internal class SolutionSettings : ISolution
     {
         public SolutionSettings(ICollection<(string name, string? content)> settings)
         {
@@ -12,6 +12,6 @@ namespace VisualStudioSolutionSecrets.Repository
 
         public string Name { get; set; } = null!;
         public Guid Uid { get; set; }
-        public ICollection<(string name, string? content)> Settings { get; } = null!;
+        public ICollection<(string name, string? content)> Settings { get; }
     }
 }

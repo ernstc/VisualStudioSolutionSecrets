@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 
@@ -13,11 +11,9 @@ namespace VisualStudioSolutionSecrets
 {
 
     [DebuggerDisplay("Container = {ContainerName}; Name = {Name}")]
-    public class SecretFile
+    internal class SecretFile
     {
-        private readonly string _path = null!;
-
-        public string Path => _path;
+        public string Path { get; } = null!;
         public string Name { get; set; } = null!;
         public string ContainerName { get; set; } = null!;
         public string? Content { get; set; }
@@ -25,7 +21,7 @@ namespace VisualStudioSolutionSecrets
         public string? SecretsId { get; set; }
 
 
-        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        private readonly JsonSerializerOptions _jsonOptions = new()
         {
             AllowTrailingCommas = true,
             ReadCommentHandling = JsonCommentHandling.Skip
@@ -40,43 +36,47 @@ namespace VisualStudioSolutionSecrets
 
         public SecretFile(string filePath, string containerName)
         {
-            FileInfo fileInfo = new FileInfo(filePath);
+            FileInfo fileInfo = new(filePath);
 
-            _path = filePath;
+            Path = filePath;
             Name = fileInfo.Name;
             ContainerName = containerName;
 
             if (fileInfo.Exists)
             {
-                string content = File.ReadAllText(_path);
+                string content = File.ReadAllText(Path);
                 if (String.Equals(".json", fileInfo.Extension, StringComparison.OrdinalIgnoreCase))
                 {
                     try
                     {
                         // Check if the file does not contains an empty JSON object.
-                        var contentTest = JsonSerializer.Deserialize<Dictionary<string, object?>>(content, _jsonOptions);
+                        Dictionary<string, object?>? contentTest = JsonSerializer.Deserialize<Dictionary<string, object?>>(content, _jsonOptions);
                         if (contentTest?.Count > 0)
                         {
                             Content = content;
                         }
                     }
                     catch
-                    { }
+                    {
+                        // ignored
+                    }
                 }
                 else if (String.Equals(".xml", fileInfo.Extension, StringComparison.OrdinalIgnoreCase))
                 {
                     try
                     {
                         // Check if the XML file contains some secrets or not.
-                        XDocument xdoc = XDocument.Parse(content);
-                        XElement xmlSecrets = xdoc.Descendants("secrets").First();
+                        XDocument xDoc = XDocument.Parse(content);
+                        XElement xmlSecrets = xDoc.Descendants("secrets").First();
                         if (xmlSecrets.Descendants("secret").Any())
                         {
                             Content = content;
                         }
                     }
                     catch
-                    { }
+                    {
+                        // ignored
+                    }
                 }
                 else
                 {
@@ -88,10 +88,10 @@ namespace VisualStudioSolutionSecrets
 
         public bool Encrypt()
         {
-            var cipher = Context.Current.Cipher;
+            Encryption.ICipher cipher = Context.Current.Cipher;
             if (cipher != null && Content != null)
             {
-                var encryptedContent = cipher.Encrypt(Content);
+                string? encryptedContent = cipher.Encrypt(Content);
                 if (encryptedContent != null)
                 {
                     Content = encryptedContent;
@@ -104,10 +104,10 @@ namespace VisualStudioSolutionSecrets
 
         public bool Decrypt()
         {
-            var cipher = Context.Current.Cipher;
+            Encryption.ICipher cipher = Context.Current.Cipher;
             if (cipher != null && Content != null)
             {
-                var decryptedContent = cipher.Decrypt(Content);
+                string? decryptedContent = cipher.Decrypt(Content);
                 if (decryptedContent != null)
                 {
                     Content = decryptedContent;

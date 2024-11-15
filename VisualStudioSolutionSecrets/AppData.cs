@@ -1,30 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 
 namespace VisualStudioSolutionSecrets
 {
-    public static class AppData
+    internal static class AppData
     {
 
-        private static JsonSerializerOptions jsonSeriazerOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions jsonSerializerOptions = new()
         {
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-#if NET5_0_OR_GREATER
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-#else
-            IgnoreNullValues = true
-#endif
         };
 
 
-        public static T? LoadData<T>(string fileName) where T: class, new()
+        public static T? LoadData<T>(string fileName) where T : class, new()
         {
             string filePath = Path.Combine(Context.Current.IO.GetApplicationDataFolderPath(), fileName);
             if (File.Exists(filePath))
@@ -32,10 +24,12 @@ namespace VisualStudioSolutionSecrets
                 try
                 {
                     string json = File.ReadAllText(filePath);
-                    return JsonSerializer.Deserialize<T>(json, jsonSeriazerOptions);
+                    return JsonSerializer.Deserialize<T>(json, jsonSerializerOptions);
                 }
                 catch
-                { }
+                {
+                    // ignored
+                }
             }
             return null;
         }
@@ -44,15 +38,17 @@ namespace VisualStudioSolutionSecrets
         public static void SaveData<T>(string fileName, T data) where T : class, new()
         {
             string folderPath = Context.Current.IO.GetApplicationDataFolderPath();
-            Directory.CreateDirectory(folderPath);
+            _ = Directory.CreateDirectory(folderPath);
             string filePath = Path.Combine(folderPath, fileName);
             try
             {
-                string json = JsonSerializer.Serialize<T>(data, jsonSeriazerOptions);
+                string json = JsonSerializer.Serialize<T>(data, jsonSerializerOptions);
                 File.WriteAllText(filePath, json);
             }
             catch
-            { }
+            {
+                // ignored
+            }
         }
 
     }

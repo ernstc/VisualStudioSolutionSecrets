@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 
@@ -27,11 +25,11 @@ namespace VisualStudioSolutionSecrets.Commands
             }
 
             int solutionIndex = 0;
-            foreach (var solutionFile in solutionFiles)
+            foreach (string solutionFile in solutionFiles)
             {
                 SolutionFile solution = new SolutionFile(solutionFile);
 
-                var configFiles = solution.GetProjectsSecretFiles();
+                System.Collections.Generic.ICollection<SecretFile> configFiles = solution.GetProjectsSecretFiles();
                 if (configFiles.Count > 0)
                 {
                     solutionIndex++;
@@ -39,25 +37,30 @@ namespace VisualStudioSolutionSecrets.Commands
                     {
                         Console.WriteLine("\n-----------------------------------------------------------------------------------------------------------------------\n");
                     }
-                    
+
                     Write("Solution: "); WriteLine(solution.Name, ConsoleColor.White);
 
                     string path = solutionFile;
-                    if (path.EndsWith(solution.Name, StringComparison.OrdinalIgnoreCase)) path = path.Substring(0, path.Length - solution.Name.Length - 1);
+                    if (path.EndsWith(solution.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        path = path.Substring(0, path.Length - solution.Name.Length - 1);
+                    }
+
                     Write("    Path: "); WriteLine(path, ConsoleColor.DarkGray);
                     Write("     Uid: "); WriteLine(solution.Uid != Guid.Empty ? solution.Uid.ToString("D") : "", ConsoleColor.DarkGray);
 
                     Console.WriteLine("\nProjects that use secrets:");
 
                     int i = 0;
-                    foreach (var configFile in configFiles)
+
+                    foreach (SecretFile configFile in configFiles)
                     {
                         string projectFileName = configFile.ProjectFileName!;
                         string projectRelativePath = String.Empty;
                         string projectName = projectFileName;
 
                         int separator = projectFileName.LastIndexOf(System.IO.Path.DirectorySeparatorChar);
-                        if (separator  > 0)
+                        if (separator > 0)
                         {
                             projectRelativePath = projectFileName.Substring(0, separator + 1);
                             projectName = projectFileName.Substring(separator + 1);

@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
 using VisualStudioSolutionSecrets.Repository;
@@ -16,24 +11,24 @@ namespace VisualStudioSolutionSecrets.Commands
     internal class ConfigureListCommand : CommandBaseWithPath
     {
 
-        const int MAX_SOLUTION_LENGTH = 40;
+        private const int MAX_SOLUTION_LENGTH = 40;
 
 
         [Option("--all", Description = "When true, search in the specified path and its sub-tree.")]
         public bool All { get; set; }
 
 
-        bool _renderedTableHeader;
+        private bool _renderedTableHeader;
 
 
         public int OnExecute(CommandLineApplication? app = null)
         {
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
 
-            var color = Console.ForegroundColor;
+            ConsoleColor color = Console.ForegroundColor;
 
             Console.Write("Default repository: ");
-            var repository = Context.Current.GetRepository(SyncConfiguration.Default);
+            IRepository? repository = Context.Current.GetRepository(SyncConfiguration.Default);
             if (repository != null)
             {
                 Write(repository.RepositoryType, ConsoleColor.White);
@@ -82,14 +77,17 @@ namespace VisualStudioSolutionSecrets.Commands
 
         private void GetSolutionConfiguration(string solutionFile)
         {
-            var color = Console.ForegroundColor;
+            ConsoleColor color = Console.ForegroundColor;
 
             SolutionFile solution = new SolutionFile(solutionFile);
 
             string solutionName = solution.Name;
-            if (solutionName.Length > (MAX_SOLUTION_LENGTH + 3)) solutionName = solutionName[..MAX_SOLUTION_LENGTH] + "...";
+            if (solutionName.Length > (MAX_SOLUTION_LENGTH + 3))
+            {
+                solutionName = solutionName[..MAX_SOLUTION_LENGTH] + "...";
+            }
 
-            var synchronizationSettings = solution.CustomSynchronizationSettings;
+            SolutionSynchronizationSettings? synchronizationSettings = solution.CustomSynchronizationSettings;
             if (synchronizationSettings == null)
             {
                 return;

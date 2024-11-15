@@ -24,7 +24,7 @@ namespace VisualStudioSolutionSecrets.Tests
         public void IsVersionSupported_Tests(string version)
         {
             HeaderFile headerFile = new HeaderFile();
-            headerFile.visualStudioSolutionSecretsVersion = version;
+            headerFile.VisualStudioSolutionSecretsVersion = version;
             bool isSupported = headerFile.IsVersionSupported();
 
             Assert.True(isSupported);
@@ -40,7 +40,7 @@ namespace VisualStudioSolutionSecrets.Tests
         public void IsVersionNotSupported_Tests(string version)
         {
             HeaderFile headerFile = new HeaderFile();
-            headerFile.visualStudioSolutionSecretsVersion = version;
+            headerFile.VisualStudioSolutionSecretsVersion = version;
             bool isSupported = headerFile.IsVersionSupported();
 
             Assert.False(isSupported);

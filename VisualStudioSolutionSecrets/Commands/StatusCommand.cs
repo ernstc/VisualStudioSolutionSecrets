@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -17,7 +16,7 @@ namespace VisualStudioSolutionSecrets.Commands
     internal class StatusCommand : CommandBaseWithPath
     {
 
-        const int MAX_SOLUTION_LENGTH = 40;
+        private const int MAX_SOLUTION_LENGTH = 40;
 
         internal const char CHAR_UP = '\u2191';
         internal const char CHAR_DOWN = '\u2193';
@@ -55,10 +54,10 @@ namespace VisualStudioSolutionSecrets.Commands
                 Console.WriteLine("Solution                                    | Version | Last Update         | Repo    | Secrets Status");
                 Console.WriteLine("--------------------------------------------|---------|---------------------|---------|---------------------------------");
 
-                List<string> processedSolutions = new List<string>();
+                List<string> processedSolutions = new();
                 foreach (string solutionFile in solutionFiles)
                 {
-                    SolutionFile solution = new SolutionFile(solutionFile);
+                    SolutionFile solution = new(solutionFile);
                     string solutionCompositeKey = solution.GetSolutionCompositeKey();
                     if (
                         ShowDuplicates
@@ -72,11 +71,11 @@ namespace VisualStudioSolutionSecrets.Commands
 
                 Console.WriteLine();
                 Console.WriteLine("------------------------------------------------------------------------------------------------------------------------");
-                Write($"{CHAR_UP} ", ConsoleColor.Blue); WriteLine("= # projects with secrects only on the cloud", ConsoleColor.DarkGray);
-                Write($"{CHAR_DOWN} ", ConsoleColor.Blue); WriteLine("= # projects with secrects only on the local", ConsoleColor.DarkGray);
-                Write($"{CHAR_EQUAL} ", ConsoleColor.Blue); WriteLine("= # projects with same secrects on the cloud and local", ConsoleColor.DarkGray);
-                Write($"{CHAR_DIFF} ", ConsoleColor.Blue); WriteLine("= # projects with secrects with differences between cloud and local", ConsoleColor.DarkGray);
-                Write($"{CHAR_NOT_SETTED} ", ConsoleColor.Blue); WriteLine("= # projects with secrects, but secrets not setted", ConsoleColor.DarkGray);
+                Write($"{CHAR_UP} ", ConsoleColor.Blue); WriteLine("= # projects with secrets only on the cloud", ConsoleColor.DarkGray);
+                Write($"{CHAR_DOWN} ", ConsoleColor.Blue); WriteLine("= # projects with secrets only on the local", ConsoleColor.DarkGray);
+                Write($"{CHAR_EQUAL} ", ConsoleColor.Blue); WriteLine("= # projects with same secrets on the cloud and local", ConsoleColor.DarkGray);
+                Write($"{CHAR_DIFF} ", ConsoleColor.Blue); WriteLine("= # projects with secrets with differences between cloud and local", ConsoleColor.DarkGray);
+                Write($"{CHAR_NOT_SETTED} ", ConsoleColor.Blue); WriteLine("= # projects with secrets, but secrets not set", ConsoleColor.DarkGray);
             }
             else
             {
@@ -91,7 +90,7 @@ namespace VisualStudioSolutionSecrets.Commands
         [Flags]
         internal enum SyncStatus
         {
-            Unknown = 0x0,
+            None = 0x0,
             Synchronized = 0x1,
             NoSecretsFound = 0x2,
             HeaderError = 0x4,
@@ -109,12 +108,12 @@ namespace VisualStudioSolutionSecrets.Commands
 
         /*
         *  
-        *  Possible SyncStatus values and description:
+        *  Possible SyncStatus values and Description:
         *  
         *  Synchronized                  Local and remote settings are synchronized
-        *  NoSecretsFound                The solution uses user secrets but they are not setted.
+        *  NoSecretsFound                The solution uses user secrets but they are not set.
         *  HeaderError                   Found errors in the header file
-        *  ContentError                  Remote file is empty or it is not in the corret format.
+        *  ContentError                  Remote file is empty or it is not in the correct format.
         *  LocalOnly                     Settings found only on the local machine.
         *  CloudOnly                     Settings found only on the remote repository.
         *  CloudOnly | Invalid Key       Settings found only on the remote repository, they cannot be read decrypted.
@@ -132,38 +131,45 @@ namespace VisualStudioSolutionSecrets.Commands
             string statusText = String.Empty;
             if ((status & SyncStatus.Synchronized) == SyncStatus.Synchronized)
             {
+                statusText = "Synchronized";
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.Write(statusText = "Synchronized");
+                Console.Write(statusText);
             }
             else if ((status & SyncStatus.Unmanaged) == SyncStatus.Unmanaged)
             {
+                statusText = "Unmanaged";
                 Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.Write(statusText = "Unmanaged");
+                Console.Write(statusText);
             }
             else if ((status & SyncStatus.NoSecretsFound) == SyncStatus.NoSecretsFound)
             {
+                statusText = "Secrets not set";
                 Console.ForegroundColor = ConsoleColor.DarkCyan;
-                Console.Write(statusText = "Secrets not setted");
+                Console.Write(statusText);
             }
             else if ((status & SyncStatus.HeaderError) == SyncStatus.HeaderError)
             {
+                statusText = "ERROR: Header";
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(statusText = "ERROR: Header");
+                Console.Write(statusText);
             }
             else if ((status & SyncStatus.ContentError) == SyncStatus.ContentError)
             {
+                statusText = "ERROR: Content";
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(statusText = "ERROR: Content");
+                Console.Write(statusText);
             }
             else if ((status & SyncStatus.LocalOnly) == SyncStatus.LocalOnly)
             {
+                statusText = "Local only";
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
-                Console.Write(statusText = "Local only");
+                Console.Write(statusText);
             }
             else if ((status & SyncStatus.CloudOnly) == SyncStatus.CloudOnly)
             {
+                statusText = "Cloud only";
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
-                Console.Write(statusText = "Cloud only");
+                Console.Write(statusText);
 
                 if ((status & SyncStatus.InvalidKey) == SyncStatus.InvalidKey)
                 {
@@ -178,28 +184,33 @@ namespace VisualStudioSolutionSecrets.Commands
             }
             else if ((status & SyncStatus.NotSynchronized) == SyncStatus.NotSynchronized)
             {
+                statusText = "Not synchronized";
                 Console.ForegroundColor = ConsoleColor.DarkCyan;
-                Console.Write(statusText = "Not synchronized");
+                Console.Write(statusText);
             }
             else if ((status & SyncStatus.InvalidKey) == SyncStatus.InvalidKey)
             {
+                statusText = "Invalid key";
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(statusText = "Invalid key");
+                Console.Write(statusText);
             }
             else if ((status & SyncStatus.AuthenticationFailed) == SyncStatus.AuthenticationFailed)
             {
+                statusText = "ERROR: Authentication failed";
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(statusText = "ERROR: Authentication failed");
+                Console.Write(statusText);
             }
             else if ((status & SyncStatus.Unauthorized) == SyncStatus.Unauthorized)
             {
+                statusText = "ERROR: Unauthorized";
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(statusText = "ERROR: Unauthorized");
+                Console.Write(statusText);
             }
             else if ((status & SyncStatus.CannotLoadStatus) == SyncStatus.CannotLoadStatus)
             {
+                statusText = "ERROR: Cannot load status";
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(statusText = "ERROR: Cannot load status");
+                Console.Write(statusText);
             }
             return statusText;
         }
@@ -210,7 +221,7 @@ namespace VisualStudioSolutionSecrets.Commands
             string version = String.Empty;
             string lastUpdate = String.Empty;
             string repositoryType = String.Empty;
-            SyncStatus status = SyncStatus.Unknown;
+            SyncStatus status = SyncStatus.None;
             string statusDetails = String.Empty;
             int countLocalOnly = 0;
             int countRemoteOnly = 0;
@@ -220,19 +231,22 @@ namespace VisualStudioSolutionSecrets.Commands
 
             bool foundContentError = false;
 
-            var color = Console.ForegroundColor;
-            ConsoleColor solutionColor = color;
+            ConsoleColor color = Console.ForegroundColor;
+            ConsoleColor solutionColor = 0;
 
             string solutionName = solution.Name;
-            if (solutionName.Length > (MAX_SOLUTION_LENGTH + 3)) solutionName = solutionName[..MAX_SOLUTION_LENGTH] + "...";
+            if (solutionName.Length > (MAX_SOLUTION_LENGTH + 3))
+            {
+                solutionName = solutionName[..MAX_SOLUTION_LENGTH] + "...";
+            }
 
             try
             {
-                var synchronizationSettings = solution.CustomSynchronizationSettings;
+                SolutionSynchronizationSettings? synchronizationSettings = solution.CustomSynchronizationSettings;
                 IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
                 repositoryType = repository?.RepositoryType ?? String.Empty;
 
-                var secretFiles = solution.GetProjectsSecretFiles();
+                ICollection<SecretFile> secretFiles = solution.GetProjectsSecretFiles();
                 if (secretFiles.Count == 0)
                 {
                     // This solution has not projects with secrets.
@@ -252,7 +266,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         await repository.AuthorizeAsync(batchMode: true);
                     }
 
-                    var remoteFiles = await repository.PullFilesAsync(solution);
+                    ICollection<(string name, string? content)> remoteFiles = await repository.PullFilesAsync(solution);
 
                     HeaderFile? header = null;
                     try
@@ -263,13 +277,15 @@ namespace VisualStudioSolutionSecrets.Commands
                             header = JsonSerializer.Deserialize<HeaderFile>(headerContent);
                             if (header != null)
                             {
-                                version = header.visualStudioSolutionSecretsVersion ?? String.Empty;
-                                lastUpdate = header.lastUpload.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture.DateTimeFormat) ?? String.Empty;
+                                version = header.VisualStudioSolutionSecretsVersion ?? String.Empty;
+                                lastUpdate = header.LastUpload.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture.DateTimeFormat) ?? String.Empty;
                             }
                         }
                     }
                     catch
-                    { }
+                    {
+                        // ignored
+                    }
 
                     remoteFiles = remoteFiles.Where(f =>
                         f.name == "secrets"
@@ -283,7 +299,7 @@ namespace VisualStudioSolutionSecrets.Commands
 
                     bool hasRemoteSecrets = remoteSecretsCount > 0;
 
-                    var configFiles = secretFiles.Where(c => c.Content != null).ToList();
+                    List<SecretFile> configFiles = secretFiles.Where(c => c.Content != null).ToList();
                     if (configFiles.Count == 0 && !hasRemoteSecrets)
                     {
                         if (header != null)
@@ -294,7 +310,7 @@ namespace VisualStudioSolutionSecrets.Commands
                         }
                         else
                         {
-                            // This solution manage secrets but files cannot be foundò
+                            // This solution manage secrets but Files cannot be found
                             status = SyncStatus.NoSecretsFound;
                             solutionColor = ConsoleColor.DarkGray;
                         }
@@ -319,12 +335,11 @@ namespace VisualStudioSolutionSecrets.Commands
                             if (header == null)
                             {
                                 status = SyncStatus.HeaderError;
-                                foundContentError = true;
                             }
                             else
                             {
-                                var remoteSecretFiles = new List<SecretFile>();
-                                foreach (var remoteFile in remoteFiles)
+                                List<SecretFile> remoteSecretFiles = new();
+                                foreach ((string name, string? content) remoteFile in remoteFiles)
                                 {
                                     if (remoteFile.name == "secrets")
                                     {
@@ -344,7 +359,9 @@ namespace VisualStudioSolutionSecrets.Commands
                                         contents = JsonSerializer.Deserialize<Dictionary<string, string>>(remoteFile.content);
                                     }
                                     catch
-                                    { }
+                                    {
+                                        // ignored
+                                    }
 
                                     if (contents == null)
                                     {
@@ -354,7 +371,7 @@ namespace VisualStudioSolutionSecrets.Commands
                                     }
                                     else
                                     {
-                                        foreach (var item in contents)
+                                        foreach (KeyValuePair<string, string> item in contents)
                                         {
                                             string? content = item.Value;
 
@@ -391,24 +408,24 @@ namespace VisualStudioSolutionSecrets.Commands
                                     }
                                 }
 
-                                if (!foundContentError && status == SyncStatus.Unknown)
+                                if (!foundContentError && status == SyncStatus.None)
                                 {
                                     // Check if the local and remote settings are synchronized
-                                    HashSet<string> localNames = new HashSet<string>(configFiles.Select(f => $"{f.ContainerName}-{f.Name}"));
-                                    HashSet<string> remoteNames = new HashSet<string>(remoteSecretFiles.Select(f => $"{f.ContainerName}-{f.Name}"));
+                                    HashSet<string> localNames = new(configFiles.Select(f => $"{f.ContainerName}-{f.Name}"));
+                                    HashSet<string> remoteNames = new(remoteSecretFiles.Select(f => $"{f.ContainerName}-{f.Name}"));
 
                                     countLocalOnly = localNames.Count(n => !remoteNames.Contains(n));
                                     countRemoteOnly = remoteNames.Count(n => !localNames.Contains(n));
                                     countDifferences = 0;
-                                    countUnmanaged = secretFiles.Where(f =>
+                                    countUnmanaged = secretFiles.Count(f =>
                                         !String.IsNullOrEmpty(f.SecretsId)
                                         && !localNames.Any(x => x.Contains(f.SecretsId, StringComparison.OrdinalIgnoreCase))
                                         && !remoteNames.Any(x => x.Contains(f.SecretsId, StringComparison.OrdinalIgnoreCase))
-                                        ).Count();
+                                        );
 
-                                    foreach (var remoteFile in remoteSecretFiles)
+                                    foreach (SecretFile remoteFile in remoteSecretFiles)
                                     {
-                                        var localFile = configFiles.FirstOrDefault(c => c.ContainerName == remoteFile.ContainerName && c.Name == remoteFile.Name);
+                                        SecretFile? localFile = configFiles.Find(c => c.ContainerName == remoteFile.ContainerName && c.Name == remoteFile.Name);
                                         if (localFile != null)
                                         {
                                             if (localFile.Content == null)
@@ -442,49 +459,66 @@ namespace VisualStudioSolutionSecrets.Commands
                     }
                 }
 
-                //if (status == SyncStatus.NotSynchronized || countUnmanaged != 0)
+                if (countLocalOnly != 0)
                 {
-                    if (countLocalOnly != 0) statusDetails += $" {countLocalOnly}{CHAR_DOWN}";
-                    if (countRemoteOnly != 0) statusDetails += $" {countRemoteOnly}{CHAR_UP}";
-                    if (countEquals != 0) statusDetails += $" {countEquals}{CHAR_EQUAL}";
-                    if (countDifferences != 0) statusDetails += $" {countDifferences}{CHAR_DIFF}";
-                    if (countUnmanaged != 0) statusDetails += $" {countUnmanaged}{CHAR_NOT_SETTED}";
+                    statusDetails += $" {countLocalOnly}{CHAR_DOWN}";
+                }
+
+                if (countRemoteOnly != 0)
+                {
+                    statusDetails += $" {countRemoteOnly}{CHAR_UP}";
+                }
+
+                if (countEquals != 0)
+                {
+                    statusDetails += $" {countEquals}{CHAR_EQUAL}";
+                }
+
+                if (countDifferences != 0)
+                {
+                    statusDetails += $" {countDifferences}{CHAR_DIFF}";
+                }
+
+                if (countUnmanaged != 0)
+                {
+                    statusDetails += $" {countUnmanaged}{CHAR_NOT_SETTED}";
                 }
             }
             catch (Azure.Identity.AuthenticationFailedException)
             {
                 status = SyncStatus.AuthenticationFailed;
-                foundContentError = true;
             }
             catch (UnauthorizedAccessException)
             {
                 status = SyncStatus.Unauthorized;
-                foundContentError = true;
             }
             catch
             {
                 status = SyncStatus.CannotLoadStatus;
-                foundContentError = true;
             }
 
-            if (status == SyncStatus.Unknown)
+            if (status == SyncStatus.None)
             {
                 status = SyncStatus.Synchronized;
                 solutionColor = ConsoleColor.White;
             }
 
-            Write($"{solutionName, -(MAX_SOLUTION_LENGTH + 3)}", solutionColor);
+            Write($"{solutionName,-(MAX_SOLUTION_LENGTH + 3)}", solutionColor);
             Write(" | ", color);
-            Write($"{version, -7}", solutionColor);
+            Write($"{version,-7}", solutionColor);
             Write(" | ", color);
-            Write($"{lastUpdate, -19}", solutionColor);
+            Write($"{lastUpdate,-19}", solutionColor);
             Write(" | ", color);
-            Write($"{repositoryType, -7}", solutionColor);
+            Write($"{repositoryType,-7}", solutionColor);
             Write(" | ", color);
             string statusText = WriteStatus(status, color);
 
             int totalWidth = 32 - statusText.Length;
-            if (totalWidth < 0) totalWidth = 0;
+            if (totalWidth < 0)
+            {
+                totalWidth = 0;
+            }
+
             Write($"{statusDetails.PadLeft(totalWidth)}\n", ConsoleColor.Blue);
 
             Console.ForegroundColor = color;

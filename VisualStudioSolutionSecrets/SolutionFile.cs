@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 
@@ -14,24 +13,21 @@ namespace VisualStudioSolutionSecrets
 {
 
     [DebuggerDisplay("Name = {Name}")]
-    public class SolutionFile : ISolution
+    internal class SolutionFile : ISolution
     {
         private const string ASPNET_MVC5_PROJECT_GUID = "{349c5851-65df-11da-9384-00065b846f21}";
 
-        private readonly Regex _projRegex = new Regex(".*proj$");
-
-        private string _name;
-        private Guid _uid;
-        private string _filePath;
-        private string _solutionFolderPath;
+        private readonly Regex _projRegex = new(".*proj$");
+        private readonly string _filePath;
+        private readonly string _solutionFolderPath;
 
 
-        public string Name => _name;
-        public Guid Uid => _uid;
+        public string Name { get; }
+        public Guid Uid { get; }
 
 
 
-        class SecretFileInfo
+        private sealed class SecretFileInfo
         {
             public string SecretsId { get; set; } = null!;
             public string FilePath { get; set; } = null!;
@@ -44,17 +40,17 @@ namespace VisualStudioSolutionSecrets
             FileInfo fileInfo = new FileInfo(filePath);
             _filePath = filePath;
             _solutionFolderPath = fileInfo.Directory?.FullName ?? String.Empty;
-            _name = fileInfo.Name;
+            Name = fileInfo.Name;
 
             if (fileInfo.Exists)
             {
                 string[] lines = File.ReadAllLines(filePath);
-                foreach (var line in lines)
+                foreach (string line in lines)
                 {
                     if (line.Contains("SolutionGuid", StringComparison.Ordinal) && line.Contains('=', StringComparison.Ordinal))
                     {
                         string guid = line.Substring(line.IndexOf('=', StringComparison.Ordinal) + 1);
-                        _uid = Guid.Parse(guid.Trim());
+                        Uid = Guid.Parse(guid.Trim());
                         break;
                     }
                 }
@@ -62,78 +58,71 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-        public SolutionSynchronizationSettings? CustomSynchronizationSettings
-        {
-            get
-            {
-                return SyncConfiguration.GetCustomSynchronizationSettings(_uid);
-            }
-        }
+        public SolutionSynchronizationSettings? CustomSynchronizationSettings => SyncConfiguration.GetCustomSynchronizationSettings(Uid);
 
 
         private ICollection<SecretFile>? _projectsSecretFiles;
 
         public ICollection<SecretFile> GetProjectsSecretFiles()
         {
-            if (_projectsSecretFiles != null) 
+            if (_projectsSecretFiles != null)
             {
-                return _projectsSecretFiles; 
+                return _projectsSecretFiles;
             }
 
-            Dictionary<string, SecretFile> configFiles = new Dictionary<string, SecretFile>();
+            Dictionary<string, SecretFile> configFiles = new();
 
-            string[] lines = File.ReadAllLines(_filePath);
+            IEnumerable<string> lines = File.ReadAllLines(_filePath)
+                .Where(line => line.StartsWith("Project(", StringComparison.Ordinal));
+
             foreach (string line in lines)
             {
-                if (line.StartsWith("Project(", StringComparison.Ordinal))
+                int idx = line.IndexOf('"', StringComparison.Ordinal);
+                while (idx >= 0)
                 {
-                    int idx = line.IndexOf('"', StringComparison.Ordinal);
-                    while (idx >= 0)
+                    int endIdx = line.IndexOf('"', idx + 1);
+                    string value = line.Substring(idx + 1, endIdx - idx - 1);
+
+                    if (_projRegex.IsMatch(value))
                     {
-                        int endIdx = line.IndexOf('"', idx + 1);
-                        string value = line.Substring(idx + 1, endIdx - idx - 1);
+                        string projectFileRelativePath = Path.Combine(Path.Combine(value.Split(@"\")));
+                        string projectFilePath = Path.Combine(_solutionFolderPath, projectFileRelativePath);
+                        string projectFileContent;
 
-                        if (_projRegex.IsMatch(value))
+                        FileInfo projectFile = new FileInfo(projectFilePath);
+                        if (projectFile.Exists)
                         {
-                            string projectFileRelativePath = Path.Combine(Path.Combine(value.Split(@"\")));
-                            string projectFilePath = Path.Combine(_solutionFolderPath, projectFileRelativePath);
-                            string projectFileContent;
-
-                            FileInfo projectFile = new FileInfo(projectFilePath);
-                            if (projectFile.Exists)
+                            try
                             {
-                                try
-                                {
-                                    projectFileContent = File.ReadAllText(projectFilePath);
-                                }
-                                catch
-                                {
-                                    Console.WriteLine("    ERR: Error loading project file.");
-                                    break;
-                                }
-
-                                var secrets = GetProjectSecretsFilePath(projectFileContent);
-                                if (secrets == null && projectFile.Directory != null)
-                                {
-                                    secrets = GetDotNetFrameworkProjectSecretFiles(projectFileContent, projectFile.Directory.FullName);
-                                }
-
-                                if (secrets != null)
-                                {
-                                    string groupName = $"secrets\\{secrets.SecretsId}.json";
-                                    if (!configFiles.ContainsKey(secrets.FilePath))
-                                    {
-                                        var configFile = new SecretFile(secrets.FilePath, groupName);
-                                        configFile.ProjectFileName = projectFileRelativePath;
-                                        configFile.SecretsId = secrets.SecretsId;
-                                        configFiles.Add(secrets.FilePath, configFile);
-                                    }
-                                }
+                                projectFileContent = File.ReadAllText(projectFilePath);
+                            }
+                            catch
+                            {
+                                Console.WriteLine("    ERR: Error loading project file.");
                                 break;
                             }
+
+                            SecretFileInfo? secrets = GetProjectSecretsFilePath(projectFileContent);
+                            if (secrets == null && projectFile.Directory != null)
+                            {
+                                secrets = GetDotNetFrameworkProjectSecretFiles(projectFileContent, projectFile.Directory.FullName);
+                            }
+
+                            if (secrets != null)
+                            {
+                                string groupName = $"secrets\\{secrets.SecretsId}.json";
+                                if (!configFiles.ContainsKey(secrets.FilePath))
+                                {
+                                    SecretFile configFile = new SecretFile(secrets.FilePath, groupName);
+                                    configFile.ProjectFileName = projectFileRelativePath;
+                                    configFile.SecretsId = secrets.SecretsId;
+                                    configFiles.Add(secrets.FilePath, configFile);
+                                }
+                            }
+                            break;
                         }
-                        idx = line.IndexOf('"', endIdx + 1);
                     }
+                    idx = line.IndexOf('"', endIdx + 1);
                 }
             }
 
@@ -143,21 +132,23 @@ namespace VisualStudioSolutionSecrets
 
         public string GetSolutionCompositeKey()
         {
-            var synchronizationSettings = CustomSynchronizationSettings;
-            var repository = Context.Current.GetRepository(synchronizationSettings);
-            string repositoryKey = 
-                repository?.RepositoryType ?? string.Empty +
-                repository?.RepositoryName ?? string.Empty;
+            SolutionSynchronizationSettings? synchronizationSettings = CustomSynchronizationSettings;
+            Repository.IRepository? repository = Context.Current.GetRepository(synchronizationSettings);
 
-            StringBuilder sb = new StringBuilder();
-            sb.Append(repositoryKey);
-            sb.Append('|');
-            sb.Append(_uid.ToString("D", CultureInfo.InvariantCulture));
-          
-            foreach (var secretFile in GetProjectsSecretFiles())
+            string repositoryKey = repository == null
+                ? string.Empty
+                : $"{repository.RepositoryType}{repository.RepositoryName ?? string.Empty}";
+
+            StringBuilder sb = new StringBuilder()
+                .Append(repositoryKey)
+                .Append('|')
+                .Append(Uid.ToString("D", CultureInfo.InvariantCulture));
+
+            foreach (SecretFile secretFile in GetProjectsSecretFiles())
             {
-                sb.Append('|');
-                sb.Append(secretFile.SecretsId);
+                _ = sb
+                    .Append('|')
+                    .Append(secretFile.SecretsId);
             }
 
             return sb.ToString();
@@ -203,22 +194,22 @@ namespace VisualStudioSolutionSecrets
                     string[] projectGuids = projectFileContent.Substring(idx + openTag.Length, endIdx - idx - openTag.Length).ToLowerInvariant().Split(';');
                     if (projectGuids.Contains(ASPNET_MVC5_PROJECT_GUID))
                     {
-                        var webConfigFiles = Directory.GetFiles(projectFolderPath, "web*.config", SearchOption.TopDirectoryOnly);
-                        foreach (var webConfigFile in webConfigFiles)
+                        string[] webConfigFiles = Directory.GetFiles(projectFolderPath, "web*.config", SearchOption.TopDirectoryOnly);
+                        foreach (string webConfigFile in webConfigFiles)
                         {
                             XDocument xml = XDocument.Load(webConfigFile);
-                            var addNodes = xml.Descendants(XName.Get("configBuilders"))
+                            IEnumerable<XElement> addNodes = xml.Descendants(XName.Get("configBuilders"))
                                 .Descendants(XName.Get("builders"))
                                 .Descendants(XName.Get("add"));
 
-                            foreach (var node in addNodes)
+                            foreach (XElement node in addNodes)
                             {
                                 string? name = node.Attribute(XName.Get("name"))?.Value;
                                 string? userSecretsId = node.Attribute(XName.Get("userSecretsId"))?.Value;
                                 string? type = node.Attribute(XName.Get("type"))?.Value;
 
                                 if (name == "Secrets"
-                                    && userSecretsId != null 
+                                    && userSecretsId != null
                                     && type != null
                                     && type.StartsWith(secretsBuilderTypeName, StringComparison.OrdinalIgnoreCase))
                                 {
@@ -238,7 +229,7 @@ namespace VisualStudioSolutionSecrets
         }
 
 
-#pragma warning disable CA1822
+#pragma warning disable CA1822, S2325
 
         public void SaveSecretSettingsFile(SecretFile configFile)
         {
@@ -250,12 +241,12 @@ namespace VisualStudioSolutionSecrets
             FileInfo fileInfo = new FileInfo(filePath);
             if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
             {
-                Directory.CreateDirectory(fileInfo.Directory.FullName);
+                _ = Directory.CreateDirectory(fileInfo.Directory.FullName);
             }
             File.WriteAllText(filePath, configFile.Content ?? String.Empty);
         }
 
-#pragma warning restore CA1822
+#pragma warning restore CA1822, S2325
 
 
         private static string GetSecretsFilePath(string secretsId, string fileName)

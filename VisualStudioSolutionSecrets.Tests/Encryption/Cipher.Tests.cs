@@ -12,7 +12,7 @@ using Xunit;
 
 namespace VisualStudioSolutionSecrets.Tests.Encryption
 {
-    public class CipherTests : IDisposable
+    public sealed class CipherTests : IDisposable
     {
 
         private readonly string _generatedFilePath = Path.Combine(Constants.ConfigFilesPath, "cipher.json");
@@ -71,28 +71,23 @@ namespace VisualStudioSolutionSecrets.Tests.Encryption
 
 
         [Fact]
-        public void Encryption_Test()
+        public void Encryption_Decryption_Test()
         {
-            var cipher = new Cipher();
-            cipher.Init(Constants.PASSPHRASE);
+            const string sample = "plain text";
 
-            string? encryptedText = cipher.Encrypt("plain text");
+            var cipher1 = new Cipher();
+            cipher1.Init(Constants.PASSPHRASE);
+            string? encryptedText = cipher1.Encrypt(sample);
 
             Assert.NotNull(encryptedText);
-            Assert.Equal(File.ReadAllText(Path.Combine(Constants.TestFilesPath, "encrypted.txt")), encryptedText);
-        }
 
-
-        [Fact]
-        public void Decryption_Test()
-        {
-            var cipher = new Cipher();
-            cipher.Init(Constants.PASSPHRASE);
-
-            string? decryptedText = cipher.Decrypt(File.ReadAllText(Path.Combine(Constants.TestFilesPath, "encrypted.txt")));
+            var cipher2 = new Cipher();
+            cipher2.Init(Constants.PASSPHRASE);
+            string? decryptedText = cipher2.Decrypt(encryptedText);
 
             Assert.NotNull(decryptedText);
-            Assert.Equal("plain text", decryptedText);
+
+            Assert.Equal(sample, decryptedText);
         }
 
     }

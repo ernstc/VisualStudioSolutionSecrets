@@ -14,7 +14,7 @@ namespace VisualStudioSolutionSecrets.Commands
     [EncryptionKeyParametersValidation]
     internal class ChangeKeyCommand : EncryptionKeyCommand
     {
-        [Option("-p|--passphrase", Description = "Passphare for creating the encryption key.")]
+        [Option("-p|--passphrase", Description = "Passphrase for creating the encryption key.")]
         public string? Passphrase { get; set; }
 
         [Option("-f|--keyfile <path>", Description = "Key file path to use for creating the encryption key.")]
@@ -53,7 +53,7 @@ namespace VisualStudioSolutionSecrets.Commands
                 return 1;
             }
 
-            var successfulSolutionSecretsByRepository = new Dictionary<IRepository, IList<SolutionSettings>>();
+            Dictionary<IRepository, IList<SolutionSettings>> successfulSolutionSecretsByRepository = new Dictionary<IRepository, IList<SolutionSettings>>();
 
             if (!SkipEncryption)
             {
@@ -81,14 +81,14 @@ namespace VisualStudioSolutionSecrets.Commands
                             Console.WriteLine("\nThere are no solution settings that need to be encrypted with the new key.");
                         }
 
-                        var successfulSolutionSecrets = new List<SolutionSettings>();
+                        List<SolutionSettings> successfulSolutionSecrets = new List<SolutionSettings>();
 
-                        foreach (var solutionSecrets in allSecrets)
+                        foreach (SolutionSettings solutionSecrets in allSecrets)
                         {
-                            bool decryptionSucceded = true;
-                            var decryptedSettings = new List<(string name, string? content)>();
+                            bool decryptionSucceeded = true;
+                            List<(string name, string? content)> decryptedSettings = new List<(string name, string? content)>();
 
-                            foreach (var settings in solutionSecrets.Settings)
+                            foreach ((string name, string? content) settings in solutionSecrets.Settings)
                             {
                                 if (settings.content == null)
                                 {
@@ -110,21 +110,13 @@ namespace VisualStudioSolutionSecrets.Commands
                                     break;
                                 }
 
-                                var decryptedFiles = new Dictionary<string, string>();
-                                foreach (var secret in secretFiles)
+                                Dictionary<string, string> decryptedFiles = new Dictionary<string, string>();
+                                foreach (KeyValuePair<string, string> secret in secretFiles)
                                 {
-                                    string configFileName = secret.Key;
-
-                                    // This check is for compatibility with version 1.0.x
-                                    if (configFileName == "content")
-                                    {
-                                        configFileName = "secrets.json";
-                                    }
-
-                                    var decryptedContent = Context.Current.Cipher.Decrypt(secret.Value);
+                                    string? decryptedContent = Context.Current.Cipher.Decrypt(secret.Value);
                                     if (decryptedContent == null)
                                     {
-                                        decryptionSucceded = false;
+                                        decryptionSucceeded = false;
                                         break;
                                     }
                                     decryptedFiles.Add(secret.Key, decryptedContent);
@@ -133,7 +125,7 @@ namespace VisualStudioSolutionSecrets.Commands
                                 decryptedSettings.Add((settings.name, JsonSerializer.Serialize(decryptedFiles)));
                             }
 
-                            if (decryptionSucceded)
+                            if (decryptionSucceeded)
                             {
                                 successfulSolutionSecrets.Add(new SolutionSettings(decryptedSettings)
                                 {
@@ -170,50 +162,52 @@ namespace VisualStudioSolutionSecrets.Commands
                 }
             }
 
-            // Generate the new encryption key
+            // Generate the new encryption Key
             GenerateEncryptionKey(Passphrase, keyFile);
 
-            // Re-encrypt the secrets with the new key, if the repository encrypts on the server
+            // Re-encrypt the secrets with the new Key, if the repository encrypts on the server
             if (successfulSolutionSecretsByRepository.Count > 0)
             {
                 Console.WriteLine("Saving secrets with the new key...\n");
 
-                foreach (var item in successfulSolutionSecretsByRepository)
+                foreach (KeyValuePair<IRepository, IList<SolutionSettings>> item in successfulSolutionSecretsByRepository)
                 {
                     IRepository repository = item.Key;
-                    var successfulSolutionSecrets = item.Value;
+                    IList<SolutionSettings> successfulSolutionSecrets = item.Value;
 
-                    foreach (var solutionSecrets in successfulSolutionSecrets)
+                    foreach (SolutionSettings solutionSecrets in successfulSolutionSecrets)
                     {
                         Console.Write($"- {solutionSecrets.Name}... ");
 
-                        var headerFile = new HeaderFile
+                        HeaderFile headerFile = new HeaderFile
                         {
-                            visualStudioSolutionSecretsVersion = Versions.VersionString!,
-                            lastUpload = DateTime.UtcNow,
-                            solutionFile = solutionSecrets.Name
+                            VisualStudioSolutionSecretsVersion = Versions.VersionString!,
+                            LastUpload = DateTime.UtcNow,
+                            SolutionFile = solutionSecrets.Name
                         };
 
-                        var files = new List<(string fileName, string? content)>
+                        List<(string fileName, string? content)> files = new List<(string fileName, string? content)>
                     {
                         ("secrets", JsonSerializer.Serialize(headerFile))
                     };
 
                         bool failed = false;
-                        foreach (var settings in solutionSecrets.Settings)
+                        foreach ((string name, string? content) settings in solutionSecrets.Settings)
                         {
                             if (settings.content == null)
+                            {
                                 continue;
+                            }
 
-                            var secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(settings.content);
+                            Dictionary<string, string>? secretFiles = JsonSerializer.Deserialize<Dictionary<string, string>>(settings.content);
                             if (secretFiles == null)
                             {
                                 failed = true;
                                 break;
                             }
 
-                            var encryptedFiles = new Dictionary<string, string>();
-                            foreach (var secret in secretFiles)
+                            Dictionary<string, string> encryptedFiles = new Dictionary<string, string>();
+                            foreach (KeyValuePair<string, string> secret in secretFiles)
                             {
                                 string? encryptedContent = Context.Current.Cipher.Encrypt(secret.Value);
                                 if (encryptedContent == null)
@@ -240,12 +234,9 @@ namespace VisualStudioSolutionSecrets.Commands
                             files.Add((settings.name, JsonSerializer.Serialize(encryptedFiles)));
                         }
 
-                        if (!failed)
+                        if (!failed && !await repository.PushFilesAsync(solutionSecrets, files))
                         {
-                            if (!await repository.PushFilesAsync(solutionSecrets, files))
-                            {
-                                failed = true;
-                            }
+                            failed = true;
                         }
 
                         Console.WriteLine(failed ? "Failed" : "Done");
@@ -262,4 +253,3 @@ namespace VisualStudioSolutionSecrets.Commands
 
     }
 }
-

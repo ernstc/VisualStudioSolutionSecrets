@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace VisualStudioSolutionSecrets.Repository
 {
 
-    public interface IRepository : IService
+    internal interface IRepository : IService
     {
         bool EncryptOnClient { get; }
         string RepositoryType { get; }

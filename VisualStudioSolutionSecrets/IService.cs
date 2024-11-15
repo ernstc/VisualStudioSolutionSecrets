@@ -1,12 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace VisualStudioSolutionSecrets
 {
-	public interface IService
-	{
-		Task<bool> IsReady();
-		Task RefreshStatus();
-	}
+    internal interface IService
+    {
+        Task<bool> IsReady();
+        Task RefreshStatus();
+    }
 }
-

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using VisualStudioSolutionSecrets.Commands.Abstractions;
@@ -13,8 +11,8 @@ namespace VisualStudioSolutionSecrets.Commands
     [Command(Description = "Create the encryption key and setup all needed authorizations to remote repositories.")]
     [EncryptionKeyParametersValidation]
     internal class InitCommand : EncryptionKeyCommand
-	{
-        [Option("-p|--passphrase", Description = "Passphare for creating the encryption key.")]
+    {
+        [Option("-p|--passphrase", Description = "Passphrase for creating the encryption key.")]
         public string? Passphrase { get; set; }
 
         [Option("-f|--keyfile <path>", Description = "Key file path to use for creating the encryption key.")]
@@ -26,11 +24,11 @@ namespace VisualStudioSolutionSecrets.Commands
             Console.WriteLine($"vs-secrets {Versions.VersionString}\n");
 
             bool isCipherReady = await Context.Current.Cipher.IsReady();
-            
+
             if (!isCipherReady)
             {
                 string? keyFile = KeyFile != null ? EnsureFullyQualifiedPath(KeyFile) : null;
-            
+
                 if (AreEncryptionKeyParametersValid(Passphrase, keyFile))
                 {
                     GenerateEncryptionKey(Passphrase, keyFile);
@@ -51,8 +49,7 @@ namespace VisualStudioSolutionSecrets.Commands
             if (isCipherReady)
             {
                 // Check if any repositories that needs encryption on the client need to be authorized.
-                IEnumerable<IRepository> repositories = Context.Current.GetServices<IRepository>().Where(r => r.EncryptOnClient);
-                foreach (IRepository repository in repositories)
+                foreach (IRepository repository in Context.Current.GetServices<IRepository>().Where(r => r.EncryptOnClient))
                 {
                     if (await repository.IsReady())
                     {
@@ -78,5 +75,5 @@ namespace VisualStudioSolutionSecrets.Commands
             return 0;
         }
 
-	}
+    }
 }

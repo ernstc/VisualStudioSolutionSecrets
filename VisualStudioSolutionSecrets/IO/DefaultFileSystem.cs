@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace VisualStudioSolutionSecrets.IO
 {
-    public class DefaultFileSystem : IFileSystem
+    internal class DefaultFileSystem : IFileSystem
     {
         private const string APP_DATA_FOLDER = @"Visual Studio Solution Secrets";
 

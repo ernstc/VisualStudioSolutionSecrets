@@ -1,13 +1,11 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 
 namespace VisualStudioSolutionSecrets.Commands.Abstractions
 {
 
-    public abstract class CommandBase
+    internal abstract class CommandBase
     {
 
         protected static string EnsureFullyQualifiedPath(string? path)
@@ -26,7 +24,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             while (true)
             {
                 Console.Write("    Do you want to continue? [Y] Yes, [N] No : ");
-                var key = Context.Current.Input.ReadKey();
+                ConsoleKeyInfo key = Context.Current.Input.ReadKey();
                 Console.WriteLine();
                 Console.WriteLine();
                 if (key.Key == ConsoleKey.Y)
@@ -47,7 +45,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
             if (path.EndsWith(".sln", StringComparison.OrdinalIgnoreCase))
             {
-                var fileInfo = new FileInfo(path);
+                FileInfo fileInfo = new FileInfo(path);
                 if (fileInfo.Exists)
                 {
                     return new string[] { fileInfo.FullName };
@@ -57,7 +55,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
                     try
                     {
                         string localDir = Context.Current.IO.GetCurrentDirectory();
-                        var files = Directory.GetFiles(localDir, fileInfo.Name, new EnumerationOptions
+                        string[] files = Directory.GetFiles(localDir, fileInfo.Name, new EnumerationOptions
                         {
                             IgnoreInaccessible = true,
                             ReturnSpecialDirectories = false,
@@ -84,16 +82,14 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
             if (path.EndsWith(".sln", StringComparison.OrdinalIgnoreCase))
             {
-                if (File.Exists(path))
-                    return new string[] { path };
-                else
-                    return Array.Empty<string>();
+                return File.Exists(path)
+                    ? new string[] { path }
+                    : Array.Empty<string>();
             }
 
-            var directory = path ?? Context.Current.IO.GetCurrentDirectory();
             try
             {
-                var files = Directory.GetFiles(directory, "*.sln", new EnumerationOptions
+                string[] files = Directory.GetFiles(path, "*.sln", new EnumerationOptions
                 {
                     IgnoreInaccessible = true,
                     ReturnSpecialDirectories = false,
@@ -118,7 +114,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
         protected static void Write(string message, ConsoleColor color)
         {
-            var currentColor = Console.ForegroundColor;
+            ConsoleColor currentColor = Console.ForegroundColor;
             Console.ForegroundColor = color;
             Console.Write(message);
             Console.ForegroundColor = currentColor;
@@ -133,7 +129,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
         protected static void WriteLine(string message, ConsoleColor color)
         {
-            var currentColor = Console.ForegroundColor;
+            ConsoleColor currentColor = Console.ForegroundColor;
             Console.ForegroundColor = color;
             Console.WriteLine(message);
             Console.ForegroundColor = currentColor;

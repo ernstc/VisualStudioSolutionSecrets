@@ -8,55 +8,53 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 {
 
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class EncryptionKeyParametersValidationAttribute : ValidationAttribute
+    internal sealed class EncryptionKeyParametersValidationAttribute : ValidationAttribute
     {
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             if (value is InitCommand initCommand)
             {
-                if (!String.IsNullOrEmpty(initCommand.Passphrase) && !String.IsNullOrEmpty(initCommand.KeyFile))
-                {
-                    return new ValidationResult("\nSpecify -p|--passphrase or -f|--key-file, not both.\n");
-                }
+                return CheckParameters(initCommand.Passphrase, initCommand.KeyFile);
             }
             else if (value is ChangeKeyCommand changeKeyCommand)
             {
-                if (!String.IsNullOrEmpty(changeKeyCommand.Passphrase) && !String.IsNullOrEmpty(changeKeyCommand.KeyFile))
-                {
-                    return new ValidationResult("\nSpecify -p|--passphrase or -f|--key-file, not both.\n");
-                }
+                return CheckParameters(changeKeyCommand.Passphrase, changeKeyCommand.KeyFile);
             }
             return ValidationResult.Success;
+        }
+
+
+        private static ValidationResult? CheckParameters(string? passphrase, string? keyFile)
+        {
+            return !String.IsNullOrEmpty(passphrase) && !String.IsNullOrEmpty(keyFile)
+                ? new ValidationResult("\nSpecify -p|--passphrase or -f|--key-file, not both.\n")
+                : ValidationResult.Success;
         }
     }
 
 
 
     internal abstract class EncryptionKeyCommand : CommandBase
-	{
+    {
+
+        private static readonly Regex startsWithSpace = new(@"^\s");
+        private static readonly Regex endsWithSpace = new(@"\s$");
+        private static readonly Regex hasLowerChar = new(@"[a-z]+");
+        private static readonly Regex hasUpperChar = new(@"[A-Z]+");
+        private static readonly Regex hasNumber = new(@"[0-9]+");
+        private static readonly Regex hasSymbols = new(@"[!@#$%^&*()_+=\[{\]};:<>|./?,-]+");
+
 
         internal static bool ValidatePassphrase(string passphrase)
         {
-            if (string.IsNullOrWhiteSpace(passphrase))
-            {
-                return false;
-            }
-
-            var startsWithSpace = new Regex(@"^\s");
-            var endsWithSpace = new Regex(@"\s$");
-            var hasLowerChar = new Regex(@"[a-z]+");
-            var hasUpperChar = new Regex(@"[A-Z]+");
-            var hasNumber = new Regex(@"[0-9]+");
-            var hasSymbols = new Regex(@"[!@#$%^&*()_+=\[{\]};:<>|./?,-]+");
-
-            return
-                !startsWithSpace.IsMatch(passphrase)
-                && !endsWithSpace.IsMatch(passphrase)
-                && hasLowerChar.IsMatch(passphrase)
-                && hasUpperChar.IsMatch(passphrase)
-                && hasNumber.IsMatch(passphrase)
-                && hasSymbols.IsMatch(passphrase)
-                && passphrase.Length >= 8;
+            return !string.IsNullOrWhiteSpace(passphrase)
+                   && !startsWithSpace.IsMatch(passphrase)
+                   && !endsWithSpace.IsMatch(passphrase)
+                   && hasLowerChar.IsMatch(passphrase)
+                   && hasUpperChar.IsMatch(passphrase)
+                   && hasNumber.IsMatch(passphrase)
+                   && hasSymbols.IsMatch(passphrase)
+                   && passphrase.Length >= 8;
         }
 
 
@@ -83,13 +81,10 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
                     }
                 }
             }
-            else if (!string.IsNullOrEmpty(keyFile))
+            else if (!string.IsNullOrEmpty(keyFile) && !File.Exists(keyFile))
             {
-                if (!File.Exists(keyFile))
-                {
-                    Console.WriteLine("    ERR: Cannot create the encryption key. Key file not found.");
-                    return false;
-                }
+                Console.WriteLine("    ERR: Cannot create the encryption key. Key file not found.");
+                return false;
             }
             return true;
         }
@@ -104,7 +99,7 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
             }
             else if (!string.IsNullOrEmpty(keyFile))
             {
-                using var file = File.OpenRead(keyFile);
+                using FileStream file = File.OpenRead(keyFile);
                 Context.Current.Cipher.Init(file);
                 file.Close();
             }
@@ -113,4 +108,3 @@ namespace VisualStudioSolutionSecrets.Commands.Abstractions
 
     }
 }
-

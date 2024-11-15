@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace VisualStudioSolutionSecrets.Utilities
 {
-    public static class WebBrowser
+    internal static class WebBrowser
     {
         public static void OpenUrl(Uri uri)
         {
@@ -18,11 +14,13 @@ namespace VisualStudioSolutionSecrets.Utilities
 
             try
             {
-                Process.Start(url);
+                _ = Process.Start(url);
                 return;
             }
             catch
-            { }
+            {
+                // ignored
+            }
 
             try
             {
@@ -30,22 +28,24 @@ namespace VisualStudioSolutionSecrets.Utilities
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     url = url.Replace("&", "^&", StringComparison.Ordinal);
-                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                    _ = Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
                     return;
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    Process.Start("xdg-open", url);
+                    _ = Process.Start("xdg-open", url);
                     return;
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    Process.Start("open", url);
+                    _ = Process.Start("open", url);
                     return;
                 }
             }
             catch
-            { }
+            {
+                // ignored
+            }
 
             Console.WriteLine($"\nOpen the URL below with your preferred browser:\n{url}\n");
         }

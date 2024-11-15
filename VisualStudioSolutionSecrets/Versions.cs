@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
-using NuGet.Protocol.Core.Types;
 using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
-using System.Reflection;
 
 namespace VisualStudioSolutionSecrets
 {
-	public static class Versions
-	{
+    internal static class Versions
+    {
 
-		public const string MinFileFormatSupported = "1.0.0";
+        public const string MinFileFormatSupported = "1.0.0";
         public const string MaxFileFormatSupported = "2.0.0";
 
 
@@ -52,14 +53,16 @@ namespace VisualStudioSolutionSecrets
                     logger,
                     cancellationToken);
 
-                foreach (NuGetVersion version in versions)
+                foreach (NuGetVersion version in versions.Where(v => v.Version > lastVersion))
                 {
-                    if (version.Version > lastVersion)
-                        lastVersion = version.Version;
+                    lastVersion = version.Version;
                 }
             }
             catch
-            { }
+            {
+                // ignored
+            }
+
             return lastVersion;
         }
 
