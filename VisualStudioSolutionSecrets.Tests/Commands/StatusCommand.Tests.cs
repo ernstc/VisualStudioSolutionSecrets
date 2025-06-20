@@ -13,18 +13,26 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 {
 
     [Collection("vs-secrets Tests")]
-    public class StatusCommandTests : CommandTests, IDisposable
+    public class StatusCommandTests : CommandTests, IClassFixture<TemporaryFolder>, IDisposable
     {
+        private readonly TemporaryFolder _temporaryFolder;
 
-        public StatusCommandTests()
+
+        public StatusCommandTests(TemporaryFolder temporaryFolder) 
+            : base(temporaryFolder)
         {
+            _temporaryFolder = temporaryFolder;
+
             ConfigureContext();
+
+            MockFileSystem(
+                applicationDataFolder: temporaryFolder.Path
+                );
         }
 
 
         public void Dispose()
         {
-            DisposeTempFolder();
             DisposeCipherFiles();
             foreach (var directory in Directory.GetDirectories(Constants.RepositoryFilesPath))
             {
@@ -133,7 +141,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             File.Delete(filePath);
 
             // Fake file system for hiding local settings
-            MockFileSystem(secretsFolder: Constants.TempFolderPath);
+            MockFileSystem(secretsFolder: _temporaryFolder.Path);
 
             ClearOutput();
 
@@ -250,7 +258,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             // Fake file system for hiding local settings
-            MockFileSystem(secretsFolder: Constants.TempFolderPath);
+            MockFileSystem(secretsFolder: _temporaryFolder.Path);
 
             ClearOutput();
 
@@ -267,7 +275,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             RunCommand($"push '{Path.Combine(Constants.SolutionFilesPath, "SolutionSample.sln")}'");
 
             // Fake file system for hiding local settings
-            MockFileSystem(secretsFolder: Constants.TempFolderPath);
+            MockFileSystem(secretsFolder: _temporaryFolder.Path);
 
             // Invalidate the key
             RunCommand($"change-key -s -p New{Constants.PASSPHRASE}");
@@ -351,14 +359,14 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 
             const string secretId = "c5dd8aa7-f3ef-4757-8f36-7b3135e3ac99";
             string filePath = Path.Combine(secretId, "secrets.json");
-            Directory.CreateDirectory(Path.Combine(Constants.TempFolderPath, secretId));
+            Directory.CreateDirectory(Path.Combine(_temporaryFolder.Path, secretId));
             File.WriteAllText(
-                Path.Combine(Constants.TempFolderPath, filePath),
+                Path.Combine(_temporaryFolder.Path, filePath),
                 File.ReadAllText(Path.Combine(Constants.SecretFilesPath, filePath))
                 );
 
             // Fake file system for hiding local settings
-            MockFileSystem(secretsFolder: Constants.TempFolderPath);
+            MockFileSystem(secretsFolder: _temporaryFolder.Path);
 
             ClearOutput();
 

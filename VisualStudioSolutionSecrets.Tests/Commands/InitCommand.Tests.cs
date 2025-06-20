@@ -10,14 +10,15 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 {
 
     [Collection("vs-secrets Tests")]
-    public class InitCommandTests : CommandTests, IDisposable
+    public class InitCommandTests : CommandTests, IClassFixture<TemporaryFolder>, IDisposable
     {
 
         private readonly string _generatedFilePath = Path.Combine(Constants.ConfigFilesPath, "cipher.json");
         private readonly string _sampleFilePath = Path.Combine(Constants.ConfigFilesPath, "sample.cipher.json");
 
 
-        public InitCommandTests()
+        public InitCommandTests(TemporaryFolder temporaryFolder) 
+            : base(temporaryFolder)
         {
             ConfigureContext();
         }

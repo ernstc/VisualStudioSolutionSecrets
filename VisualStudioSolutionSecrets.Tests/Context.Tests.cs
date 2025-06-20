@@ -15,19 +15,22 @@ namespace VisualStudioSolutionSecrets.Tests
 {
 
     [Collection("vs-secrets Tests")]
-    public sealed class ContextTests : TestsBase, IDisposable
+    public sealed class ContextTests : IClassFixture<TemporaryFolder>, IDisposable
     {
 
-        public ContextTests()
+        private TemporaryFolder _temporaryFolder;
+
+
+        public ContextTests(TemporaryFolder temporaryFolder)
         {
-            SetupTempFolder();
+            _temporaryFolder = temporaryFolder;
+         
             Context.Current.ResetToDefault();
         }
 
 
         public void Dispose()
         {
-            DisposeTempFolder();
             Context.Current.ResetToDefault();
         }
 
@@ -103,20 +106,26 @@ namespace VisualStudioSolutionSecrets.Tests
 
         private void Context_GetDefaultRepository_Setup(string? configurationContent = null)
         {
-            SetupTempFolder();
+            _temporaryFolder.Reset();
 
             // Test the dependency assignment
             var fileSystemMock = new Mock<IFileSystem>();
 
             fileSystemMock
                 .Setup(o => o.GetApplicationDataFolderPath())
-                .Returns(Constants.TempFolderPath);
+                .Returns(_temporaryFolder.Path);
+
+            string configurationFilePath = Path.Combine(_temporaryFolder.Path, "configuration.json");
 
             if (configurationContent != null)
             {
-                File.WriteAllText(Path.Combine(Constants.TempFolderPath, "configuration.json"), configurationContent);
+                File.WriteAllText(configurationFilePath, configurationContent);
             }
-
+            else if (File.Exists(configurationFilePath))
+            {
+                File.Delete(configurationFilePath);
+            }
+            
             Context.Current.AddService<IFileSystem>(fileSystemMock.Object);
             Context.Current.AddService<IRepository>(new GistRepository(), nameof(RepositoryType.GitHub));
             Context.Current.AddService<IRepository>(new AzureKeyVaultRepository(), nameof(RepositoryType.AzureKV));
@@ -134,8 +143,6 @@ namespace VisualStudioSolutionSecrets.Tests
 
             Assert.NotNull(repository);
             Assert.IsType<GistRepository>(repository);
-
-            DisposeTempFolder();
         }
 
 
@@ -145,15 +152,13 @@ namespace VisualStudioSolutionSecrets.Tests
             Context_GetDefaultRepository_Setup(
 @"{
   ""default"": {
-    ""repository"": ""GitHub"",
+    ""repository"": ""GitHub""
   }
 }");
             var repository = Context.Current.Repository;
 
             Assert.NotNull(repository);
             Assert.IsType<GistRepository>(repository);
-
-            DisposeTempFolder();
         }
 
 
@@ -174,8 +179,6 @@ namespace VisualStudioSolutionSecrets.Tests
 
             var azureKeyVaultRepository = repository as AzureKeyVaultRepository;
             Assert.Equal("https://___.vault.azure.net", azureKeyVaultRepository?.RepositoryName);
-
-            DisposeTempFolder();
         }
 
     }

@@ -10,18 +10,13 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 {
 
     [Collection("vs-secrets Tests")]
-    public class ClearCommandTests : CommandTests, IDisposable
+    public class ClearCommandTests : CommandTests, IClassFixture<TemporaryFolder>
     {
 
-        public ClearCommandTests()
+        public ClearCommandTests(TemporaryFolder temporaryFolder)
+            : base(temporaryFolder)
         {
             ConfigureContext();
-        }
-
-
-        public void Dispose()
-        {
-            DisposeTempFolder();
         }
 
 

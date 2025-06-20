@@ -9,10 +9,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 {
 
     [Collection("vs-secrets Tests")]
-    public class SearchCommandTests : CommandTests
+    public class SearchCommandTests : CommandTests, IClassFixture<TemporaryFolder>
     {
 
-        public SearchCommandTests()
+        public SearchCommandTests(TemporaryFolder temporaryFolder) 
+            : base(temporaryFolder)
         {
             ConfigureContext();
         }

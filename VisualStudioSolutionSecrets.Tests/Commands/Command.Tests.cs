@@ -14,7 +14,7 @@ using Xunit;
 namespace VisualStudioSolutionSecrets.Tests.Commands
 {
 
-    public class CommandTests : TestsBase
+    public abstract class CommandTests
     {
 
         protected bool UseRepositoryEncryption { get; set; } = true;
@@ -26,6 +26,16 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
         protected string Output => _consoleOutput.ToString();
 
 
+        private readonly TemporaryFolder _tempFolder;
+
+
+        public CommandTests(TemporaryFolder tempFolder)
+        {
+
+            _tempFolder = tempFolder;
+        }
+
+
         protected void ConfigureContext()
         {
             UseRepositoryEncryption = true;
@@ -35,7 +45,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             // Suppress output on standart out
             Console.SetOut(new StringWriter(_consoleOutput));
 
-            SetupTempFolder();
+            _tempFolder.Reset();
 
             Context.Current.Clear();
 

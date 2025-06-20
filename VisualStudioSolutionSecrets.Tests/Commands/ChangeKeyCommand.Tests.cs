@@ -12,14 +12,15 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 {
 
     [Collection("vs-secrets Tests")]
-    public class ChangeKeyCommandTests : CommandTests, IDisposable
+    public class ChangeKeyCommandTests : CommandTests, IClassFixture<TemporaryFolder>, IDisposable
     {
 
         private const string NEW_PASSPHRASE = "New" + Constants.PASSPHRASE;
         private readonly string PulledSecretsFilesPath = Constants.SecretFilesPath + "_pulled";
 
 
-        public ChangeKeyCommandTests()
+        public ChangeKeyCommandTests(TemporaryFolder temporaryFolder)
+            : base(temporaryFolder)
         {
             ConfigureContext();
         }

@@ -12,13 +12,14 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 {
 
     [Collection("vs-secrets Tests")]
-    public class PullSecretsCommandTests : CommandTests, IDisposable
+    public class PullSecretsCommandTests : CommandTests, IClassFixture<TemporaryFolder>, IDisposable
     {
 
         private readonly string PulledSecretsFilesPath = Constants.SecretFilesPath + "_pulled";
 
 
-        public PullSecretsCommandTests()
+        public PullSecretsCommandTests(TemporaryFolder temporaryFolder) 
+            : base(temporaryFolder)
         {
             ConfigureContext();
         }

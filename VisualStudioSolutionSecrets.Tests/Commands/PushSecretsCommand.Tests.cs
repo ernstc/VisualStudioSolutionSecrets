@@ -12,10 +12,11 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 {
 
     [Collection("vs-secrets Tests")]
-    public class PushSecretsCommandTests : CommandTests, IDisposable
+    public class PushSecretsCommandTests : CommandTests, IClassFixture<TemporaryFolder>, IDisposable
     {
 
-        public PushSecretsCommandTests()
+        public PushSecretsCommandTests(TemporaryFolder temporaryFolder) 
+            : base(temporaryFolder)
         {
             ConfigureContext();
         }

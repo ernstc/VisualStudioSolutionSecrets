@@ -11,26 +11,25 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 {
 
     [Collection("vs-secrets Tests")]
-    public class ConfigureCommandTests : CommandTests, IDisposable
+    public class ConfigureCommandTests : CommandTests, IClassFixture<TemporaryFolder>
     {
 
         private const string KEY_VAULT_NAME = "keyvault-name";
         private const string SOLUTION_GUID = "D16E70F9-E206-4047-8A33-01710EBD0EEB";
 
+        private readonly TemporaryFolder _temporaryFolder;
 
-        public ConfigureCommandTests()
+
+        public ConfigureCommandTests(TemporaryFolder temporaryFolder) 
+            : base(temporaryFolder)
         {
+            _temporaryFolder = temporaryFolder;
+
             ConfigureContext();
-        }
 
-
-        public void Dispose()
-        {
-            string configurationFilePath = Path.Combine(Constants.ConfigFilesPath, "configuration.json");
-            if (File.Exists(configurationFilePath))
-            {
-                File.Delete(configurationFilePath);
-            }
+            MockFileSystem(
+                applicationDataFolder: temporaryFolder.Path
+                );
         }
 
 
@@ -40,7 +39,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand("configure --default --reset");
 
             Assert.Equal(1, result);
-            Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.False(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
         }
 
 
@@ -50,7 +49,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand("configure --repo unknown");
 
             Assert.Equal(1, result);
-            Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.False(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
         }
 
 
@@ -60,7 +59,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand($"configure --default --repo {nameof(RepositoryType.GitHub)} --name {KEY_VAULT_NAME}");
 
             Assert.Equal(1, result);
-            Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.False(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
         }
 
 
@@ -70,7 +69,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand($"configure --repo {nameof(RepositoryType.GitHub)} --name {KEY_VAULT_NAME}");
 
             Assert.Equal(1, result);
-            Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.False(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
         }
 
 
@@ -80,7 +79,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand($"configure --name {KEY_VAULT_NAME}");
 
             Assert.Equal(1, result);
-            Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.False(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
         }
 
 
@@ -90,7 +89,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand("configure --default --path path");
 
             Assert.Equal(1, result);
-            Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.False(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
         }
 
 
@@ -100,7 +99,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand($"configure --default --repo {nameof(RepositoryType.GitHub)}");
 
             Assert.Equal(0, result);
-            Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.True(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
 
             SyncConfiguration.Refresh();
 
@@ -115,7 +114,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand($"configure --default --repo {nameof(RepositoryType.AzureKV)} --name {KEY_VAULT_NAME}");
 
             Assert.Equal(0, result);
-            Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.True(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
 
             SyncConfiguration.Refresh();
 
@@ -130,7 +129,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand($"configure --default --repo {nameof(RepositoryType.AzureKV)} --name https://my-domain.com");
 
             Assert.Equal(1, result);
-            Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.False(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
         }
 
 
@@ -140,7 +139,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand($"configure --repo {nameof(RepositoryType.GitHub)}");
 
             Assert.Equal(0, result);
-            Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.True(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
 
             SyncConfiguration.Refresh();
 
@@ -158,7 +157,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand($"configure SolutionSample-WithoutGuid.sln --repo {nameof(RepositoryType.GitHub)}");
 
             Assert.Equal(1, result);
-            Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.False(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
         }
 
 
@@ -168,7 +167,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand($"configure --repo {nameof(RepositoryType.AzureKV)} --name {KEY_VAULT_NAME}");
 
             Assert.Equal(0, result);
-            Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.True(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
 
             SyncConfiguration.Refresh();
 
@@ -186,7 +185,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand($"configure SolutionSample.sln --repo {nameof(RepositoryType.AzureKV)} --name http://my-domain.com");
 
             Assert.Equal(1, result);
-            Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.False(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
         }
 
 
@@ -196,7 +195,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand($"configure SolutionSample-WithoutGuid.sln --repo {nameof(RepositoryType.AzureKV)} --name {KEY_VAULT_NAME}");
 
             Assert.Equal(1, result);
-            Assert.False(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.False(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
         }
 
 
@@ -208,7 +207,7 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
             var result = RunCommand("configure SolutionSample.sln --reset");
 
             Assert.Equal(0, result);
-            Assert.True(File.Exists(Path.Combine(Constants.ConfigFilesPath, "configuration.json")));
+            Assert.True(File.Exists(Path.Combine(_temporaryFolder.Path, "configuration.json")));
 
             var settings = SyncConfiguration.GetCustomSynchronizationSettings(new Guid(SOLUTION_GUID));
 

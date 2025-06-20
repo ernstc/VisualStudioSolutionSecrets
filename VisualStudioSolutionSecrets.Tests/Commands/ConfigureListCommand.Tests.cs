@@ -11,26 +11,25 @@ namespace VisualStudioSolutionSecrets.Tests.Commands
 {
 
     [Collection("vs-secrets Tests")]
-    public class ConfigureListCommandTests : CommandTests, IDisposable
+    public class ConfigureListCommandTests : CommandTests, IClassFixture<TemporaryFolder>
     {
         private const string KEY_VAULT_NAME = "keyvault-name";
 
+        private readonly TemporaryFolder _temporaryFolder;
 
-        public ConfigureListCommandTests()
+
+        public ConfigureListCommandTests(TemporaryFolder temporaryFolder) 
+            : base(temporaryFolder)
         {
+            _temporaryFolder = temporaryFolder;
+            
             ConfigureContext();
+
+            MockFileSystem(
+                applicationDataFolder: temporaryFolder.Path
+                );
         }
 
-
-        public void Dispose()
-        {
-            string configurationFilePath = Path.Combine(Constants.ConfigFilesPath, "configuration.json");
-            if (File.Exists(configurationFilePath))
-            {
-                File.Delete(configurationFilePath);
-            }
-        }
-        
 
         [Fact]
         public void ConfigureList_None_Test()
